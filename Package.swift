@@ -10,6 +10,7 @@ let package = Package(
         .target(name: "TouchMePlatform", dependencies: ["TouchMappingCore"]),
         .executableTarget(name: "TouchMeApp", dependencies: ["TouchMePlatform", "TouchMappingCore"]),
         .testTarget(name: "TouchMappingCoreTests", dependencies: ["TouchMappingCore"]),
+        .testTarget(name: "TouchMePlatformTests", dependencies: ["TouchMePlatform", "TouchMappingCore"]),
     ],
     swiftLanguageModes: [.v5]
 )

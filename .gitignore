@@ -1,3 +1,6 @@
 .build/
 dist/
 .DS_Store
+
+# Python packaging test caches
+__pycache__/
