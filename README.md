@@ -1,97 +1,133 @@
-![touch me](docs/assets/touch-me-title.png)
+![touch me for ZEUSLAP](docs/assets/touch-me-title.png)
 
 [English](README.md) · [한국어](README.ko.md) · [Build workflow](Workflow.md) · [Homebrew distribution](docs/Homebrew.md)
 
-<!-- meta.contentType: Landing; audience: P16KT owners; goal: install and operate Touch Me; content plan: setup, installation, gestures, recovery, validation, licenses. -->
+<!-- meta.contentType: Landing; audience: ZEUSLAP owners with the verified P16KT profile; goal: install and operate Touch Me; content plan: purpose, current scope, installation, gestures, recovery, documentation, validation, license. -->
 
-# Use your P16KT touchscreen on macOS
+# Use your ZEUSLAP touchscreen on macOS
 
-Touch Me maps touches on a ZEUSLAP P16KT to its selected display. Run the menu bar app to tap, drag, double-click and scroll with two fingers. The current beta is `0.8.0-beta.2`.
+Touch Me is a menu bar app for resolving ZEUSLAP touchscreen input issues on macOS. It maps your touches to the display you select, so you can tap to click, drag with one finger and scroll with two.
 
-## Check your setup
+The current beta, `0.8.0-beta.2`, requires the **USB/HID profile verified on the P16KT**. Mapping won't start if the device identifiers or HID (Human Interface Device) input layout differ. Support for other ZEUSLAP models isn't guaranteed, so check the setup below first.
 
-The current implementation targets one connected P16KT on Apple Silicon with macOS 26 or later. The recorded hardware checks used an Apple M4 Max, macOS 26.7.1 and a direct USB-C connection.
+## Check your setup first
 
-| Requirement   | Current scope                                                         |
-| ------------- | --------------------------------------------------------------------- |
-| Touch panel   | ZEUSLAP P16KT; verified USB device `0x0457:0x0819`                    |
-| Display       | External, without rotation or mirroring                               |
-| Permissions   | Input Monitoring and Accessibility                                    |
-| App languages | English by default; English / 한국어 selector in settings             |
-| Distribution  | Ad hoc arm64 app and disk image; personal Homebrew beta Tap          |
+The app targets one connected P16KT on an Apple Silicon Mac. Recorded hardware checks used an Apple M4 Max, macOS 26.7.1 and a direct USB-C connection:
 
-Other panels, Intel Macs and older macOS versions have no recorded validation. Stop other touch-mapping software before starting Touch Me.
+| Item | Current scope |
+| --- | --- |
+| Mac | Apple Silicon (arm64), macOS 26 or later |
+| Touch panel | One ZEUSLAP P16KT; USB device `0x0457:0x0819` |
+| Target display | External, without rotation or mirroring |
+| Permissions | Input Monitoring and Accessibility |
+| App languages | English by default; English / 한국어 selector in settings |
+| Distribution | Ad hoc signed app and DMG; personal Homebrew beta Tap |
 
-## Install and start mapping
+Other panels, Intel Macs and older macOS versions have no recorded validation. Stop other touch-mapping software before opening Touch Me.
 
-Use the DMG and checksum from the [v0.8.0-beta.2 release](https://github.com/soom-kang/touch-me/releases/tag/v0.8.0-beta.2), or build them with the [development workflow](Workflow.md). The local image is `dist/touch-me-0.8.0-beta.2-arm64.dmg`. See [Homebrew distribution](docs/Homebrew.md) for Tap installation, manual-app conflicts and release checks.
+## Install and start your first mapping session
 
-1. Open the disk image and drag **Touch Me.app** to **Applications**. Eject the image, then open the installed app.
-2. Open **System Settings → Privacy & Security**. Allow Touch Me in **Input Monitoring** and **Accessibility**.
-3. Connect the P16KT by USB-C. Open **Settings / Proof** from the Touch Me menu bar item.
-4. Select the P16KT display and open its test window. Confirm that the window appears on the panel, then select the target-confirmation checkbox.
+Install through Homebrew or copy the app from its DMG. Both routes use the same permission and target-display setup below.
+
+### Install with Homebrew
+
+If you already have a manually installed `/Applications/Touch Me.app`, turn off **Open Touch Me at login** and select **Stop mapping**. Confirm device-mode restoration completed, then quit normally and move the old app outside Applications to keep it. Stop installation if restoration fails. The [Homebrew installation guide](docs/Homebrew.md#install-update-and-remove-after-publication) explains how to preserve the app and preferences without forcing an overwrite.
+
+Install the Cask from the existing Tap:
+
+```bash
+brew install --cask soom-kang/touch-me/touch-me
+```
+
+### Install from the DMG
+
+Download the arm64 DMG and its `.sha256` file from the [v0.8.0-beta.2 release](https://github.com/soom-kang/touch-me/releases/tag/v0.8.0-beta.2). Verify the source and checksum, then open the disk image and drag **Touch Me.app** to **Applications**. Eject the image after copying.
+
+The beta has an ad hoc signature and isn't notarized. If macOS blocks the downloaded app's first launch, verify its source and checksum before following [Apple's manual approval guidance](https://support.apple.com/en-us/102445). An available approval option doesn't guarantee the app can run.
+
+### Set permissions and choose the target display
+
+Open the installed app and choose **Settings / Proof** from the menu bar. Without a saved language choice, the app starts in English. Use **Language / 언어** at the top to choose **English** or **한국어**.
+
+The choice takes effect immediately and stays selected on the next launch. Switching languages preserves the running mapping session, selected target and test history. macOS dialogs keep their own language.
+
+Set permissions and the target display in this order:
+
+1. In **System Settings → Privacy & Security**, allow Touch Me in **Input Monitoring** and **Accessibility**.
+2. Connect the P16KT by USB-C. Select **Refresh** if permissions or the device aren't visible.
+3. Select the P16KT display and choose **Open test on selected display**.
+4. Check that the test window appears on the P16KT, then select **I confirmed the test window is on the P16KT**.
 5. Select **Start mapping** and check taps at two separated positions.
 
-The app stays in the menu bar. Closing the settings window leaves mapping active.
+Closing settings leaves the app in the menu bar and mapping active.
 
-Choose **English** or **한국어** from **Language** at the top of settings. The choice takes effect immediately and stays selected on the next launch. Changing it preserves the current mapping session, selected target and test-window history. macOS dialogs and System Settings keep their own language.
+## Use your fingers
 
-The beta has an ad hoc signature and is not notarized. For a downloaded copy, macOS may block the first launch. Verify its source and checksum before following [Apple's manual approval guidance](https://support.apple.com/en-us/102445); availability of that option does not guarantee the app can run.
+Use one finger to click or drag and two fingers to scroll:
 
-## Use touch and control the session
+| Action | Gesture |
+| --- | --- |
+| Click or double-click | Tap once or twice |
+| Drag | Hold one finger and move it |
+| Scroll vertically or horizontally | Move two fingers together |
+| Start dragging after scrolling | Lift both fingers before starting a new one-finger gesture |
 
-The supported gestures are:
+## Stop and start again
 
-| Action                            | Gesture                                                    |
-| --------------------------------- | ---------------------------------------------------------- |
-| Click or double-click             | Tap once or twice                                          |
-| Drag                              | Hold one finger and move it                                |
-| Scroll vertically or horizontally | Move two fingers together                                  |
-| Return from scrolling to dragging | Lift both fingers before starting a new one-finger gesture |
+Select **Stop mapping** from the menu to release input and keep mapping stopped on the next launch. Quitting normally while mapping saves the intent to resume. Automatic resume requires the saved display and USB location to match and both permissions to be granted.
 
-Select **Stop mapping** to release input and keep mapping stopped on the next launch. Quitting while mapping preserves the intent to resume. Automatic resume requires the saved display, USB location and both permissions to match.
+Sleep, an inactive user session or a display-configuration change stops mapping safely and clears the saved resume intent. Waking or returning to the session doesn't restart mapping. Check the target and permissions, then start it manually. If an earlier safety interruption or **Stop mapping** cleared resume intent, a later normal Quit won't restore automatic resume.
 
-Sleep, an inactive user session, or a display-configuration change stops mapping and clears the saved intent to resume. Waking or returning to the session does not restart mapping automatically. Check the target and permissions, then start mapping manually. Normal Quit preserves resume intent only if no earlier safety interruption or explicit Stop cleared it.
+**Open Touch Me at login** is off by default. Enable it in settings after installing the app in Applications. This option opens the app at login; the saved mapping state determines whether mapping resumes.
 
-**Launch at login** is off by default. Enable it in settings after copying the app to Applications. Login launch opens the app; the saved mapping state determines whether it resumes.
+## Recover, update or remove the app
 
-## Recover or remove the app
+Mapping temporarily changes the verified P16KT device mode. Stop or normal Quit releases input and restores the original mode when a change was necessary. A restoration error can prevent the app from quitting:
 
-Mapping temporarily changes the verified P16KT device mode. Stop or normal Quit releases input and restores the original mode when a change was necessary. A restoration error can prevent the app from quitting.
+| Situation | Next action |
+| --- | --- |
+| A permission is missing | Allow Touch Me in both privacy settings, then select **Refresh** |
+| The panel or display changed | Reconnect the saved panel to the same USB port; select and confirm the display again |
+| Device access fails | Stop other mappers and check the USB connection |
+| Device-mode restoration fails | Reconnect the P16KT to the same USB port and select **Retry restore** in settings |
 
-Force Quit, a crash, or power loss cannot run normal cleanup. The original device mode is kept only for the current process; the app does not currently recover that earlier mode across a crash. Whether the panel retains the changed mode after such an interruption has not been validated. Do not treat reopening the app or a later successful Stop as proof that the pre-crash mode was restored. If device behavior is unexpected, stop mapping, avoid upgrade/removal while recovery is unresolved, and retain the error details for diagnosis. Do not force an assumed mode value onto the device. See [abnormal-exit verification](docs/qa/abnormal-exit-recovery.md).
+Force Quit, a crash or power loss can't run normal cleanup. The app stores the original device mode only in the current process's memory; it doesn't recover the previous process's mode after a crash. Whether the panel retains the changed mode after that interruption hasn't been validated.
 
-| Situation                     | Next action                                                                          |
-| ----------------------------- | ------------------------------------------------------------------------------------ |
-| A permission is missing       | Allow Touch Me in both privacy settings, then refresh the app                        |
-| The panel or display changed  | Reconnect the saved panel to the same USB port; select and confirm the display again |
-| Device access fails           | Stop other mappers and check the USB connection                                      |
-| Device-mode restoration fails | Reconnect the P16KT to the same USB port and retry **Stop mapping** before quitting  |
+Don't treat reopening the app or a later successful Stop as proof that the pre-crash mode was restored. If device behavior is unexpected, stop mapping, put upgrades and removal on hold, and keep the error details. Don't force an assumed mode value onto the device. See the [abnormal-exit verification notes](docs/qa/abnormal-exit-recovery.md) for the verification scope.
 
-To remove Touch Me, turn off **Launch at login**, stop mapping, quit the app and move it to Trash. These steps leave saved preferences in place.
+Before updating or removing the app, follow **Stop mapping → confirm device-mode restoration → normal Quit**. If restoration fails, reconnect the panel to the same USB port and finish recovery before proceeding. After an ad hoc update, check both privacy permissions again.
 
-## Understand the mapping path
+Turn off **Open Touch Me at login** before removal. After restoration and Quit, move a manually installed app to Trash. For a Homebrew installation, follow the [update and removal guide](docs/Homebrew.md#install-update-and-remove-after-publication). These steps preserve saved preferences.
 
-The app selects the target and controls the session. Platform code reads the panel, calls the coordinate and gesture logic, then posts mouse and scroll events to macOS.
+## Architecture and further reading
+
+After you choose a target and start mapping, platform code reads input from the panel. It runs Core coordinate and gesture logic, then posts mouse and scroll events to macOS for that display.
 
 ![Touch Me runtime: P16KT input passes through platform and core logic to macOS events on the selected display.](docs/assets/architecture.png)
 
-[Editable diagram](docs/assets/architecture.html) · [Module responsibilities](Workflow.md#understand-the-modules)
+For local builds or distribution details, read these documents:
 
-## Read the recorded validation
+- [Build workflow](Workflow.md): module responsibilities, local builds, packaging and checks for each change
+- [Homebrew distribution](docs/Homebrew.md): Tap and release procedure, installation conflicts, updates and removal
+- [Beta.2 release notes](docs/releases/v0.8.0-beta.2.md): changes and validation limits for this version
+- [Editable architecture diagram](docs/assets/architecture.html)
 
-This summary preserves standalone build 8 checks recorded on 2026-10-07, in `Asia/Seoul`. It replaces the retired detailed development notes. The following results came from user reports, with separate process and artifact checks:
+A local build produces `dist/touch-me-0.8.0-beta.2-arm64.dmg`.
+
+## Recorded validation
+
+These results preserve standalone build 8 checks from 2026-10-07, in `Asia/Seoul`. The input behavior below came from user reports; process and artifact checks were separate:
 
 - Tap coordinates, one-finger drag and input release after normal Quit
 - Two-finger vertical and horizontal scrolling without a preliminary tap
 - Double-click detection and automatic resume after normal Quit
 - Stop-state persistence and login-item registration and removal
-- Finder installation from the personal disk image and subsequent mapping
+- Finder installation from the personal DMG and subsequent mapping
 
-These are recorded results, not new device checks for a rebuilt app. A full logout/login launch is `NOT_RUN`; horizontal scrolling after automatic resume is `NOT_RETESTED`. Earlier checks with possible interference from another mapper do not establish standalone behavior.
+These are historical results, not new device checks for beta.2 or a rebuilt app. A full logout/login launch is `NOT_RUN`; horizontal scrolling after automatic resume is `NOT_RETESTED`. Earlier checks with possible interference from another mapper don't establish standalone behavior.
 
-See the [validation boundaries](Workflow.md#choose-the-minimum-checks) before changing device handling or expanding compatibility.
+Beta.2 Homebrew installation, Gatekeeper, GUI, real-device and login-launch checks are `NOT_RUN`. See the [build workflow's validation records](Workflow.md#choose-the-minimum-checks) and [release notes](docs/releases/v0.8.0-beta.2.md) for local artifact results and validation limits.
 
-## Read the license
+## License
 
-Touch Me uses the [MIT License](LICENSE), copyright 2026 Soom Kang. Open **License** in the app menu to read it.
+Touch Me uses the [MIT License](LICENSE), copyright 2026 Soom Kang. You can also read it from **License** in the app menu.

@@ -1,15 +1,17 @@
 Generator: built-in image_gen
-Created: 2026-10-07
-Reference: agreed Touch Me title-image direction
+Updated: 2026-10-07
+Reference: existing Touch Me title banner; agreed ZEUSLAP subtitle and monitor-and-touch symbol
 Output: touch-me-title.png
+Shared with: soom-kang/homebrew-touch-me, docs/assets/touch-me-title.png
 
-Use case: logo-brand
-Asset type: wide title banner for the top of a GitHub README, landscape approximately 3:1.
-Primary request: a refined editorial title image for the macOS touchscreen utility Touch Me.
-Scene/backdrop: solid warm light gray paper #F6F5F1, extremely subtle paper texture.
-Subject: the exact lowercase title "touch me" and a small touch-point motif, a single cyan dot with one fine incomplete circular touch ring.
-Style/medium: premium restrained typographic editorial artwork, flat ink shapes, crisp edges.
-Composition/framing: generous negative space, large navy lowercase type in a refined humanist sans serif with balanced spacing. The modest touch point should relate to the title, not dominate it. Keep all content comfortably inside wide safe margins.
-Color palette: warm gray #F6F5F1, navy #202B3B, cyan #65D9EB only.
-Text (verbatim): "touch me". Spell exactly t-o-u-c-h, space, m-e. No other text.
-Constraints: legible at GitHub README width, professional and quiet, no slogan, no screen UI, no badge, no gradient, no glow, no shadows, no 3D, no watermark, no extra objects. Opaque background.
+Final edit prompt:
+Use case: precise-object-edit
+Asset type: GitHub README title banner for the macOS touch-mapping app Touch Me, shared by its source repository and Homebrew Tap.
+Input image: the existing title banner is the edit target. Preserve its visual identity.
+Primary request: add the exact small subtitle "for ZEUSLAP" beneath the large "touch me" wordmark, and integrate a thin monitor outline into the cyan touch-point symbol to its right.
+Scene/backdrop: keep the opaque warm off-white paper background #F6F5F1 with only its extremely subtle texture.
+Typography: preserve the existing lowercase navy #202B3B humanist sans-serif "touch me", its shape, weight and spacing. Put "for ZEUSLAP" beneath it, aligned with the left edge of the wordmark, around one quarter of the title letter height. Use a matching clean sans-serif and navy, legible even when the entire banner is displayed 360px wide.
+Symbol: keep the single cyan #65D9EB touch dot and fine incomplete circular ring. Combine them with one minimal thin navy monitor frame, with the dot in the screen and a very short understated stand. Form one compact coherent monitor-and-touch mark to the right of the wordmark. Keep it subordinate to the title, not a realistic device rendering.
+Composition: preserve the approximately 3:1 wide landscape canvas, balanced calm negative space and wide safe margins. Fit the title, subtitle and symbol as one deliberate typographic lockup. Keep all content fully inside the canvas.
+Text (verbatim): "touch me" and "for ZEUSLAP". ZEUSLAP is spelled Z-E-U-S-L-A-P. Only these two texts.
+Constraints: change only the requested subtitle and monitor-and-touch symbol. Preserve the original brand identity, palette, opaque background, flat ink treatment and restrained editorial style. No official ZEUSLAP or Apple logo, no other text, slogan, badge, watermark, screen UI, glow, gradient, shadow, 3D or decorative objects.
