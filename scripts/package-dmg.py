@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 """Package the local app and installation notes. No publishing or credentials."""
 from pathlib import Path
+from xml.parsers.expat import ExpatError
 import hashlib
 import plistlib
 import re
@@ -29,8 +30,15 @@ WORK = ROOT / ".build" / "dmg" / str(uuid.uuid4())
 STAGING = WORK / "contents"
 IMAGE = WORK / OUTPUT.name
 
-with (APP / "Contents" / "Info.plist").open("rb") as stream:
-    info = plistlib.load(stream)
+try:
+    with (APP / "Contents" / "Info.plist").open("rb") as stream:
+        info = plistlib.load(stream)
+except FileNotFoundError as error:
+    raise SystemExit("Release app metadata is missing; run bash scripts/build-app.sh") from error
+except (OSError, plistlib.InvalidFileException, ValueError, ExpatError) as error:
+    raise SystemExit(f"Cannot read valid app Info.plist; rebuild with bash scripts/build-app.sh: {error}") from error
+if not isinstance(info, dict):
+    raise SystemExit("App Info.plist must contain a dictionary; rebuild with bash scripts/build-app.sh")
 if info.get("CFBundleIdentifier") != "io.github.soom-kang.touchme":
     raise SystemExit("The expected Touch Me app is missing; run bash scripts/build-app.sh")
 if info.get("TouchMeReleaseVersion") != VERSION or info.get("CFBundleShortVersionString") != SHORT_VERSION:

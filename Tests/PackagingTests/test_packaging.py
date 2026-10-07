@@ -148,6 +148,55 @@ class PackagingTests(unittest.TestCase):
         with self.assertRaisesRegex(SystemExit, "expected Touch Me app is missing"):
             self.run_script("package-dmg.py")
 
+    def test_clean_checkout_package_has_actionable_error(self):
+        with self.assertRaisesRegex(SystemExit, "run bash scripts/build-app.sh"):
+            self.run_script("package-dmg.py")
+        self.assertEqual(self.native_calls, [])
+
+    def test_missing_plist_has_actionable_error(self):
+        self.bundle()
+        (self.app / "Contents" / "Info.plist").unlink()
+        self.native_calls.clear()
+        with self.assertRaisesRegex(SystemExit, "run bash scripts/build-app.sh"):
+            self.run_script("package-dmg.py")
+        self.assertEqual(self.native_calls, [])
+
+    def test_malformed_plist_has_actionable_error(self):
+        self.bundle()
+        info = self.app / "Contents" / "Info.plist"
+        for contents in (b"not a plist", b"<?xml version='1.0'?><plist><dict>"):
+            with self.subTest(contents=contents):
+                info.write_bytes(contents)
+                self.native_calls.clear()
+                with self.assertRaisesRegex(SystemExit, "rebuild with bash scripts/build-app.sh"):
+                    self.run_script("package-dmg.py")
+                self.assertEqual(self.native_calls, [])
+
+    def test_non_dictionary_plist_has_actionable_error(self):
+        self.bundle()
+        (self.app / "Contents" / "Info.plist").write_bytes(plistlib.dumps(["invalid root"]))
+        self.native_calls.clear()
+        with self.assertRaisesRegex(SystemExit, "must contain a dictionary"):
+            self.run_script("package-dmg.py")
+        self.assertEqual(self.native_calls, [])
+
+    def test_unreadable_plist_preserves_existing_image(self):
+        self.bundle()
+        info = self.app / "Contents" / "Info.plist"
+        previous = self.root / "dist" / "previous.dmg"
+        previous.write_bytes(b"preserve this artifact")
+        original_open = pathlib.Path.open
+        def guarded_open(path, *args, **kwargs):
+            if path == info:
+                raise PermissionError("fixture denied read")
+            return original_open(path, *args, **kwargs)
+        self.native_calls.clear()
+        with patch.object(pathlib.Path, "open", guarded_open), \
+             self.assertRaisesRegex(SystemExit, "rebuild with bash scripts/build-app.sh"):
+            self.run_script("package-dmg.py")
+        self.assertEqual(self.native_calls, [])
+        self.assertEqual(previous.read_bytes(), b"preserve this artifact")
+
     def test_dmg_failure_preserves_existing_artifact(self):
         self.bundle()
         self.run_script("package-dmg.py")
