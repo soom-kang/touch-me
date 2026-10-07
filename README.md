@@ -51,11 +51,15 @@ The supported gestures are:
 
 Select **Stop mapping** to release input and keep mapping stopped on the next launch. Quitting while mapping preserves the intent to resume. Automatic resume requires the saved display, USB location and both permissions to match.
 
+Sleep, an inactive user session, or a display-configuration change stops mapping and clears the saved intent to resume. Waking or returning to the session does not restart mapping automatically. Check the target and permissions, then start mapping manually. Normal Quit preserves resume intent only if no earlier safety interruption or explicit Stop cleared it.
+
 **Launch at login** is off by default. Enable it in settings after copying the app to Applications. Login launch opens the app; the saved mapping state determines whether it resumes.
 
 ## Recover or remove the app
 
 Mapping temporarily changes the verified P16KT device mode. Stop or normal Quit releases input and restores the original mode when a change was necessary. A restoration error can prevent the app from quitting.
+
+Force Quit, a crash, or power loss cannot run normal cleanup. The original device mode is kept only for the current process; the app does not currently recover that earlier mode across a crash. Whether the panel retains the changed mode after such an interruption has not been validated. Do not treat reopening the app or a later successful Stop as proof that the pre-crash mode was restored. If device behavior is unexpected, stop mapping, avoid upgrade/removal while recovery is unresolved, and retain the error details for diagnosis. Do not force an assumed mode value onto the device. See [abnormal-exit verification](docs/qa/abnormal-exit-recovery.md).
 
 | Situation                     | Next action                                                                          |
 | ----------------------------- | ------------------------------------------------------------------------------------ |

@@ -73,12 +73,12 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSMenuItemValidation {
         showSettings()
         observers.append(NotificationCenter.default.addObserver(forName: NSApplication.didChangeScreenParametersNotification,
                                                                  object: nil, queue: .main) { [weak self] _ in
-            self?.model.stop()
+            self?.model.stopForEnvironmentChange()
             self?.model.refresh()
         })
         for name in [NSWorkspace.willSleepNotification, NSWorkspace.sessionDidResignActiveNotification] {
             observers.append(NSWorkspace.shared.notificationCenter.addObserver(forName: name, object: nil, queue: .main) { [weak self] _ in
-                self?.model.stop()
+                self?.model.stopForEnvironmentChange()
             })
         }
         for sig in [SIGINT, SIGTERM] {
