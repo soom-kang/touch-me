@@ -22,7 +22,7 @@ class PackagingTests(unittest.TestCase):
     def setUp(self):
         self.temp = tempfile.TemporaryDirectory(prefix="touch-me-packaging-test-")
         self.addCleanup(self.temp.cleanup)
-        self.root = pathlib.Path(self.temp.name)
+        self.root = pathlib.Path(self.temp.name).resolve()
         shutil.copytree(ROOT / "scripts", self.root / "scripts")
         for name in ("VERSION", "LICENSE"):
             shutil.copy2(ROOT / name, self.root / name)

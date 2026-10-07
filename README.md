@@ -6,7 +6,7 @@
 
 # Use your P16KT touchscreen on macOS
 
-Touch Me maps touches on a ZEUSLAP P16KT to its selected display. Run the menu bar app to tap, drag, double-click and scroll with two fingers. The current beta is `0.8.0-beta.1`.
+Touch Me maps touches on a ZEUSLAP P16KT to its selected display. Run the menu bar app to tap, drag, double-click and scroll with two fingers. The current beta is `0.8.0-beta.2`.
 
 ## Check your setup
 
@@ -24,7 +24,7 @@ Other panels, Intel Macs and older macOS versions have no recorded validation. S
 
 ## Install and start mapping
 
-Use the DMG and checksum from the [v0.8.0-beta.1 release](https://github.com/soom-kang/touch-me/releases/tag/v0.8.0-beta.1), or build them with the [development workflow](Workflow.md). The local image is `dist/touch-me-0.8.0-beta.1-arm64.dmg`. See [Homebrew distribution](docs/Homebrew.md) for Tap installation, manual-app conflicts and release checks.
+Use the DMG and checksum from the [v0.8.0-beta.2 release](https://github.com/soom-kang/touch-me/releases/tag/v0.8.0-beta.2), or build them with the [development workflow](Workflow.md). The local image is `dist/touch-me-0.8.0-beta.2-arm64.dmg`. See [Homebrew distribution](docs/Homebrew.md) for Tap installation, manual-app conflicts and release checks.
 
 1. Open the disk image and drag **Touch Me.app** to **Applications**. Eject the image, then open the installed app.
 2. Open **System Settings → Privacy & Security**. Allow Touch Me in **Input Monitoring** and **Accessibility**.

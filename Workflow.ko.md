@@ -16,9 +16,9 @@ Apple Silicon Mac, macOS 26 이상, 패키지의 Swift 6.0 manifest와 호환되
 | --------------------- | ------------------------------------ |
 | 앱과 실행 파일        | `Touch Me.app` / `TouchMe`           |
 | Bundle Identifier     | `io.github.soom-kang.touchme`        |
-| Release 버전          | `VERSION`에서 읽는 `0.8.0-beta.1`    |
+| Release 버전          | `VERSION`에서 읽는 `0.8.0-beta.2`    |
 | 번들 버전             | `0.8.0`과 증가하는 숫자 build 번호   |
-| 전체 release metadata | `TouchMeReleaseVersion=0.8.0-beta.1` |
+| 전체 release metadata | `TouchMeReleaseVersion=0.8.0-beta.2` |
 | 대상 환경             | `arm64`, macOS 26 이상               |
 
 문서나 패키징을 바꿀 때는 식별자와 저장한 환경설정 형식을 유지하세요. 서명 identity나 설치 경로를 바꾸면 설치 앱의 권한 확인이 필요할 수 있습니다.
@@ -70,13 +70,13 @@ python3 scripts/package-dmg.py
 | 산출물                                        | 용도                    |
 | --------------------------------------------- | ----------------------- |
 | `dist/Touch Me.app`                           | 로컬 서명한 앱 번들     |
-| `dist/touch-me-0.8.0-beta.1-arm64.dmg`        | 로컬 beta 디스크 이미지 |
-| `dist/touch-me-0.8.0-beta.1-arm64.dmg.sha256` | SHA-256 checksum        |
+| `dist/touch-me-0.8.0-beta.2-arm64.dmg`        | 로컬 beta 디스크 이미지 |
+| `dist/touch-me-0.8.0-beta.2-arm64.dmg.sha256` | SHA-256 checksum        |
 
 기존 이미지는 `dist/previous-builds`로 옮깁니다. `dist`에서 새 checksum을 검증하세요:
 
 ```bash
-(cd dist && shasum -a 256 -c touch-me-0.8.0-beta.1-arm64.dmg.sha256)
+(cd dist && shasum -a 256 -c touch-me-0.8.0-beta.2-arm64.dmg.sha256)
 ```
 
 ![소스와 라이선스로 로컬 서명 앱을 만들고 개인용 디스크 이미지와 SHA-256 checksum을 생성하는 흐름입니다.](docs/assets/packaging.ko.png)
@@ -122,6 +122,12 @@ GUI 언어 전환, 재실행 후 선택 유지, 열린 시험 창과 문구 잘�
 
 이번 후보의 GUI, Gatekeeper, 실기기, 로그인 실행과 Homebrew 설치 검사는 `NOT_RUN`입니다. Source·Tap 게시와 online audit은 runbook 페이즈에 따라 진행하며, 실제 결과는 로컬 산출물 검사와 구분해 기록합니다.
 
+### v0.8.0-beta.2 release 후보
+
+2026-10-07(`Asia/Seoul`)에 기존 Python packaging suite의 첫 실행에서 18개 중 17개가 통과했습니다. 권한 실패 fixture는 macOS의 `/var` 경로 별칭을 사용했지만 패키징은 `/private/var`로 해석해 mock이 의도한 실패를 재현하지 못했습니다. Fixture의 임시 root를 resolve하도록 맞춘 뒤 재실행한 suite는 18개 모두 통과했습니다. 기존 Swift suite는 한 번 실행해 14개 모두 통과했습니다. 새 tests나 검증 인프라는 추가하지 않았습니다.
+
+Release build 한 번으로 build 12를 생성했습니다. 숫자 번들 버전은 `0.8.0`, 전체 release metadata는 `TouchMeReleaseVersion=0.8.0-beta.2`입니다. Release 컴파일, strict ad hoc 서명 검증, 정확한 번들 라이선스·아이콘 내용, arm64 패키징, `hdiutil verify`와 SHA-256 검사를 통과했습니다. Command Line Tools의 framework/library search path가 없다는 linker 경고는 빌드를 막지 않았습니다. 확정한 DMG SHA-256은 `b667c7ba2518b966fec2fdc4b92152d66db58b0758460e5c5f4daa42cd5d3469`입니다. 이는 로컬 산출물 결과이며 게시, Cask style과 online audit 결과는 별도로 기록합니다. GUI, Gatekeeper, 실기기, 로그인 실행과 Homebrew 설치 검사는 `NOT_RUN`입니다. 변경 사항과 검증 경계는 [release notes](docs/releases/v0.8.0-beta.2.md)를 확인하세요.
+
 ## 실패 시 작업 범위 유지하기
 
 빌드나 패키징이 실패하면 새 산출물 전달을 중단합니다. 보고된 로컬 원인을 수정하고 실패한 명령만 다시 실행하세요. 대체 산출물의 검증을 마칠 때까지 이전에 사용할 수 있던 산출물을 유지합니다.
@@ -132,7 +138,7 @@ GUI 언어 전환, 재실행 후 선택 유지, 열린 시험 창과 문구 잘�
 
 ## 검토한 릴리즈 공개하기
 
-`0.8.0-beta.1` 경로는 개인 Tap `soom-kang/homebrew-touch-me`의 ad hoc beta Cask입니다. Source repository는 [soom-kang/touch-me](https://github.com/soom-kang/touch-me)입니다. 2026-10-07 release 작업에서는 검토한 source 갱신, tag·prerelease와 Tap 공개부터 online audit까지 합의했습니다. 각 페이즈의 검사가 통과하면 다음으로 진행하며, 새 결정이 필요하거나 검사에 실패하면 해당 페이즈를 중단합니다.
+`0.8.0-beta.2` 경로는 기존 개인 Tap `soom-kang/homebrew-touch-me`의 ad hoc beta Cask를 갱신합니다. Source repository는 [soom-kang/touch-me](https://github.com/soom-kang/touch-me)입니다. 검토한 release의 시작 기준은 `main`의 `abbfece6ea621b13bd9832b53976ce0acd67f839`입니다. 2026-10-07 release 작업에서는 검토한 source 갱신, tag·prerelease와 Tap 갱신부터 online audit까지 합의했습니다. 각 페이즈의 검사가 통과하면 다음으로 진행하며, 새 결정이 필요하거나 검사에 실패하면 해당 페이즈를 중단합니다.
 
 [Homebrew 배포](docs/Homebrew.ko.md)에서 release 페이즈, checksum 확정, 첫 실행과 Tap 검사를 확인하세요. Ad hoc beta는 공증하지 않으며 Gatekeeper 승인을 주장하지 않습니다. 향후 Developer ID 배포는 서명·공증을 준비하고 최종 설치 산출물의 권한과 장치 동작을 다시 확인해야 합니다.
 

@@ -6,7 +6,7 @@
 
 # macOS에서 P16KT 터치 화면 사용하기
 
-Touch Me는 ZEUSLAP P16KT의 터치 입력을 선택한 화면에 맞춰 전달합니다. 메뉴 막대 앱을 실행하면 탭, 드래그, 더블 클릭과 두 손가락 스크롤을 사용할 수 있습니다. 현재 beta 버전은 `0.8.0-beta.1`입니다.
+Touch Me는 ZEUSLAP P16KT의 터치 입력을 선택한 화면에 맞춰 전달합니다. 메뉴 막대 앱을 실행하면 탭, 드래그, 더블 클릭과 두 손가락 스크롤을 사용할 수 있습니다. 현재 beta 버전은 `0.8.0-beta.2`입니다.
 
 ## 사용 환경 확인하기
 
@@ -24,7 +24,7 @@ Touch Me는 ZEUSLAP P16KT의 터치 입력을 선택한 화면에 맞춰 전달�
 
 ## 설치하고 매핑 시작하기
 
-[v0.8.0-beta.1 release](https://github.com/soom-kang/touch-me/releases/tag/v0.8.0-beta.1)의 DMG와 checksum을 사용하거나 [개발 Workflow](Workflow.ko.md)에 따라 직접 빌드하세요. 로컬 이미지 경로는 `dist/touch-me-0.8.0-beta.1-arm64.dmg`입니다. Tap 설치, 수동 설치 앱과의 충돌 처리와 release 검사는 [Homebrew 배포](docs/Homebrew.ko.md)에서 확인하세요.
+[v0.8.0-beta.2 release](https://github.com/soom-kang/touch-me/releases/tag/v0.8.0-beta.2)의 DMG와 checksum을 사용하거나 [개발 Workflow](Workflow.ko.md)에 따라 직접 빌드하세요. 로컬 이미지 경로는 `dist/touch-me-0.8.0-beta.2-arm64.dmg`입니다. Tap 설치, 수동 설치 앱과의 충돌 처리와 release 검사는 [Homebrew 배포](docs/Homebrew.ko.md)에서 확인하세요.
 
 1. 디스크 이미지를 열고 **Touch Me.app**을 **Applications**로 끌어 복사하세요. 이미지를 추출한 뒤 설치한 앱을 여세요.
 2. **시스템 설정 → 개인정보 보호 및 보안**을 여세요. **입력 모니터링**과 **손쉬운 사용**에서 Touch Me를 허용하세요.

@@ -2,7 +2,7 @@
 
 # Publish the Touch Me Homebrew beta
 
-This runbook publishes `0.8.0-beta.1` as a GitHub prerelease and an ad hoc beta Cask in a personal Tap. The 2026-10-07 release task covers the reviewed source update, tag, release assets, Tap publication and online audit. Advance after each phase passes; stop for a failed check or a new consequential decision. Installing the Cask, replacing the existing Applications app, GUI checks and device checks are separate follow-up work.
+This runbook publishes `0.8.0-beta.2` as a GitHub prerelease and updates the ad hoc beta Cask in the existing personal Tap. The 2026-10-07 release task covers the reviewed source update, tag, release assets, Tap update and online audit. Advance after each phase passes; stop for a failed check or a new consequential decision. Installing the Cask, replacing the existing Applications app, GUI checks and device checks are separate follow-up work.
 
 ## Release contract
 
@@ -11,22 +11,22 @@ This runbook publishes `0.8.0-beta.1` as a GitHub prerelease and an ad hoc beta 
 | Source repository | [soom-kang/touch-me](https://github.com/soom-kang/touch-me) |
 | Tap repository | `soom-kang/homebrew-touch-me` |
 | Tap / Cask token | `soom-kang/touch-me` / `touch-me` |
-| Release version / tag | `0.8.0-beta.1` / `v0.8.0-beta.1` |
-| Asset | `touch-me-0.8.0-beta.1-arm64.dmg` and its `.sha256` file |
+| Release version / tag | `0.8.0-beta.2` / `v0.8.0-beta.2` |
+| Asset | `touch-me-0.8.0-beta.2-arm64.dmg` and its `.sha256` file |
 | App / identifier | `Touch Me.app` / `io.github.soom-kang.touchme` |
 | Minimum environment | Apple Silicon, macOS 26 (Tahoe) or later |
 | Device scope | One ZEUSLAP P16KT, USB `0x0457:0x0819`, eligible external display |
 | Signing | Ad hoc; no Developer ID signature or notarization |
 | Local draft / Tap file | `packaging/homebrew/touch-me.rb.in` / `Casks/touch-me.rb` |
 
-`VERSION` is the release-version source. The bundle uses numeric `CFBundleShortVersionString=0.8.0`, an incrementing numeric `CFBundleVersion` and `TouchMeReleaseVersion=0.8.0-beta.1`. About and settings display the full release version. [Apple version format](https://developer.apple.com/help/glossary/version-number/)
+`VERSION` is the release-version source. The bundle uses numeric `CFBundleShortVersionString=0.8.0`, an incrementing numeric `CFBundleVersion` and `TouchMeReleaseVersion=0.8.0-beta.2`. About and settings display the full release version. [Apple version format](https://developer.apple.com/help/glossary/version-number/)
 
 One app contains English and Korean. It starts in English without a saved language and preserves the language selected in settings. The Cask has no language-specific downloads.
 
 Use the versioned asset URL:
 
 ```text
-https://github.com/soom-kang/touch-me/releases/download/v0.8.0-beta.1/touch-me-0.8.0-beta.1-arm64.dmg
+https://github.com/soom-kang/touch-me/releases/download/v0.8.0-beta.2/touch-me-0.8.0-beta.2-arm64.dmg
 ```
 
 The Cask SHA-256 must match the exact uploaded DMG. GitHub permits asset replacement, so maintain the published version as immutable: a later source, signature or DMG change needs a new version and checksum. Never resolve a mismatch with `:no_check` or replace an existing release asset.
@@ -46,24 +46,28 @@ gh repo view soom-kang/touch-me --json nameWithOwner,visibility,defaultBranchRef
 gh release list --repo soom-kang/touch-me
 ```
 
-At the 2026-10-07 preflight, local `main` was clean at `5e2520f7f3bacdd85507a383d0c08da3555a1c5d`, remote `main` matched, the source repository was public and no releases existed. The intended Tap returned not found. These are starting observations; recheck remote state before publication. Preserve unrelated changes and previous app/DMG artifacts. Do not initialize an already existing source repository.
+**Historical beta.1 preflight:** on 2026-10-07, local `main` was clean at `5e2520f7f3bacdd85507a383d0c08da3555a1c5d`, remote `main` matched, the source repository was public and no releases existed. The intended Tap returned not found. These observations preceded beta.1 publication.
 
-**Complete when:** ownership, release target and intended file changes are clear. **Stop if:** a remote mismatch, conflicting tag/release, unexpected existing Tap, unpreservable change or mounted replacement image needs resolution. Eject normally; do not force eject.
+**Beta.2 baseline:** the reviewed source starts from `main` at `abbfece6ea621b13bd9832b53976ce0acd67f839`. The beta.1 release and public `soom-kang/homebrew-touch-me` Tap already exist. Recheck their remote state before publication, preserve unrelated changes and previous app/DMG artifacts, and update the existing Tap instead of recreating it.
+
+**Complete when:** ownership, release target and intended file changes are clear. **Stop if:** a remote mismatch, conflicting tag/release, unexpected Tap changes, unpreservable change or mounted replacement image needs resolution. Eject normally; do not force eject.
 
 ### Phase 1 — Align source, license and release documentation
 
-**Input:** the reviewed language/version implementation and the requested documentation cleanup. Keep the project's `LICENSE`, copyright 2026 Soom Kang. Package that license in `Licenses.txt` and make the app menu, installation notes and diagrams agree. Retain the existing UI and mapping behavior. Review the English and Korean README, Workflow and this runbook together.
+**Input:** the reviewed QA improvements and release-version update. Keep the project's `LICENSE`, copyright 2026 Soom Kang, and its bundled `Licenses.txt`. Retain the existing UI, diagrams, bundle identifier and saved-preference format. Review the English and Korean README, Workflow and this runbook together. Release notes describe safe interruption after environment changes, rejection of invalid bundle metadata and existing test improvements; do not claim recovery of the pre-crash device mode.
 
 **Complete when:** release documentation and bundle inputs agree, and the final diff contains only the requested changes. **Stop if:** a missing source file, unresolved ownership question or unrelated change prevents a reviewable release. Previously built artifacts do not establish that current bundle inputs match.
 
 ### Phase 2 — Build and freeze the candidate
 
-**Input:** the reviewed source and `VERSION=0.8.0-beta.1`. Run from the project root:
+**Input:** the reviewed source and `VERSION=0.8.0-beta.2`. Run the existing Python and Swift tests once each, then build and package once from the project root:
 
 ```bash
+python3 -m unittest discover -s Tests/PackagingTests -v
+bash scripts/test.sh
 bash scripts/build-app.sh
 python3 scripts/package-dmg.py
-(cd dist && shasum -a 256 -c touch-me-0.8.0-beta.1-arm64.dmg.sha256)
+(cd dist && shasum -a 256 -c touch-me-0.8.0-beta.2-arm64.dmg.sha256)
 ```
 
 The existing scripts perform release compilation with warnings as errors, bundle creation, strict ad hoc signature verification and packaging checks for identity, version, license resource and arm64 architecture. Inspect `Info.plist` and `Licenses.txt` as described in [Workflow](../Workflow.md). Record the build number and exact checksum, then put that digest in the local Cask draft.
@@ -74,7 +78,7 @@ ruby -c packaging/homebrew/touch-me.rb.in
 
 The Cask uses `app "Touch Me.app"`, arm64/Tahoe requirements, a skipped `livecheck` for manually maintained beta releases and installation caveats. It has no launch hooks, permission changes, `zap`, language-specific downloads or auto-update claim. [Cask Cookbook](https://docs.brew.sh/Cask-Cookbook)
 
-**Complete when:** compilation, packaging, checksum and Ruby syntax pass; the draft matches the frozen candidate; documents agree. **Stop if:** metadata, signature, architecture, license or checksum checks fail. Preserve the previous artifact and repeat only checks affected by a fix. Do not repeat a successful build just to reconfirm it: another build can change the build number, signature and DMG bytes.
+**Complete when:** existing tests, compilation, packaging, checksum and Ruby syntax pass; the draft matches the frozen candidate; documents agree. **Stop if:** tests, metadata, signature, architecture, license or checksum checks fail. Preserve the previous artifact and repeat only checks affected by a fix. Do not repeat a successful build just to reconfirm it: another build can change the build number, signature and DMG bytes.
 
 ### Phase 3 — Publish the reviewed source, tag and prerelease
 
@@ -82,27 +86,27 @@ The Cask uses `app "Touch Me.app"`, arm64/Tahoe requirements, a skipped `liveche
 
 ```bash
 git push origin main
-git tag -a v0.8.0-beta.1 "$(git rev-parse HEAD)" -m 'Touch Me v0.8.0-beta.1'
-git push origin refs/tags/v0.8.0-beta.1
-gh release create v0.8.0-beta.1 \
-  --repo soom-kang/touch-me --verify-tag --prerelease \
-  --title 'Touch Me v0.8.0-beta.1' \
+git tag -a v0.8.0-beta.2 "$(git rev-parse HEAD)" -m 'Touch Me v0.8.0-beta.2'
+git push origin refs/tags/v0.8.0-beta.2
+gh release create v0.8.0-beta.2 \
+  --repo soom-kang/touch-me --verify-tag --prerelease --latest=false \
+  --title 'Touch Me v0.8.0-beta.2' \
   --notes-file /path/to/reviewed-release-notes.md \
-  dist/touch-me-0.8.0-beta.1-arm64.dmg \
-  dist/touch-me-0.8.0-beta.1-arm64.dmg.sha256
+  dist/touch-me-0.8.0-beta.2-arm64.dmg \
+  dist/touch-me-0.8.0-beta.2-arm64.dmg.sha256
 ```
 
 Use the reviewed notes file. Resolve the annotated tag to the exact reviewed commit. If a tag or release already exists, inspect its commit and assets; resume only a matching incomplete operation. Never force, delete or overwrite a published tag/asset. Download both public assets to a separate verification directory and check the uploaded `.sha256` there against the frozen candidate's digest. Confirm the release is a prerelease.
 
 **Complete when:** remote source and tag match the reviewed commit, public download bytes match and release notes accurately describe validation. **Stop if:** source/tag identity, public download or checksum cannot be confirmed. Do not publish a Tap against a missing or mismatched asset.
 
-### Phase 4 — Create and publish the Tap
+### Phase 4 — Update and publish the existing Tap
 
-**Input:** the verified public prerelease and final Cask draft. Use a separate checkout for the public `soom-kang/homebrew-touch-me` repository; do not nest another Git repository inside the source project. The Tap needs `Casks/touch-me.rb`, a short README with support and install guidance, the project MIT license and the following exact-version exception at `audit_exceptions/github_prerelease_allowlist.json`:
+**Input:** the verified public prerelease and final Cask draft. Use a separate checkout for the existing public `soom-kang/homebrew-touch-me` repository; do not recreate it or nest another Git repository inside the source project. Check its Git status and remote revision before changing it. Update `Casks/touch-me.rb`, the English/Korean install guidance and the following exact-version exception at `audit_exceptions/github_prerelease_allowlist.json`; preserve the project MIT license:
 
 ```json
 {
-  "touch-me": "0.8.0-beta.1"
+  "touch-me": "0.8.0-beta.2"
 }
 ```
 
@@ -116,14 +120,15 @@ brew style /absolute/path/to/homebrew-touch-me/Casks/touch-me.rb
 
 Review the Tap diff, then commit and publish only those files. Do not add CI or test infrastructure for this small Tap.
 
-**Complete when:** the public Tap contains the reviewed Cask, exact-version exception, README and license; local style passes. **Stop if:** the Tap already contains unexpected history, a checksum differs or style reports an unresolved error. Preserve the source release and stop only Tap publication.
+**Complete when:** the public Tap contains the reviewed Cask, exact-version exception, English/Korean guidance and license; local style passes. **Stop if:** the Tap contains unreviewed changes or history, a checksum differs or style reports an unresolved error. Preserve the source release and stop only Tap publication.
 
 ### Phase 5 — Trust the selected Cask and run online audit
 
-**Input:** the published Tap and verified public assets. Scope local trust to the selected Cask:
+**Input:** the published Tap and verified public assets. Synchronize the local Tap with the published revision, confirm they match, then scope local trust to the selected Cask:
 
 ```bash
 brew tap soom-kang/touch-me
+git -C "$(brew --repo soom-kang/touch-me)" pull --ff-only
 brew trust --cask soom-kang/touch-me/touch-me
 brew audit --cask --online soom-kang/touch-me/touch-me
 ```
@@ -163,6 +168,6 @@ Removal preserves app preferences. There is no `zap` routine, automatic process 
 
 ## Record results and future signing work
 
-The release owner records the source revision, tag, build number, DMG SHA-256, Homebrew version, executed commands and outcomes with an `Asia/Seoul` date. Keep artifact, Homebrew audit, GUI, real-device and login-launch results separate. Preserve the historical build 8–10 evidence in [Workflow](../Workflow.md#choose-the-minimum-checks); it does not prove behavior for a later candidate. Never include credentials or raw personal data.
+The release owner records the source revision, tag, build number, DMG SHA-256, Homebrew version, executed commands and outcomes with an `Asia/Seoul` date. Keep artifact, Homebrew audit, GUI, real-device and login-launch results separate. Preserve the historical build 8–11 evidence in [Workflow](../Workflow.md#choose-the-minimum-checks); it does not prove behavior for a later candidate. Never include credentials or raw personal data.
 
 A later Developer ID release needs separately approved signing/notarization preparation and validation of the final downloaded, installed app. Keep credential access outside this runbook and record that release's verification separately from this ad hoc beta.

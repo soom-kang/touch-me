@@ -16,9 +16,9 @@ The app keeps these identifiers and versions:
 | --------------------- | ------------------------------------------------- |
 | App and executable    | `Touch Me.app` / `TouchMe`                        |
 | Bundle identifier     | `io.github.soom-kang.touchme`                     |
-| Release version       | `0.8.0-beta.1`, read from `VERSION`               |
+| Release version       | `0.8.0-beta.2`, read from `VERSION`               |
 | Bundle version        | `0.8.0` plus an incrementing numeric build number |
-| Full release metadata | `TouchMeReleaseVersion=0.8.0-beta.1`              |
+| Full release metadata | `TouchMeReleaseVersion=0.8.0-beta.2`              |
 | Target                | `arm64`, macOS 26 or later                        |
 
 Keep the identifier and saved-preference format stable when changing documentation or packaging. Changing the signing identity or installation path can require permission checks in the installed app.
@@ -70,13 +70,13 @@ The script verifies the app's identifier, release metadata against `VERSION`, li
 | Output                                        | Purpose                   |
 | --------------------------------------------- | ------------------------- |
 | `dist/Touch Me.app`                           | Locally signed app bundle |
-| `dist/touch-me-0.8.0-beta.1-arm64.dmg`        | Local beta disk image     |
-| `dist/touch-me-0.8.0-beta.1-arm64.dmg.sha256` | SHA-256 checksum          |
+| `dist/touch-me-0.8.0-beta.2-arm64.dmg`        | Local beta disk image     |
+| `dist/touch-me-0.8.0-beta.2-arm64.dmg.sha256` | SHA-256 checksum          |
 
 An existing image moves to `dist/previous-builds`. Verify the new checksum from `dist`:
 
 ```bash
-(cd dist && shasum -a 256 -c touch-me-0.8.0-beta.1-arm64.dmg.sha256)
+(cd dist && shasum -a 256 -c touch-me-0.8.0-beta.2-arm64.dmg.sha256)
 ```
 
 ![Local packaging flow from source and license files to a signed app, personal disk image and SHA-256 checksum.](docs/assets/packaging.png)
@@ -122,6 +122,12 @@ The frozen DMG SHA-256 is `eb255a5296921c93c2cd8d9de98b7424fc380e7b3a24e713c682d
 
 This candidate's GUI, Gatekeeper, real-device, login-launch and Homebrew installation checks remain `NOT_RUN`. Source and Tap publication and online audit follow the runbook phases; their actual results are recorded separately from local artifact checks.
 
+### v0.8.0-beta.2 release candidate
+
+On 2026-10-07 (`Asia/Seoul`), the existing Python packaging suite initially passed 17 of 18 tests. The permission-failure fixture used the macOS `/var` path alias while packaging resolved it to `/private/var`, so its mock did not exercise the intended failure. Resolving the fixture's temporary root fixed that mismatch; the repeated suite passed all 18 tests. The existing Swift suite passed all 14 tests in one run. No new tests or validation infrastructure were added.
+
+One release build produced build 12 with numeric bundle version `0.8.0` and `TouchMeReleaseVersion=0.8.0-beta.2`. Release compilation, strict ad hoc signature verification, exact bundled license/icon content, arm64 packaging, `hdiutil verify` and SHA-256 verification passed. Missing Command Line Tools framework/library search paths produced non-fatal linker warnings. The frozen DMG SHA-256 is `b667c7ba2518b966fec2fdc4b92152d66db58b0758460e5c5f4daa42cd5d3469`. These are local artifact results; publication, Cask style and online audit results are recorded separately. GUI, Gatekeeper, real-device, login-launch and Homebrew installation checks are `NOT_RUN`. See the [release notes](docs/releases/v0.8.0-beta.2.md) for this release's changes and limits.
+
 ## Handle failures without changing the scope
 
 A build or packaging failure is a stop condition for delivering a new artifact. Fix the reported local cause and repeat only the failed command. Retain the previous usable artifact until the replacement passes its checks.
@@ -132,7 +138,7 @@ After a completed cleanup, `.build` and `dist/previous-builds` may be absent. Su
 
 ## Publish the reviewed release
 
-The `0.8.0-beta.1` route is an ad hoc beta Cask in the personal Tap `soom-kang/homebrew-touch-me`. The source repository is [soom-kang/touch-me](https://github.com/soom-kang/touch-me). On 2026-10-07, the release task authorized the reviewed source update, tag/prerelease and Tap publication through online audit. Each phase advances when its checks pass; a new decision or failed check stops the affected phase.
+The `0.8.0-beta.2` route updates the ad hoc beta Cask in the existing personal Tap `soom-kang/homebrew-touch-me`. The source repository is [soom-kang/touch-me](https://github.com/soom-kang/touch-me). The reviewed release starts from `main` at `abbfece6ea621b13bd9832b53976ce0acd67f839`. On 2026-10-07, the release task authorized the reviewed source update, tag/prerelease and Tap update through online audit. Each phase advances when its checks pass; a new decision or failed check stops the affected phase.
 
 Follow [Homebrew distribution](docs/Homebrew.md) for release phases, checksum freeze, first-launch handling and Tap checks. The ad hoc beta is not notarized and does not claim Gatekeeper approval. A future Developer ID release requires signing, notarization and a new check of the final installed artifact's permissions and device behavior.
 

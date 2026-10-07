@@ -1,8 +1,8 @@
 # Pre-publication draft. Copy to the approved Tap's Casks/touch-me.rb only after
 # the versioned release asset and this exact checksum are publicly verified.
 cask "touch-me" do
-  version "0.8.0-beta.1"
-  sha256 "eb255a5296921c93c2cd8d9de98b7424fc380e7b3a24e713c682df0cf500b618"
+  version "0.8.0-beta.2"
+  sha256 "b667c7ba2518b966fec2fdc4b92152d66db58b0758460e5c5f4daa42cd5d3469"
 
   url "https://github.com/soom-kang/touch-me/releases/download/v#{version}/touch-me-#{version}-arm64.dmg"
   name "Touch Me"
