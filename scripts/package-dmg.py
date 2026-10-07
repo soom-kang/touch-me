@@ -35,8 +35,11 @@ if info.get("CFBundleIdentifier") != "io.github.soom-kang.touchme":
     raise SystemExit("The expected Touch Me app is missing; run bash scripts/build-app.sh")
 if info.get("TouchMeReleaseVersion") != VERSION or info.get("CFBundleShortVersionString") != SHORT_VERSION:
     raise SystemExit(f"The app does not match VERSION {VERSION}; run bash scripts/build-app.sh")
-if not (APP / "Contents" / "Resources" / "Licenses.txt").is_file():
-    raise SystemExit("The app is missing its license notices; rebuild the app")
+license_resource = APP / "Contents" / "Resources" / "Licenses.txt"
+if not license_resource.is_file():
+    raise SystemExit("The app is missing its project license; rebuild the app")
+if license_resource.read_text(encoding="utf-8") != (ROOT / "LICENSE").read_text(encoding="utf-8").rstrip() + "\n":
+    raise SystemExit("The app's project license does not match LICENSE; rebuild the app")
 subprocess.run(["codesign", "--verify", "--strict", str(APP)], check=True)
 architecture = subprocess.check_output(["lipo", "-archs", str(APP / "Contents" / "MacOS" / "TouchMe")], text=True).strip()
 if architecture != "arm64":
@@ -74,7 +77,7 @@ retry Stop before quitting.
 This beta uses ad hoc signing without a Developer ID signature or Apple
 notarization. macOS may require first-launch approval and renewed privacy
 permissions after an update. Check both permissions before starting mapping.
-Open License in the app menu to read the project license and third-party notices.
+Open License in the app menu to read the project MIT license.
 
 Touch Me {VERSION} · Ad hoc beta 후보
 
@@ -105,7 +108,7 @@ macOS의 첫 실행 승인과 업데이트 후 권한 재승인이 필요할 수
 매핑을 시작하기 전에 두 권한을 확인하세요.
 장치 모드 복구가 실패하면 P16KT를 같은 USB 포트에 다시 연결하고
 ‘매핑 중지’를 다시 눌러 복구한 뒤 종료합니다.
-프로젝트 라이선스와 제3자 고지는 앱 메뉴의 ‘라이선스’에서 확인합니다.
+프로젝트 MIT 라이선스는 앱 메뉴의 ‘라이선스’에서 확인합니다.
 """, encoding="utf-8")
 subprocess.run(["hdiutil", "create", "-volname", "Touch Me", "-srcfolder", str(STAGING),
                 "-format", "UDZO", "-fs", "HFS+", str(IMAGE)], check=True)

@@ -1,10 +1,10 @@
-[English](Workflow.md) · [한국어](Workflow.ko.md) · [앱 사용 안내](README.ko.md) · [Homebrew 배포 준비](docs/Homebrew.ko.md)
+[English](Workflow.md) · [한국어](Workflow.ko.md) · [앱 사용 안내](README.ko.md) · [Homebrew 배포](docs/Homebrew.ko.md)
 
 <!-- meta.contentType: How-to; audience: contributors; goal: build and package Touch Me locally; content plan: environment, modules, build, packaging, checks, recovery, release. -->
 
 # Touch Me 로컬 빌드와 패키징
 
-이 Workflow에 따라 arm64 앱을 빌드하고 번들을 확인한 뒤 개인용 디스크 이미지를 만드세요. 기존 스크립트는 Apple의 로컬 도구와 Python 3를 사용합니다. 제3자 dependency 설치와 산출물 공개는 수행하지 않습니다.
+이 Workflow에 따라 arm64 앱을 빌드하고 번들을 확인한 뒤 개인용 디스크 이미지를 만드세요. 기존 스크립트는 Apple의 로컬 도구와 Python 3를 사용합니다. 추가 dependency 설치와 산출물 공개는 수행하지 않습니다.
 
 ## 개발 환경 준비하기
 
@@ -39,7 +39,7 @@ Apple Silicon Mac, macOS 26 이상, 패키지의 Swift 6.0 manifest와 호환되
 
 ## 앱 빌드와 번들 확인하기
 
-Release 실행 파일을 빌드하고 아이콘과 두 라이선스 고지를 번들에 포함하세요:
+Release 실행 파일을 빌드하고 아이콘과 프로젝트 라이선스를 번들에 포함하세요:
 
 ```bash
 bash scripts/build-app.sh
@@ -55,7 +55,7 @@ cat 'dist/Touch Me.app/Contents/Resources/Licenses.txt'
 codesign --verify --strict 'dist/Touch Me.app'
 ```
 
-`Licenses.txt`에는 `LICENSE`를 함께 넣습니다. 프로젝트의 라이선스 파일이 없으면 번들 생성을 중단합니다. Ad hoc 서명 검증은 로컬 번들의 무결성을 확인하며, Developer ID 서명이나 notarization의 근거가 되지는 않습니다.
+`Licenses.txt`에는 프로젝트 `LICENSE`를 넣습니다. 라이선스 파일이 없으면 번들 생성을 중단합니다. Ad hoc 서명 검증은 로컬 번들의 무결성을 확인하며, Developer ID 서명이나 notarization의 근거가 되지는 않습니다.
 
 ## 개인용 디스크 이미지 만들기
 
@@ -110,9 +110,17 @@ python3 scripts/package-dmg.py
 
 2026-10-07(`Asia/Seoul`)의 언어·버전 준비에서 build 10을 생성했습니다. 번들에는 `CFBundleShortVersionString=0.8.0`과 `TouchMeReleaseVersion=0.8.0-beta.1`을 기록했습니다. `bash scripts/build-app.sh`의 warnings-as-errors release 컴파일과 strict ad hoc 서명 검증을 통과했습니다. 번들의 라이선스와 아이콘 내용도 source와 일치했습니다. Command Line Tools의 framework/library search path가 없다는 linker 경고가 있었지만 빌드는 완료됐습니다.
 
-첫 `python3 scripts/package-dmg.py`는 제한된 실행 환경에서 `hdiutil create`에 실패했으며, 로컬 디스크 이미지 접근을 허용한 뒤 성공했습니다. 설치 안내에서 게시 시점에 따라 낡는 문구를 제거한 후 같은 build 10 앱으로 패키징만 반복했습니다. 최종 DMG는 `hdiutil verify`와 위의 SHA-256 검사를 통과했습니다. `ruby -c packaging/homebrew/touch-me.rb.in`이 통과했고 초안의 digest는 최종 후보와 일치합니다. 임시 입력으로 누락·잘못된 `VERSION`과 이전 버전의 번들 metadata가 산출물 대치 전에 거부되는 것을 확인했습니다. 이전 앱·DMG 산출물은 보존했습니다.
+첫 `python3 scripts/package-dmg.py`는 제한된 실행 환경에서 `hdiutil create`에 실패했으며, 로컬 디스크 이미지 접근을 허용한 뒤 성공했습니다. 설치 안내에서 게시 시점에 따라 낡는 문구를 제거한 후 같은 build 10 앱으로 패키징만 반복했습니다. 해당 DMG는 `hdiutil verify`와 SHA-256 검사를 통과했습니다. `ruby -c packaging/homebrew/touch-me.rb.in`이 통과했고 당시 초안의 digest는 해당 후보와 일치했습니다. 임시 입력으로 누락·잘못된 `VERSION`과 이전 버전의 번들 metadata가 산출물 대치 전에 거부되는 것을 확인했습니다. 이 검사는 build 10 준비 기록입니다. 이후 release 후보의 checksum과 패키징 결과는 별도로 기록합니다. 이전 앱·DMG 산출물은 보존했습니다.
 
 GUI 언어 전환, 재실행 후 선택 유지, 열린 시험 창과 문구 잘림은 `NOT_RUN`입니다. USB registry 조회가 실패해 P16KT의 물리적 분리를 확인하지 못했습니다. 기존 Touch Me process는 없었으며 후보 앱을 실행하지 않았습니다. Source 검토로 언어 변경이 모델을 재시작하거나 매핑·로그인 동작을 호출하지 않고 표시만 갱신하는 것을 확인했습니다. Core 로직은 유지해 tests를 반복하지 않았으며 test 파일·dependency는 추가하지 않았습니다. Homebrew style/audit/install, 다운로드한 앱의 Gatekeeper 처리, 실기기 매핑과 로그인 실행도 `NOT_RUN`입니다. 로컬 빌드·서명 결과는 이 동작의 검증을 대신하지 않습니다.
+
+### v0.8.0-beta.1 release 후보
+
+2026-10-07(`Asia/Seoul`) release 준비에서 build 11을 생성했습니다. Release build 한 번으로 warnings-as-errors 컴파일과 strict ad hoc 서명 검증을 통과했습니다. 번들의 `Licenses.txt`는 프로젝트 `LICENSE`와 정확히 일치했습니다. 이전 번들은 라이선스 내용 불일치로 staging 전에 거부됐고, 새 앱은 패키징, arm64 검사, `hdiutil verify`와 SHA-256 검사를 통과했습니다.
+
+확정한 DMG SHA-256은 `eb255a5296921c93c2cd8d9de98b7424fc380e7b3a24e713c682df0cf500b618`입니다. 로컬 Cask 초안과 Tap Cask에 같은 digest를 넣었습니다. Ruby syntax 검사를 통과했습니다. 첫 Homebrew style 실행에는 도구 cache 접근이 필요했고, 이후 검사에서 Cask 설명의 불필요한 platform 이름을 지적했습니다. 설명을 수정한 뒤 같은 파일을 다시 검사해 오류 없이 통과했습니다. 영문·한글 패키징 그림은 기존 디자인으로 다시 렌더링하고 잘림을 확인했습니다. 지원 범위와 검증 경계는 [release notes](docs/releases/v0.8.0-beta.1.md)를 확인하세요.
+
+이번 후보의 GUI, Gatekeeper, 실기기, 로그인 실행과 Homebrew 설치 검사는 `NOT_RUN`입니다. Source·Tap 게시와 online audit은 runbook 페이즈에 따라 진행하며, 실제 결과는 로컬 산출물 검사와 구분해 기록합니다.
 
 ## 실패 시 작업 범위 유지하기
 
@@ -122,12 +130,12 @@ GUI 언어 전환, 재실행 후 선택 유지, 열린 시험 창과 문구 잘�
 
 정리를 마친 폴더에는 `.build`와 `dist/previous-builds`가 없을 수 있습니다. 다음 빌드에서 다시 생성합니다. 삭제 전 정확한 생성 경로와 마운트 상태를 확인하고 외부 폴더를 가리키는 링크는 따라가지 마세요.
 
-## 공개 릴리즈 별도로 준비하기
+## 검토한 릴리즈 공개하기
 
-합의한 `0.8.0-beta.1` 경로는 예정한 개인 Tap `soom-kang/homebrew-touch-me`의 ad hoc beta Cask입니다. 로컬 Workflow에서는 산출물과 Cask 초안을 준비합니다. Remote 생성, push, 공개와 설치는 별도 승인을 받아 진행합니다. 예정한 저장소의 공개 상태는 확인하지 않았습니다.
+`0.8.0-beta.1` 경로는 개인 Tap `soom-kang/homebrew-touch-me`의 ad hoc beta Cask입니다. Source repository는 [soom-kang/touch-me](https://github.com/soom-kang/touch-me)입니다. 2026-10-07 release 작업에서는 검토한 source 갱신, tag·prerelease와 Tap 공개부터 online audit까지 합의했습니다. 각 페이즈의 검사가 통과하면 다음으로 진행하며, 새 결정이 필요하거나 검사에 실패하면 해당 페이즈를 중단합니다.
 
-[Homebrew 배포 준비](docs/Homebrew.ko.md)에서 release 페이즈, checksum 확정, 첫 실행과 Tap 검사를 확인하세요. Ad hoc beta는 공증하지 않으며 Gatekeeper 승인을 주장하지 않습니다. 향후 Developer ID 배포는 서명·공증을 준비하고 최종 설치 산출물의 권한과 장치 동작을 다시 확인해야 합니다.
+[Homebrew 배포](docs/Homebrew.ko.md)에서 release 페이즈, checksum 확정, 첫 실행과 Tap 검사를 확인하세요. Ad hoc beta는 공증하지 않으며 Gatekeeper 승인을 주장하지 않습니다. 향후 Developer ID 배포는 서명·공증을 준비하고 최종 설치 산출물의 권한과 장치 동작을 다시 확인해야 합니다.
 
-이 Workflow는 `/Applications` 앱 대치, 개인정보 보호 권한 변경, 로그인 항목 등록, commit, push 또는 공개 배포를 승인하지 않습니다. 각 작업은 받은 승인 범위에 따라 진행하세요. Credential은 명령, 로그와 문서에 기록하지 않습니다.
+이번 release에서는 Homebrew 설치, `/Applications/Touch Me.app` 대치, GUI·실기기 확인, 개인정보 보호 설정 변경과 로그인 항목 등록을 수행하지 않습니다. 이후 실행은 해당 작업의 승인 범위에 따라 진행하세요. Credential은 명령, 로그와 문서에 기록하지 않습니다.
 
 Touch Me에는 [프로젝트 MIT License](LICENSE)를 적용합니다.

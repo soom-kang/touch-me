@@ -1,12 +1,12 @@
 ![touch me](docs/assets/touch-me-title.png)
 
-[English](README.md) · [한국어](README.ko.md) · [개발 Workflow](Workflow.ko.md) · [Homebrew 배포 준비](docs/Homebrew.ko.md)
+[English](README.md) · [한국어](README.ko.md) · [개발 Workflow](Workflow.ko.md) · [Homebrew 배포](docs/Homebrew.ko.md)
 
 <!-- meta.contentType: Landing; audience: P16KT owners; goal: install and operate Touch Me; content plan: setup, installation, gestures, recovery, validation, licenses. -->
 
 # macOS에서 P16KT 터치 화면 사용하기
 
-Touch Me는 ZEUSLAP P16KT의 터치 입력을 선택한 화면에 맞춰 전달합니다. 메뉴 막대 앱을 실행하면 탭, 드래그, 더블 클릭과 두 손가락 스크롤을 사용할 수 있습니다. 현재 로컬 beta 버전은 `0.8.0-beta.1`입니다.
+Touch Me는 ZEUSLAP P16KT의 터치 입력을 선택한 화면에 맞춰 전달합니다. 메뉴 막대 앱을 실행하면 탭, 드래그, 더블 클릭과 두 손가락 스크롤을 사용할 수 있습니다. 현재 beta 버전은 `0.8.0-beta.1`입니다.
 
 ## 사용 환경 확인하기
 
@@ -18,13 +18,13 @@ Touch Me는 ZEUSLAP P16KT의 터치 입력을 선택한 화면에 맞춰 전달�
 | 대상 화면 | 회전과 미러링을 사용하지 않는 외부 화면 |
 | 권한 | 입력 모니터링과 손쉬운 사용 |
 | 앱 언어 | 기본값 영어; 설정에서 English / 한국어 선택 |
-| 배포 | 로컬 ad hoc arm64 앱과 디스크 이미지; Homebrew beta 배포 준비 단계 |
+| 배포 | Ad hoc arm64 앱과 디스크 이미지; 개인 Homebrew beta Tap |
 
 다른 패널, Intel Mac과 이전 macOS 버전은 검증 기록이 없습니다. Touch Me를 시작하기 전에 다른 터치 매핑 프로그램을 중지하세요.
 
 ## 설치하고 매핑 시작하기
 
-[개발 Workflow](Workflow.ko.md)에 따라 앱과 디스크 이미지를 만드세요. 로컬 이미지 경로는 `dist/touch-me-0.8.0-beta.1-arm64.dmg`입니다. 이번 준비 작업은 예정한 Homebrew Tap을 공개하지 않습니다. 후속 절차는 [배포 페이즈](docs/Homebrew.ko.md)를 확인하세요.
+[v0.8.0-beta.1 release](https://github.com/soom-kang/touch-me/releases/tag/v0.8.0-beta.1)의 DMG와 checksum을 사용하거나 [개발 Workflow](Workflow.ko.md)에 따라 직접 빌드하세요. 로컬 이미지 경로는 `dist/touch-me-0.8.0-beta.1-arm64.dmg`입니다. Tap 설치, 수동 설치 앱과의 충돌 처리와 release 검사는 [Homebrew 배포](docs/Homebrew.ko.md)에서 확인하세요.
 
 1. 디스크 이미지를 열고 **Touch Me.app**을 **Applications**로 끌어 복사하세요. 이미지를 추출한 뒤 설치한 앱을 여세요.
 2. **시스템 설정 → 개인정보 보호 및 보안**을 여세요. **입력 모니터링**과 **손쉬운 사용**에서 Touch Me를 허용하세요.
@@ -90,4 +90,4 @@ Beta는 ad hoc 서명을 사용하며 공증하지 않았습니다. 다운로드
 
 ## 라이선스 확인하기
 
-Touch Me에는 [MIT License](LICENSE)를 적용합니다. 저작권 표기는 2026 Soom Kang입니다. 앱 메뉴의 **라이선스**에서 두 고지를 함께 확인할 수 있습니다.
+Touch Me에는 [MIT License](LICENSE)를 적용합니다. 저작권 표기는 2026 Soom Kang입니다. 앱 메뉴의 **라이선스**에서 확인할 수 있습니다.

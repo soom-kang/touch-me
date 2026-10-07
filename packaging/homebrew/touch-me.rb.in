@@ -2,11 +2,11 @@
 # the versioned release asset and this exact checksum are publicly verified.
 cask "touch-me" do
   version "0.8.0-beta.1"
-  sha256 "be3b4617bd941d892ba1c72bb0e95aed394515a6ea2640b5483dd41d3558143c"
+  sha256 "eb255a5296921c93c2cd8d9de98b7424fc380e7b3a24e713c682df0cf500b618"
 
   url "https://github.com/soom-kang/touch-me/releases/download/v#{version}/touch-me-#{version}-arm64.dmg"
   name "Touch Me"
-  desc "Map ZEUSLAP P16KT touchscreen input to a macOS display"
+  desc "Map ZEUSLAP P16KT touchscreen input to a display"
   homepage "https://github.com/soom-kang/touch-me"
 
   livecheck do

@@ -1,6 +1,5 @@
 import Foundation
 
-// Third-party attribution: see THIRD_PARTY_NOTICES.md.
 public struct AxisRange: Codable, Equatable {
     public let minimum: Int
     public let maximum: Int

@@ -1,10 +1,10 @@
-[English](Workflow.md) · [한국어](Workflow.ko.md) · [Use the app](README.md) · [Homebrew preparation](docs/Homebrew.md)
+[English](Workflow.md) · [한국어](Workflow.ko.md) · [Use the app](README.md) · [Homebrew distribution](docs/Homebrew.md)
 
 <!-- meta.contentType: How-to; audience: contributors; goal: build and package Touch Me locally; content plan: environment, modules, build, packaging, checks, recovery, release. -->
 
 # Build and package Touch Me locally
 
-Use this workflow to build the arm64 app, inspect its bundle and create a personal disk image. The existing scripts use Apple's local tools and Python 3. They do not install third-party dependencies or publish artifacts.
+Use this workflow to build the arm64 app, inspect its bundle and create a personal disk image. The existing scripts use Apple's local tools and Python 3. They do not install additional dependencies or publish artifacts.
 
 ## Prepare your environment
 
@@ -39,7 +39,7 @@ No app networking code or raw-input logging is implemented in the current source
 
 ## Build and inspect the app
 
-Build the release executable and bundle it with icons and both license notices:
+Build the release executable and bundle it with icons and the project license:
 
 ```bash
 bash scripts/build-app.sh
@@ -55,7 +55,7 @@ cat 'dist/Touch Me.app/Contents/Resources/Licenses.txt'
 codesign --verify --strict 'dist/Touch Me.app'
 ```
 
-`Licenses.txt` combines `LICENSE` . Missing source license files stop bundling. Ad hoc signature verification confirms local bundle integrity; it does not establish Developer ID signing or notarization.
+`Licenses.txt` contains the project `LICENSE`. A missing license file stops bundling. Ad hoc signature verification confirms local bundle integrity; it does not establish Developer ID signing or notarization.
 
 ## Create the personal disk image
 
@@ -110,9 +110,17 @@ The 2026-10-07 documentation and license update produced build 9. Release compil
 
 On 2026-10-07 (`Asia/Seoul`), the language/version preparation produced build 10 with `CFBundleShortVersionString=0.8.0` and `TouchMeReleaseVersion=0.8.0-beta.1`. `bash scripts/build-app.sh` passed release compilation with warnings as errors and strict ad hoc signature verification. Exact bundled license content and icon content matched the source. Missing Command Line Tools framework/library search paths produced non-fatal linker warnings; the build completed.
 
-The first `python3 scripts/package-dmg.py` attempt failed at `hdiutil create` under the restricted execution environment. It succeeded with the required local disk-image access. After removing publication-timing wording from the installation notes, only packaging was repeated with the same build 10 app. The final DMG passed `hdiutil verify` and the SHA-256 check above. `ruby -c packaging/homebrew/touch-me.rb.in` passed, and the draft's digest matches the final candidate. Missing/invalid `VERSION` and stale bundle metadata were checked in temporary inputs and rejected before artifact replacement. Previous app and DMG artifacts were retained.
+The first `python3 scripts/package-dmg.py` attempt failed at `hdiutil create` under the restricted execution environment. It succeeded with the required local disk-image access. After removing publication-timing wording from the installation notes, only packaging was repeated with the same build 10 app. That DMG passed `hdiutil verify` and its SHA-256 check. `ruby -c packaging/homebrew/touch-me.rb.in` passed, and the draft's digest matched that candidate. Missing/invalid `VERSION` and stale bundle metadata were checked in temporary inputs and rejected before artifact replacement. These checks cover the build 10 preparation; a later release candidate needs its own artifact checksum and packaging results. Previous app and DMG artifacts were retained.
 
 GUI language switching, relaunch persistence, open test-window behavior and clipping are `NOT_RUN`: USB registry queries failed, so physical P16KT disconnection could not be confirmed. No existing Touch Me process was found, and the candidate was not launched. Source review confirmed that language changes update presentation without restarting models or calling mapping/login actions. Core tests were not repeated because core logic is unchanged; no test files or dependencies were added. Homebrew style/audit/install, downloaded Gatekeeper handling, device mapping and login launch remain `NOT_RUN`. Local build/signature results do not establish those behaviors.
+
+### v0.8.0-beta.1 release candidate
+
+On 2026-10-07 (`Asia/Seoul`), release preparation produced build 11. One release build passed compilation with warnings as errors and strict ad hoc signature verification. The bundled `Licenses.txt` exactly matched the project `LICENSE`. Packaging rejected the previous bundle's different license resource before staging; the rebuilt app passed packaging, arm64 checks, `hdiutil verify` and SHA-256 verification.
+
+The frozen DMG SHA-256 is `eb255a5296921c93c2cd8d9de98b7424fc380e7b3a24e713c682df0cf500b618`. The local Cask draft and Tap Cask use that digest. Ruby syntax passed. The first Homebrew style run needed access to its tool cache; the style check then reported a redundant platform name in the Cask description. After correcting that description, the same file passed with no offenses. English/Korean packaging images were regenerated with the existing design and checked for clipping. See the [release notes](docs/releases/v0.8.0-beta.1.md) for support and validation limits.
+
+This candidate's GUI, Gatekeeper, real-device, login-launch and Homebrew installation checks remain `NOT_RUN`. Source and Tap publication and online audit follow the runbook phases; their actual results are recorded separately from local artifact checks.
 
 ## Handle failures without changing the scope
 
@@ -122,12 +130,12 @@ If device restoration fails during an approved device check, reconnect the P16KT
 
 After a completed cleanup, `.build` and `dist/previous-builds` may be absent. Subsequent builds recreate them. Inspect the exact generated paths and active mounts before removing them; do not follow symlinks into external folders.
 
-## Prepare a public release separately
+## Publish the reviewed release
 
-The agreed `0.8.0-beta.1` route is an ad hoc beta Cask in the planned personal Tap `soom-kang/homebrew-touch-me`. This local workflow prepares artifacts and a Cask draft; creating remotes, pushing, publishing and installing require separate approval. The planned repositories have not been verified as publicly available.
+The `0.8.0-beta.1` route is an ad hoc beta Cask in the personal Tap `soom-kang/homebrew-touch-me`. The source repository is [soom-kang/touch-me](https://github.com/soom-kang/touch-me). On 2026-10-07, the release task authorized the reviewed source update, tag/prerelease and Tap publication through online audit. Each phase advances when its checks pass; a new decision or failed check stops the affected phase.
 
-Follow [Homebrew preparation](docs/Homebrew.md) for release phases, checksum freeze, first-launch handling and Tap checks. The ad hoc beta is not notarized and does not claim Gatekeeper approval. A future Developer ID release requires signing, notarization and a new check of the final installed artifact's permissions and device behavior.
+Follow [Homebrew distribution](docs/Homebrew.md) for release phases, checksum freeze, first-launch handling and Tap checks. The ad hoc beta is not notarized and does not claim Gatekeeper approval. A future Developer ID release requires signing, notarization and a new check of the final installed artifact's permissions and device behavior.
 
-This workflow grants no permission to install over `/Applications`, change privacy permissions, register login items, commit, push or publish. Treat each of those actions according to its authorization. Keep credentials out of commands, logs and documentation.
+Homebrew installation, replacement of `/Applications/Touch Me.app`, GUI/device checks, privacy changes and login-item registration are outside this release run. Future executions require their own authorized scope. Keep credentials out of commands, logs and documentation.
 
 Touch Me uses the [project MIT License](LICENSE).

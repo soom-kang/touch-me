@@ -1,12 +1,12 @@
 ![touch me](docs/assets/touch-me-title.png)
 
-[English](README.md) · [한국어](README.ko.md) · [Build workflow](Workflow.md) · [Homebrew preparation](docs/Homebrew.md)
+[English](README.md) · [한국어](README.ko.md) · [Build workflow](Workflow.md) · [Homebrew distribution](docs/Homebrew.md)
 
 <!-- meta.contentType: Landing; audience: P16KT owners; goal: install and operate Touch Me; content plan: setup, installation, gestures, recovery, validation, licenses. -->
 
 # Use your P16KT touchscreen on macOS
 
-Touch Me maps touches on a ZEUSLAP P16KT to its selected display. Run the menu bar app to tap, drag, double-click and scroll with two fingers. The current local beta is `0.8.0-beta.1`.
+Touch Me maps touches on a ZEUSLAP P16KT to its selected display. Run the menu bar app to tap, drag, double-click and scroll with two fingers. The current beta is `0.8.0-beta.1`.
 
 ## Check your setup
 
@@ -18,13 +18,13 @@ The current implementation targets one connected P16KT on Apple Silicon with mac
 | Display       | External, without rotation or mirroring                               |
 | Permissions   | Input Monitoring and Accessibility                                    |
 | App languages | English by default; English / 한국어 selector in settings             |
-| Distribution  | Local ad hoc arm64 app and disk image; Homebrew beta preparation only |
+| Distribution  | Ad hoc arm64 app and disk image; personal Homebrew beta Tap          |
 
 Other panels, Intel Macs and older macOS versions have no recorded validation. Stop other touch-mapping software before starting Touch Me.
 
 ## Install and start mapping
 
-Build the app and disk image with the [development workflow](Workflow.md). The local image is `dist/touch-me-0.8.0-beta.1-arm64.dmg`. The planned Homebrew Tap is not published by this preparation; see the [release phases](docs/Homebrew.md).
+Use the DMG and checksum from the [v0.8.0-beta.1 release](https://github.com/soom-kang/touch-me/releases/tag/v0.8.0-beta.1), or build them with the [development workflow](Workflow.md). The local image is `dist/touch-me-0.8.0-beta.1-arm64.dmg`. See [Homebrew distribution](docs/Homebrew.md) for Tap installation, manual-app conflicts and release checks.
 
 1. Open the disk image and drag **Touch Me.app** to **Applications**. Eject the image, then open the installed app.
 2. Open **System Settings → Privacy & Security**. Allow Touch Me in **Input Monitoring** and **Accessibility**.
@@ -88,6 +88,6 @@ These are recorded results, not new device checks for a rebuilt app. A full logo
 
 See the [validation boundaries](Workflow.md#choose-the-minimum-checks) before changing device handling or expanding compatibility.
 
-## Read the licenses
+## Read the license
 
-Touch Me uses the [MIT License](LICENSE), copyright 2026 Soom Kang. Open **License** in the app menu to read both.
+Touch Me uses the [MIT License](LICENSE), copyright 2026 Soom Kang. Open **License** in the app menu to read it.
