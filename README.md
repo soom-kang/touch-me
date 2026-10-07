@@ -51,6 +51,8 @@ The supported gestures are:
 
 Select **Stop mapping** to release input and keep mapping stopped on the next launch. Quitting while mapping preserves the intent to resume. Automatic resume requires the saved display, USB location and both permissions to match.
 
+Sleep, an inactive user session, or a display-configuration change stops mapping and clears the saved intent to resume. Waking or returning to the session does not restart mapping automatically. Check the target and permissions, then start mapping manually. Normal Quit preserves resume intent only if no earlier safety interruption or explicit Stop cleared it.
+
 **Launch at login** is off by default. Enable it in settings after copying the app to Applications. Login launch opens the app; the saved mapping state determines whether it resumes.
 
 ## Recover or remove the app

@@ -28,7 +28,7 @@ enum Texts {
 }
 
 private enum ProofMessage {
-    case none, resumeRequired, mappingActive, startFailed, mappingStopped
+    case none, resumeRequired, mappingActive, startFailed, mappingStopped, environmentStopped
     case failure(ProofError)
 
     var text: String {
@@ -40,6 +40,9 @@ private enum ProofMessage {
         case .mappingActive:
             return Texts.get("멀티터치로 동작 중입니다. 중지·정상 종료하면 시작 전 장치 모드로 복구합니다.",
                              "Multitouch is active. Stop or normal quit restores the device mode from before mapping.")
+        case .environmentStopped:
+            return Texts.get("절전, 사용자 세션 또는 화면 변경으로 안전하게 중지했습니다. 대상과 권한을 확인한 뒤 직접 매핑을 시작하세요.",
+                             "Mapping stopped for a sleep, session, or display change. Check the target and permissions, then start mapping manually.")
         case .startFailed: return Texts.get("시험을 시작하지 못했습니다.", "The proof could not start.")
         case .mappingStopped: return Texts.get("매핑을 중지했습니다.", "Mapping stopped.")
         case .failure(let error): return Texts.error(error) + " [\(error.code)]"
@@ -203,6 +206,16 @@ final class ProofModel: ObservableObject {
     func stop() -> Bool {
         rememberStoppedState()
         return releaseMapping()
+    }
+
+    @discardableResult
+    func stopForEnvironmentChange() -> Bool {
+        // Preserve the existing fail-closed policy: an environment interruption
+        // clears resume intent, unlike a normal Quit. Do not overwrite a restore
+        // failure with an informational message.
+        let stopped = stop()
+        if stopped { messageState = .environmentStopped }
+        return stopped
     }
 
     @discardableResult
