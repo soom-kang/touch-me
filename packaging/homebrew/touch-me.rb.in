@@ -1,0 +1,34 @@
+# Pre-publication draft. Copy to the approved Tap's Casks/touch-me.rb only after
+# the versioned release asset and this exact checksum are publicly verified.
+cask "touch-me" do
+  version "0.8.0-beta.1"
+  sha256 "be3b4617bd941d892ba1c72bb0e95aed394515a6ea2640b5483dd41d3558143c"
+
+  url "https://github.com/soom-kang/touch-me/releases/download/v#{version}/touch-me-#{version}-arm64.dmg"
+  name "Touch Me"
+  desc "Map ZEUSLAP P16KT touchscreen input to a macOS display"
+  homepage "https://github.com/soom-kang/touch-me"
+
+  livecheck do
+    skip "Beta releases are maintained manually"
+  end
+
+  depends_on arch: :arm64
+  depends_on macos: :tahoe
+
+  app "Touch Me.app"
+
+  caveats do
+    unsigned_accessibility
+    <<~EOS
+      This beta is ad hoc signed and is not notarized.
+      Verify the release source and checksum before first launch.
+      For Apple's manual approval guidance, see:
+        https://support.apple.com/en-us/102445
+      Allow Input Monitoring and Accessibility in System Settings.
+      Before upgrading or removing the app, select Stop mapping, then normal Quit.
+      If device-mode restoration fails, stop the upgrade or removal and retry Stop
+      after reconnecting the P16KT to the same USB port.
+    EOS
+  end
+end

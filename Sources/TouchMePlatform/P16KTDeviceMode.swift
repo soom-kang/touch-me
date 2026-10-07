@@ -1,0 +1,142 @@
+import Foundation
+import IOKit.hid
+import Darwin
+
+/// Uses the mapper's already-open device and restores the verified original pair.
+final class P16KTDeviceMode {
+    private var device: IOHIDDevice
+    private var mode: IOHIDElement
+    private var identifier: IOHIDElement
+    private let locationID: Int
+    private let originalMode: Int
+    private let originalIdentifier: Int
+    private(set) var needsRestore = false
+
+    init(collection: HIDCollection) throws {
+        let device = collection.device
+        guard collection.vendor == 0x0457, collection.product == 0x0819,
+              collection.usagePage == 0x0D, collection.usage == 0x04,
+              let transport = IOHIDDeviceGetProperty(device, kIOHIDTransportKey as CFString) as? String,
+              transport.caseInsensitiveCompare("USB") == .orderedSame,
+              Self.integer(device, kIOHIDVendorIDKey) == 0x0457,
+              Self.integer(device, kIOHIDProductIDKey) == 0x0819,
+              Self.integer(device, kIOHIDPrimaryUsagePageKey) == 0x0D,
+              Self.integer(device, kIOHIDPrimaryUsageKey) == 0x04,
+              let locationID = Self.integer(device, kIOHIDLocationIDKey), locationID > 0 else {
+            throw ProofError.modeUnsupported
+        }
+        let elements = IOHIDDeviceCopyMatchingElements(device, nil, 0) as? [IOHIDElement] ?? []
+        func feature(usage: UInt32, reportID: UInt32, maximum: Int) -> IOHIDElement? {
+            let matches = elements.filter {
+                IOHIDElementGetType($0) == kIOHIDElementTypeFeature
+                    && IOHIDElementGetUsagePage($0) == 0x0D && IOHIDElementGetUsage($0) == usage
+                    && IOHIDElementGetReportID($0) == reportID
+                    && IOHIDElementGetReportSize($0) == 8 && IOHIDElementGetReportCount($0) == 1
+                    && IOHIDElementGetLogicalMin($0) == 0 && IOHIDElementGetLogicalMax($0) == maximum
+            }
+            return matches.count == 1 ? matches.first : nil
+        }
+        func hasConfigurationParent(_ element: IOHIDElement) -> Bool {
+            guard let parent = IOHIDElementGetParent(element) else { return false }
+            return IOHIDElementGetUsagePage(parent) == 0x0D && IOHIDElementGetUsage(parent) == 0x23
+        }
+        let reportFeatures = elements.filter {
+            IOHIDElementGetType($0) == kIOHIDElementTypeFeature && IOHIDElementGetReportID($0) == 7
+        }
+        guard let mode = feature(usage: 0x52, reportID: 7, maximum: 10),
+              let identifier = feature(usage: 0x53, reportID: 7, maximum: 10),
+              feature(usage: 0x55, reportID: 8, maximum: 20) != nil,
+              hasConfigurationParent(mode), hasConfigurationParent(identifier),
+              reportFeatures.count == 2 else {
+            throw ProofError.modeUnsupported
+        }
+        let originalMode = try Self.read(device: device, element: mode)
+        let originalIdentifier = try Self.read(device: device, element: identifier)
+        guard (originalMode == 0 || originalMode == 2), originalIdentifier == 0 else {
+            throw ProofError.modeStateUnexpected
+        }
+        self.device = device
+        self.mode = mode
+        self.identifier = identifier
+        self.locationID = locationID
+        self.originalMode = originalMode
+        self.originalIdentifier = originalIdentifier
+    }
+
+    func isAtOriginalLocation(_ collection: HIDCollection) -> Bool {
+        Self.integer(collection.device, kIOHIDLocationIDKey) == locationID
+    }
+
+    func rebind(to collection: HIDCollection) throws {
+        guard Self.integer(collection.device, kIOHIDLocationIDKey) == locationID else {
+            throw ProofError.modeUnsupported
+        }
+        let replacement = try P16KTDeviceMode(collection: collection)
+        // Replace stale handles only; preserve the original pair and pending recovery.
+        device = replacement.device
+        mode = replacement.mode
+        identifier = replacement.identifier
+    }
+
+    func enable() throws {
+        guard originalMode == 0 else { return }
+        // A failed write can still change the device; retain recovery responsibility.
+        needsRestore = true
+        try write(mode: 2, identifier: originalIdentifier)
+        guard try matches(mode: 2, identifier: originalIdentifier) else {
+            throw ProofError.modeReadbackMismatch
+        }
+    }
+
+    func restore() throws {
+        guard needsRestore else { return }
+        do {
+            if (try? matches(mode: originalMode, identifier: originalIdentifier)) == true {
+                needsRestore = false
+                return
+            }
+            try write(mode: originalMode, identifier: originalIdentifier)
+            guard try matches(mode: originalMode, identifier: originalIdentifier) else {
+                throw ProofError.modeReadbackMismatch
+            }
+            needsRestore = false
+        } catch let error as ProofError {
+            switch error {
+            case .modeReadFailed(let result), .modeWriteFailed(let result):
+                throw ProofError.modeRestoreFailed(result)
+            default:
+                throw ProofError.modeRestoreFailed(kIOReturnError)
+            }
+        } catch {
+            throw ProofError.modeRestoreFailed(kIOReturnError)
+        }
+    }
+
+    private func matches(mode expectedMode: Int, identifier expectedIdentifier: Int) throws -> Bool {
+        let actualMode = try Self.read(device: device, element: mode)
+        let actualIdentifier = try Self.read(device: device, element: identifier)
+        return actualMode == expectedMode && actualIdentifier == expectedIdentifier
+    }
+
+    private func write(mode value: Int, identifier identifierInteger: Int) throws {
+        let timestamp = mach_absolute_time()
+        let modeValue = IOHIDValueCreateWithIntegerValue(kCFAllocatorDefault, mode, timestamp, value)
+        let identifierValue = IOHIDValueCreateWithIntegerValue(kCFAllocatorDefault, identifier, timestamp, identifierInteger)
+        let values = [mode: modeValue, identifier: identifierValue] as CFDictionary
+        let result = IOHIDDeviceSetValueMultiple(device, values)
+        guard result == kIOReturnSuccess else { throw ProofError.modeWriteFailed(result) }
+    }
+
+    private static func read(device: IOHIDDevice, element: IOHIDElement) throws -> Int {
+        let pointer = UnsafeMutablePointer<Unmanaged<IOHIDValue>>.allocate(capacity: 1)
+        defer { pointer.deallocate() }
+        let result = IOHIDDeviceGetValueWithOptions(device, element, pointer,
+            IOHIDDeviceGetValueOptions.withUpdate.rawValue)
+        guard result == kIOReturnSuccess else { throw ProofError.modeReadFailed(result) }
+        return IOHIDValueGetIntegerValue(pointer.pointee.takeUnretainedValue())
+    }
+
+    private static func integer(_ device: IOHIDDevice, _ key: String) -> Int? {
+        (IOHIDDeviceGetProperty(device, key as CFString) as? NSNumber)?.intValue
+    }
+}

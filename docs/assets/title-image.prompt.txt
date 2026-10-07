@@ -1,0 +1,15 @@
+Generator: built-in image_gen
+Created: 2026-10-07
+Reference: agreed Touch Me title-image direction
+Output: touch-me-title.png
+
+Use case: logo-brand
+Asset type: wide title banner for the top of a GitHub README, landscape approximately 3:1.
+Primary request: a refined editorial title image for the macOS touchscreen utility Touch Me.
+Scene/backdrop: solid warm light gray paper #F6F5F1, extremely subtle paper texture.
+Subject: the exact lowercase title "touch me" and a small touch-point motif, a single cyan dot with one fine incomplete circular touch ring.
+Style/medium: premium restrained typographic editorial artwork, flat ink shapes, crisp edges.
+Composition/framing: generous negative space, large navy lowercase type in a refined humanist sans serif with balanced spacing. The modest touch point should relate to the title, not dominate it. Keep all content comfortably inside wide safe margins.
+Color palette: warm gray #F6F5F1, navy #202B3B, cyan #65D9EB only.
+Text (verbatim): "touch me". Spell exactly t-o-u-c-h, space, m-e. No other text.
+Constraints: legible at GitHub README width, professional and quiet, no slogan, no screen UI, no badge, no gradient, no glow, no shadows, no 3D, no watermark, no extra objects. Opaque background.

@@ -1,0 +1,8 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1024" height="1024" viewBox="0 0 1024 1024">
+  <title>Touch Me</title>
+  <desc>A raised index finger reaching toward a touch point.</desc>
+  <rect x="64" y="64" width="896" height="896" rx="200" fill="#202B3B"/>
+  <circle cx="450" cy="272" r="112" fill="none" stroke="#65D9EB" stroke-width="28"/>
+  <circle cx="450" cy="272" r="23" fill="#65D9EB"/>
+  <path fill="#F5F7FA" d="M394 590V374c0-32 25-57 56-57s56 25 56 57v148c0-28 21-49 48-49s48 21 48 49v32c0-27 20-48 47-48s47 21 47 48v34c0-27 20-47 46-47s46 20 46 47v106c0 89-69 157-158 157h-73c-43 0-85-18-115-50L299 681c-20-22-19-53 2-74 20-20 52-20 72 1l21 23z"/>
+</svg>
