@@ -73,12 +73,20 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSMenuItemValidation {
         showSettings()
         observers.append(NotificationCenter.default.addObserver(forName: NSApplication.didChangeScreenParametersNotification,
                                                                  object: nil, queue: .main) { [weak self] _ in
-            self?.model.stopForEnvironmentChange()
-            self?.model.refresh()
+            self?.model.displayConfigurationChanged()
         })
-        for name in [NSWorkspace.willSleepNotification, NSWorkspace.sessionDidResignActiveNotification] {
+        let workspaceEvents: [(Notification.Name, (ProofModel) -> Void)] = [
+            (NSWorkspace.willSleepNotification, { $0.setSleeping(true) }),
+            (NSWorkspace.didWakeNotification, { $0.setSleeping(false) }),
+            (NSWorkspace.screensDidSleepNotification, { $0.setScreensSleeping(true) }),
+            (NSWorkspace.screensDidWakeNotification, { $0.setScreensSleeping(false) }),
+            (NSWorkspace.sessionDidResignActiveNotification, { $0.setSessionActive(false) }),
+            (NSWorkspace.sessionDidBecomeActiveNotification, { $0.setSessionActive(true) }),
+        ]
+        for (name, handle) in workspaceEvents {
             observers.append(NSWorkspace.shared.notificationCenter.addObserver(forName: name, object: nil, queue: .main) { [weak self] _ in
-                self?.model.stopForEnvironmentChange()
+                guard let model = self?.model else { return }
+                handle(model)
             })
         }
         for sig in [SIGINT, SIGTERM] {
@@ -89,6 +97,14 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSMenuItemValidation {
             signalSources.append(source)
         }
         model.resumeSavedMappingIfPossible()
+    }
+
+    func applicationProtectedDataWillBecomeUnavailable(_ notification: Notification) {
+        model?.synchronizeAvailability()
+    }
+
+    func applicationProtectedDataDidBecomeAvailable(_ notification: Notification) {
+        model?.synchronizeAvailability()
     }
 
     private func add(_ menu: NSMenu, _ title: String, action: Selector, key: String = "") {

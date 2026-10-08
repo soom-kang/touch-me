@@ -4,9 +4,15 @@ import IOKit
 import IOKit.hid
 import CoreGraphics
 import TouchMappingCore
+import OSLog
+
+public enum TargetChangeOrigin {
+    case touchDeviceRemoval, displayValidation
+}
 
 public enum ProofError: Error, LocalizedError {
-    case missingPermissions, unsupportedDevice, unsupportedDisplay, deviceChanged
+    case missingPermissions, unsupportedDevice, unsupportedDisplay
+    case deviceChanged(TargetChangeOrigin)
     case openFailed(IOReturn), readFailed(IOReturn), eventCreationFailed
     case modeUnsupported, modeStateUnexpected, modeReadFailed(IOReturn)
     case modeWriteFailed(IOReturn), modeReadbackMismatch, modeRestoreFailed(IOReturn)
@@ -16,7 +22,8 @@ public enum ProofError: Error, LocalizedError {
         case .missingPermissions: return "Both Input Monitoring and Accessibility are required."
         case .unsupportedDevice: return "USB physical grouping or absolute contact descriptor could not be verified."
         case .unsupportedDisplay: return "Select an external display with no rotation or mirroring."
-        case .deviceChanged: return "The selected touch device or display changed. Refresh and try again."
+        case .deviceChanged(.touchDeviceRemoval): return "The touch device disconnected. Check its USB connection, then refresh."
+        case .deviceChanged(.displayValidation): return "The target display changed or is unavailable. Refresh and try again."
         case .openFailed(let rc): return String(format: "Exclusive open failed (0x%08X). Check permission or another mapper.", UInt32(bitPattern: rc))
         case .readFailed(let rc): return String(format: "Contact state read failed (0x%08X).", UInt32(bitPattern: rc))
         case .eventCreationFailed: return "A mouse event could not be created. Mapping stopped."
@@ -66,7 +73,10 @@ public final class ProofMapper {
     public private(set) var maximumContacts = 0
     public var modeRestorePending: Bool { deviceMode?.control.needsRestore == true }
     public var onChange: (() -> Void)?
-    public var onFailure: ((ProofError) -> Void)?
+    public var onFailure: ((ProofError, DisplayTarget?) -> Void)?
+    /// May stop mapping for a temporary app-session interruption before input checks.
+    public var onEnvironmentCheck: (() -> Void)?
+    public var onDisplaySleep: (() -> Void)?
     private var session = ProofSession()
     private var clickSequence = ClickSequence()
     private var releaseEvent: CGEvent?
@@ -87,21 +97,38 @@ public final class ProofMapper {
 
     public init() {}
 
-    public func start(device: TouchDevice, display: DisplayTarget) throws {
+    public var activeDisplayTarget: DisplayTarget? { target }
+
+    public func start(device: TouchDevice, display: DisplayTarget, expectedDisplay: DisplayTarget? = nil) throws {
         precondition(Thread.isMainThread)
+        let resumeStartedAt = ProcessInfo.processInfo.systemUptime
+        let recoveryLog = Logger(subsystem: "io.github.soom-kang.touchme", category: "MappingRecovery")
+        func resumePhase(_ phase: String) {
+            guard expectedDisplay != nil else { return }
+            recoveryLog.notice("Resume phase \(phase, privacy: .public), elapsed \(ProcessInfo.processInfo.systemUptime - resumeStartedAt, format: .fixed(precision: 3))s")
+        }
+        resumePhase("begin")
+        defer { resumePhase("exit") }
         if let error = stop() { throw error }
+        resumePhase("cleanup_finished")
         guard PermissionState.current().canMap else { throw ProofError.missingPermissions }
         // Refresh immediately before opening; a saved VID/PID is insufficient.
         let scan = HIDDiscovery.scan()
+        resumePhase("device_scan_finished")
         guard scan.devices.count == 1, let fresh = scan.devices.first(where: { $0.key == device.key }), fresh.canMap,
               fresh.usableCollections.count == 1 else {
             throw ProofError.unsupportedDevice
         }
-        guard let uuid = display.persistentUUID,
-              let freshDisplay = DisplayDiscovery.scan().first(where: { $0.id == display.id }),
+        guard let uuid = display.persistentUUID else { throw ProofError.unsupportedDisplay }
+        guard let freshDisplay = DisplayDiscovery.scan().first(where: { $0.id == display.id }),
               freshDisplay.persistentUUID == uuid, freshDisplay.canMap else {
+            if expectedDisplay != nil { throw ProofError.deviceChanged(.displayValidation) }
             throw ProofError.unsupportedDisplay
         }
+        if let expectedDisplay, !freshDisplay.matchesConfiguration(of: expectedDisplay) {
+            throw ProofError.deviceChanged(.displayValidation)
+        }
+        resumePhase("display_scan_finished")
         target = freshDisplay
         receivedValues = 0
         postedDowns = 0
@@ -111,11 +138,14 @@ public final class ProofMapper {
         do {
             for collection in fresh.usableCollections {
                 let rc = IOHIDDeviceOpen(collection.device, IOOptionBits(kIOHIDOptionsTypeSeizeDevice))
+                resumePhase("device_open_finished")
                 guard rc == kIOReturnSuccess else { throw ProofError.openFailed(rc) }
                 opened.append(collection)
                 let control = try P16KTDeviceMode(collection: collection)
+                resumePhase("mode_read_finished")
                 deviceMode = (collection, control)
                 try control.enable()
+                resumePhase("mode_enable_finished")
                 for e in collection.contacts {
                     var state = ContactState(elements: e)
                     // Verify an initial tip state; actual coordinates still require callbacks.
@@ -126,24 +156,38 @@ public final class ProofMapper {
                         elementKeys["\(collection.registryID):\(IOHIDElementGetCookie(el))"] = e.key
                     }
                 }
-                IOHIDDeviceRegisterInputValueCallback(collection.device, { context, result, _, value in
+                IOHIDDeviceRegisterInputValueCallback(collection.device, { context, result, sender, value in
                     guard let context else { return }
                     let mapper = Unmanaged<ProofMapper>.fromOpaque(context).takeUnretainedValue()
-                    if result != kIOReturnSuccess { mapper.fail(.readFailed(result)); return }
+                    guard mapper.acceptsCallback(from: sender) else { return }
+                    if result != kIOReturnSuccess {
+                        mapper.onEnvironmentCheck?()
+                        guard mapper.acceptsCallback(from: sender) else { return }
+                        mapper.fail(.readFailed(result))
+                        return
+                    }
                     mapper.receive(value)
                 }, context)
-                IOHIDDeviceRegisterRemovalCallback(collection.device, { context, _, _ in
+                IOHIDDeviceRegisterRemovalCallback(collection.device, { context, _, sender in
                     guard let context else { return }
-                    Unmanaged<ProofMapper>.fromOpaque(context).takeUnretainedValue().fail(.deviceChanged)
+                    let mapper = Unmanaged<ProofMapper>.fromOpaque(context).takeUnretainedValue()
+                    guard mapper.acceptsCallback(from: sender) else { return }
+                    mapper.onEnvironmentCheck?()
+                    guard mapper.acceptsCallback(from: sender) else { return }
+                    mapper.fail(.deviceChanged(.touchDeviceRemoval))
                 }, context)
                 IOHIDDeviceScheduleWithRunLoop(collection.device, loop, mode)
+                resumePhase("contact_read_finished")
             }
             _ = post(session.start())
             running = true
             if contacts.values.allSatisfy({ !$0.down }) { _ = session.update(points: []) }
             watchdog = Timer.scheduledTimer(withTimeInterval: 0.25, repeats: true) { [weak self] _ in self?.checkEnvironment() }
+            if let watchdog { RunLoop.main.add(watchdog, forMode: .common) }
             onChange?()
+            resumePhase("running")
         } catch {
+            resumePhase("rollback")
             let restoreError = stop()
             if let restoreError { throw restoreError }
             throw error
@@ -165,9 +209,10 @@ public final class ProofMapper {
         generation += 1
         watchdog?.invalidate()
         watchdog = nil
+        let context = Unmanaged.passUnretained(self).toOpaque()
         for c in opened {
-            IOHIDDeviceRegisterInputValueCallback(c.device, nil, nil)
-            IOHIDDeviceRegisterRemovalCallback(c.device, nil, nil)
+            IOHIDDeviceRegisterInputValueCallback(c.device, nil, context)
+            IOHIDDeviceRegisterRemovalCallback(c.device, nil, context)
             IOHIDDeviceUnscheduleFromRunLoop(c.device, loop, mode)
         }
         var restoreError: ProofError?
@@ -255,7 +300,14 @@ public final class ProofMapper {
         }
     }
 
+    private func acceptsCallback(from sender: UnsafeMutableRawPointer?) -> Bool {
+        guard running, let sender else { return false }
+        return opened.contains { Unmanaged.passUnretained($0.device).toOpaque() == sender }
+    }
+
     private func flush() {
+        guard running else { return }
+        onEnvironmentCheck?()
         guard running, let target else { return }
         guard PermissionState.current().canMap else { fail(.missingPermissions); return }
         // Reused slots must start from the driver's last reported position, not
@@ -382,15 +434,28 @@ public final class ProofMapper {
     }
 
     private func checkEnvironment() {
+        guard running else { return }
+        onEnvironmentCheck?()
         guard running, let target else { return }
         guard PermissionState.current().canMap else { fail(.missingPermissions); return }
-        guard let current = DisplayDiscovery.scan().first(where: { $0.id == target.id }),
-              current.persistentUUID == target.persistentUUID,
-              current.canMap, current.bounds == target.bounds else { fail(.deviceChanged); return }
+        if let uuid = target.persistentUUID, DisplayDiscovery.sleepState(for: uuid) == true {
+            onDisplaySleep?()
+            guard running else { return }
+            fail(.deviceChanged(.displayValidation))
+            return
+        }
+        let matching = DisplayDiscovery.scan().filter { $0.persistentUUID == target.persistentUUID }
+        guard matching.count == 1, let current = matching.first,
+              current.canMap, current.matchesConfiguration(of: target) else {
+            fail(.deviceChanged(.displayValidation))
+            return
+        }
+        self.target = current
     }
 
     private func fail(_ error: ProofError) {
+        let previousDisplay = target
         let restoreError = stop()
-        onFailure?(restoreError ?? error)
+        onFailure?(restoreError ?? error, previousDisplay)
     }
 }

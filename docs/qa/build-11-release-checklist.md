@@ -60,7 +60,7 @@ A checkbox alone without artifact identity and observed result is insufficient.
 | N10 | Restore failure using approved fault setup | New Start blocked; Quit can be cancelled; no silent success | NOT_RUN |
 | N11 | Same-port reconnect after restore failure | Rebind only verified panel; retry restore succeeds or stays blocked | NOT_RUN |
 | N12 | Original mode 0 versus original mode 2 | Stop returns to actual session-start state | NOT_RUN |
-| N13 | Sleep/wake, inactive session, user switch | Current policy stays stopped; see lifecycle policy | NOT_RUN |
+| N13 | Sleep/wake, inactive session, user switch | Build 11 stays stopped; current development recovery is documented in lifecycle policy | NOT_RUN |
 | N14 | Full logout/login with login launch enabled | App launch and mapping intent evaluated separately; record notification order | NOT_RUN |
 | N15 | Horizontal scroll after automatic resume | Same supported gesture behavior as manual start | NOT_RUN |
 | N16 | English/Korean changes while mapping | Session/selection maintained; messages and menus update | NOT_RUN |

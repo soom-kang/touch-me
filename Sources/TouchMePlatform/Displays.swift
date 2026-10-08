@@ -16,12 +16,27 @@ public struct DisplayTarget {
     public var rect: ScreenRect {
         ScreenRect(x: bounds.minX, y: bounds.minY, width: bounds.width, height: bounds.height)
     }
+    public func matchesConfiguration(of other: DisplayTarget) -> Bool {
+        persistentUUID != nil && persistentUUID == other.persistentUUID
+            && bounds == other.bounds && builtIn == other.builtIn
+            && mirrored == other.mirrored && rotated == other.rotated
+    }
     public var label: String {
         "Display \(id) · \(Int(bounds.width)) × \(Int(bounds.height))\(builtIn ? " · built-in" : "")"
     }
 }
 
 public enum DisplayDiscovery {
+    public static func sleepState(for persistentUUID: String) -> Bool? {
+        var count: UInt32 = 0
+        guard CGGetOnlineDisplayList(0, nil, &count) == .success else { return nil }
+        var ids = [CGDirectDisplayID](repeating: 0, count: Int(count))
+        guard CGGetOnlineDisplayList(count, &ids, &count) == .success else { return nil }
+        let matching = ids.prefix(Int(count)).filter { displayUUID($0) == persistentUUID }
+        guard matching.count == 1, let id = matching.first else { return nil }
+        return CGDisplayIsAsleep(id) != 0
+    }
+
     public static func scan() -> [DisplayTarget] {
         var count: UInt32 = 0
         guard CGGetActiveDisplayList(0, nil, &count) == .success else { return [] }

@@ -1,7 +1,9 @@
 import AppKit
+import CoreGraphics
 import SwiftUI
 import Combine
 import IOKit.hid
+import OSLog
 import TouchMePlatform
 
 enum Texts {
@@ -13,7 +15,8 @@ enum Texts {
         case .missingPermissions: return "입력 모니터링과 손쉬운 사용 권한을 모두 허용해주세요."
         case .unsupportedDevice: return "USB 장치 구분 또는 absolute X/Y·접촉 요소를 확인하지 못했습니다. 한 대만 연결하고 다시 조회해주세요."
         case .unsupportedDisplay: return "회전·미러링하지 않은 외부 화면을 선택해주세요."
-        case .deviceChanged: return "장치 또는 화면이 변경되어 중지했습니다. 다시 조회해주세요."
+        case .deviceChanged(.touchDeviceRemoval): return "터치 장치 연결이 끊겨 중지했습니다. USB 연결을 확인하고 다시 조회해주세요."
+        case .deviceChanged(.displayValidation): return "대상 화면이 변경되었거나 확인되지 않아 중지했습니다. 다시 조회해주세요."
         case .openFailed: return "장치를 점유하지 못했습니다. 권한이나 다른 매핑 앱의 실행 상태를 확인해주세요."
         case .readFailed: return "접촉 상태를 읽지 못해 중지했습니다. 다시 조회해주세요."
         case .eventCreationFailed: return "입력 이벤트를 만들지 못해 중지했습니다."
@@ -29,6 +32,8 @@ enum Texts {
 
 private enum ProofMessage {
     case none, resumeRequired, mappingActive, startFailed, mappingStopped, environmentStopped
+    case mappingSuspended, mappingResuming, resumeTimedOut
+    case checkingInterruption, interruptionUnconfirmed(ProofError)
     case failure(ProofError)
 
     var text: String {
@@ -41,13 +46,45 @@ private enum ProofMessage {
             return Texts.get("멀티터치로 동작 중입니다. 중지·정상 종료하면 시작 전 장치 모드로 복구합니다.",
                              "Multitouch is active. Stop or normal quit restores the device mode from before mapping.")
         case .environmentStopped:
-            return Texts.get("절전, 사용자 세션 또는 화면 변경으로 안전하게 중지했습니다. 대상과 권한을 확인한 뒤 직접 매핑을 시작하세요.",
-                             "Mapping stopped for a sleep, session, or display change. Check the target and permissions, then start mapping manually.")
+            return Texts.get("화면 구성이 변경되어 중지했습니다. 대상과 권한을 확인한 뒤 직접 매핑을 시작하세요.",
+                             "Mapping stopped because the display configuration changed. Check the target and permissions, then start mapping manually.")
+        case .mappingSuspended:
+            return Texts.get("잠금·절전 또는 사용자 전환으로 매핑을 잠시 중지했습니다. 돌아오면 자동으로 재개합니다.",
+                             "Mapping is paused while the screen is locked, the Mac is asleep, or another user is active. It will resume when you return.")
+        case .mappingResuming:
+            return Texts.get("저장한 장치와 화면을 확인하고 있습니다. 준비되면 매핑을 재개합니다.",
+                             "Checking the saved device and display. Mapping will resume when they are ready.")
+        case .resumeTimedOut:
+            return Texts.get("매핑을 자동으로 재개하지 못했습니다. 장치·화면과 권한을 확인한 뒤 직접 시작하세요.",
+                             "Mapping could not resume automatically. Check the device, display and permissions, then start it manually.")
+        case .checkingInterruption:
+            return Texts.get("대상 화면 변화로 입력을 중지했습니다. 잠금·절전 상태를 확인하고 있습니다.",
+                             "Input stopped after a target display change. Checking for a lock or sleep interruption.")
+        case .interruptionUnconfirmed(let error):
+            return Texts.error(error) + Texts.get(" 잠금·절전 중단을 확인하지 못해 자동 재개하지 않았습니다.",
+                                                " No lock or sleep interruption was confirmed, so automatic resume was cancelled.") + " [\(error.code)]"
         case .startFailed: return Texts.get("시험을 시작하지 못했습니다.", "The proof could not start.")
         case .mappingStopped: return Texts.get("매핑을 중지했습니다.", "Mapping stopped.")
         case .failure(let error): return Texts.error(error) + " [\(error.code)]"
         }
     }
+}
+
+private enum MappingInterruption: Hashable {
+    case protectedDataUnavailable, sessionUnavailable, inactiveSession, sleep, displaySleep, screensSleep
+}
+
+private struct MappingSettlingContext {
+    let savedMapping: SavedMapping
+    let display: DisplayTarget
+    var deadline: TimeInterval?
+}
+
+private struct PendingDisplayInterruption {
+    let savedMapping: SavedMapping
+    let display: DisplayTarget
+    let error: ProofError
+    let expiresAt: TimeInterval
 }
 
 final class ProofModel: ObservableObject {
@@ -70,8 +107,30 @@ final class ProofModel: ObservableObject {
     let mapper = ProofMapper()
     var onRunChange: ((Bool) -> Void)?
     private var permissionTimer: Timer?
+    private var recoveryTimer: Timer?
+    private var recoveryActivity: NSObjectProtocol?
+    private var startingAutomaticMapping = false
+    private let recoveryLog = Logger(subsystem: "io.github.soom-kang.touchme", category: "MappingRecovery")
     private var savedMapping: SavedMapping?
     private var restoreSavedSelection = true
+    private var interruptions: Set<MappingInterruption> = []
+    private var interruptionResumePending = false {
+        didSet { updateRecoveryScheduling() }
+    }
+    private var recoveryDeadline: TimeInterval?
+    private var nextRecoveryAttempt: TimeInterval = 0
+    private var settlingContext: MappingSettlingContext?
+    private var pendingDisplayInterruption: PendingDisplayInterruption? {
+        didSet { updateRecoveryScheduling() }
+    }
+    private var terminating = false
+
+    private var sessionAvailable: Bool {
+        guard let session = CGSessionCopyCurrentDictionary() as? [String: Any] else { return false }
+        // Public keys from CoreGraphics/CGSession.h; never read private lock keys.
+        return session["kCGSSessionOnConsoleKey"] as? Bool == true
+            && session["kCGSessionLoginDoneKey"] as? Bool == true
+    }
 
     init() {
         savedMapping = MappingPreferences.load()
@@ -84,26 +143,73 @@ final class ProofModel: ObservableObject {
             self.clicks = self.mapper.postedDowns
             self.scrolls = self.mapper.postedScrolls
             self.maximumContacts = self.mapper.maximumContacts
+            self.updateRecoveryScheduling()
             self.onRunChange?(self.running)
         }
-        mapper.onFailure = { [weak self] error in
-            self?.rememberStoppedState()
-            self?.targetConfirmed = false
-            self?.messageState = .failure(error)
+        mapper.onFailure = { [weak self] error, display in
+            self?.handleMappingFailure(error, previousDisplay: display)
         }
+        mapper.onEnvironmentCheck = { [weak self] in self?.synchronizeAvailability() }
+        mapper.onDisplaySleep = { [weak self] in self?.updateInterruption(.displaySleep, present: true) }
+        synchronizeAvailability()
         refresh(attemptResume: false)
         permissionTimer = Timer.scheduledTimer(withTimeInterval: 1, repeats: true) { [weak self] _ in
             guard let self else { return }
+            self.synchronizeDisplayPowerAvailability()
+            self.synchronizeAvailability()
+            if let deadline = self.settlingContext?.deadline,
+               ProcessInfo.processInfo.systemUptime >= deadline, !self.interruptionResumePending {
+                self.settlingContext = nil
+            }
             let previouslyAllowed = self.permissions.canMap
             self.permissions = PermissionState.current()
-            if !previouslyAllowed && self.permissions.canMap && self.resumePending {
+            if self.interruptionResumePending {
+                self.attemptInterruptedResume()
+            } else if !previouslyAllowed && self.permissions.canMap && self.resumePending {
                 self.refresh()
             }
+        }
+        if let permissionTimer { RunLoop.main.add(permissionTimer, forMode: .common) }
+    }
+
+    deinit {
+        permissionTimer?.invalidate()
+        recoveryTimer?.invalidate()
+        if let recoveryActivity { ProcessInfo.processInfo.endActivity(recoveryActivity) }
+    }
+
+    private func updateRecoveryScheduling() {
+        let pending = interruptionResumePending || pendingDisplayInterruption != nil
+        let canObserveReturn = !interruptions.contains(.sleep) && !interruptions.contains(.inactiveSession)
+        let active = !terminating && (!modeRestorePending || running) && canObserveReturn
+            && (pending || startingAutomaticMapping)
+        if active, recoveryActivity == nil {
+            recoveryActivity = ProcessInfo.processInfo.beginActivity(
+                options: .userInitiatedAllowingIdleSystemSleep, reason: "Restore interrupted touch mapping")
+        } else if !active, let recoveryActivity {
+            ProcessInfo.processInfo.endActivity(recoveryActivity)
+            self.recoveryActivity = nil
+        }
+        if active && pending && !startingAutomaticMapping {
+            guard recoveryTimer == nil else { return }
+            let timer = Timer(timeInterval: 0.25, repeats: true) { [weak self] _ in
+                guard let self else { return }
+                self.synchronizeDisplayPowerAvailability()
+                self.synchronizeAvailability()
+                self.attemptInterruptedResume()
+            }
+            recoveryTimer = timer
+            RunLoop.main.add(timer, forMode: .common)
+        } else {
+            recoveryTimer?.invalidate()
+            recoveryTimer = nil
         }
     }
 
     var canStart: Bool {
-        !running && !modeRestorePending && targetConfirmed && permissions.canMap && devices.count == 1
+        !terminating && pendingDisplayInterruption == nil && interruptions.isEmpty
+            && NSApp.isProtectedDataAvailable && sessionAvailable
+            && !running && !modeRestorePending && targetConfirmed && permissions.canMap && devices.count == 1
             && devices.first(where: { $0.key == selectedDevice })?.canMap == true
             && devices.first(where: { $0.key == selectedDevice })?.locationID != nil
             && displays.first(where: { $0.id == selectedDisplay })?.canMap == true
@@ -111,13 +217,18 @@ final class ProofModel: ObservableObject {
     }
 
     func refresh(attemptResume: Bool = true) {
-        guard !running && !modeRestorePending else { return }
+        synchronizeAvailability()
+        guard pendingDisplayInterruption == nil, !running && !modeRestorePending else { return }
         permissions = PermissionState.current()
         targetConfirmed = false
+        let recoveryScanStart = interruptionResumePending ? ProcessInfo.processInfo.systemUptime : nil
         let scan = HIDDiscovery.scan()
         devices = scan.devices
         scanReturnedSet = scan.queryReturnedSet
         displays = DisplayDiscovery.scan()
+        if let recoveryScanStart {
+            recoveryLog.notice("Readiness scan finished in \(ProcessInfo.processInfo.systemUptime - recoveryScanStart, format: .fixed(precision: 3))s")
+        }
         if restoreSavedSelection, let savedMapping {
             let matchingDevices = devices.filter { matches($0, saved: savedMapping) }
             let matchingDisplays = displays.filter { $0.persistentUUID == savedMapping.displayUUID && $0.canMap }
@@ -131,28 +242,36 @@ final class ProofModel: ObservableObject {
             }
         }
         if resumePending {
-            messageState = .resumeRequired
+            messageState = interruptionResumePending
+                ? (interruptions.isEmpty ? .mappingResuming : .mappingSuspended) : .resumeRequired
         }
         if attemptResume { resumeSavedMappingIfPossible() }
     }
 
-    func start() {
+    func start(automatic: Bool = false) {
+        synchronizeAvailability()
         guard canStart, let device = devices.first(where: { $0.key == selectedDevice }),
               let display = displays.first(where: { $0.id == selectedDisplay }),
               let uuid = display.persistentUUID, let location = device.locationID else { return }
         let saved = SavedMapping(displayUUID: uuid, vendor: device.vendor, product: device.product,
                                  locationID: location, resumeMapping: true)
         guard saved.isValid else { return }
-        resumePending = false
+        let expectedDisplay = automatic ? settlingContext?.display : nil
+        startingAutomaticMapping = automatic
+        defer {
+            startingAutomaticMapping = false
+            updateRecoveryScheduling()
+        }
+        cancelPendingResume(clearSettling: !automatic)
         do {
-            try mapper.start(device: device, display: display)
+            try mapper.start(device: device, display: display, expectedDisplay: expectedDisplay)
             MappingPreferences.save(saved)
             savedMapping = saved
             restoreSavedSelection = true
             messageState = .mappingActive
+            synchronizeAvailability()
         } catch let error as ProofError {
-            rememberStoppedState()
-            messageState = .failure(error)
+            handleMappingFailure(error)
         } catch {
             rememberStoppedState()
             messageState = .startFailed
@@ -160,12 +279,173 @@ final class ProofModel: ObservableObject {
     }
 
     func resumeSavedMappingIfPossible() {
+        synchronizeAvailability()
+        if interruptionResumePending {
+            guard interruptions.isEmpty, let recoveryDeadline else { return }
+            let now = ProcessInfo.processInfo.systemUptime
+            if now >= recoveryDeadline {
+                rememberStoppedState()
+                messageState = .resumeTimedOut
+                return
+            }
+            guard now >= nextRecoveryAttempt else { return }
+        }
         guard resumePending, let savedMapping, savedMapping.resumeMapping,
               let device = devices.first(where: { $0.key == selectedDevice }),
               matches(device, saved: savedMapping),
               displays.first(where: { $0.id == selectedDisplay })?.persistentUUID == savedMapping.displayUUID,
               canStart else { return }
-        start()
+        if let settlingContext {
+            guard let display = displays.first(where: { $0.id == selectedDisplay }),
+                  display.matchesConfiguration(of: settlingContext.display) else { return }
+        }
+        start(automatic: true)
+    }
+
+    func synchronizeAvailability() {
+        updateInterruption(nil, present: false)
+    }
+
+    private var displaySleepState: Bool? {
+        let uuid = mapper.activeDisplayTarget?.persistentUUID
+            ?? settlingContext?.display.persistentUUID
+            ?? pendingDisplayInterruption?.display.persistentUUID
+            ?? (resumePending ? savedMapping?.displayUUID : nil)
+        guard let uuid else { return nil }
+        return DisplayDiscovery.sleepState(for: uuid)
+    }
+
+    func synchronizeDisplayPowerAvailability() {
+        // An unavailable online query proves neither sleep nor wake.
+        guard let asleep = displaySleepState else { return }
+        updateInterruption(.displaySleep, present: asleep)
+    }
+
+    func setSleeping(_ sleeping: Bool) {
+        if sleeping {
+            updateInterruption(.sleep, present: true)
+        } else {
+            updateInterruption(.sleep, present: false, displaySleeping: displaySleepState ?? false)
+        }
+    }
+
+    func setScreensSleeping(_ sleeping: Bool) {
+        if sleeping {
+            updateInterruption(.screensSleep, present: true)
+        } else {
+            // The public wake event is return evidence even if the target is
+            // temporarily absent. A verified sleeping target still blocks resume.
+            updateInterruption(.screensSleep, present: false, displaySleeping: displaySleepState ?? false)
+        }
+    }
+
+    func setSessionActive(_ active: Bool) {
+        updateInterruption(.inactiveSession, present: !active)
+    }
+
+    private func updateInterruption(_ event: MappingInterruption?, present: Bool, displaySleeping: Bool? = nil) {
+        guard !terminating else { return }
+        defer { updateRecoveryScheduling() }
+        expirePendingDisplayInterruption()
+        var updated = interruptions
+        if let event {
+            if present { updated.insert(event) } else { updated.remove(event) }
+        }
+        if let displaySleeping {
+            if displaySleeping { updated.insert(.displaySleep) }
+            else { updated.remove(.displaySleep) }
+        }
+        if NSApp.isProtectedDataAvailable { updated.remove(.protectedDataUnavailable) }
+        else { updated.insert(.protectedDataUnavailable) }
+        if sessionAvailable { updated.remove(.sessionUnavailable) }
+        else { updated.insert(.sessionUnavailable) }
+        if !updated.isEmpty, let pendingDisplayInterruption {
+            settlingContext = MappingSettlingContext(savedMapping: pendingDisplayInterruption.savedMapping,
+                                                     display: pendingDisplayInterruption.display, deadline: nil)
+            self.pendingDisplayInterruption = nil
+            messageState = .mappingSuspended
+        }
+        guard updated != interruptions else { return }
+
+        let wasInterrupted = !interruptions.isEmpty
+        interruptions = updated
+        if !updated.isEmpty {
+            if running, let savedMapping, savedMapping.resumeMapping,
+               let display = mapper.activeDisplayTarget {
+                settlingContext = MappingSettlingContext(savedMapping: savedMapping, display: display, deadline: nil)
+            } else if settlingContext != nil {
+                settlingContext?.deadline = nil
+            }
+            interruptionResumePending = interruptionResumePending || running || resumePending
+            resumePending = interruptionResumePending && savedMapping?.resumeMapping == true
+            recoveryDeadline = nil
+            if running, !releaseMapping() {
+                rememberStoppedState()
+                return
+            }
+            if resumePending && !modeRestorePending { messageState = .mappingSuspended }
+        } else if wasInterrupted && interruptionResumePending && !modeRestorePending {
+            let now = ProcessInfo.processInfo.systemUptime
+            recoveryDeadline = now + 10
+            settlingContext?.deadline = recoveryDeadline
+            nextRecoveryAttempt = now + 1
+            messageState = .mappingResuming
+            recoveryLog.notice("Interruption cleared; readiness window started")
+        }
+    }
+
+    private func attemptInterruptedResume() {
+        guard interruptionResumePending, interruptions.isEmpty, !terminating,
+              !modeRestorePending, let recoveryDeadline else { return }
+        let now = ProcessInfo.processInfo.systemUptime
+        if now >= recoveryDeadline {
+            rememberStoppedState()
+            messageState = .resumeTimedOut
+            return
+        }
+        guard now >= nextRecoveryAttempt else { return }
+        recoveryLog.notice("Readiness attempt started")
+        refresh()
+        if interruptionResumePending { nextRecoveryAttempt = now + 1 }
+    }
+
+    func displayConfigurationChanged() {
+        synchronizeDisplayPowerAvailability()
+        synchronizeAvailability()
+        guard pendingDisplayInterruption == nil else { return }
+        if running, let target = mapper.activeDisplayTarget {
+            let currentDisplays = DisplayDiscovery.scan()
+            let matching = currentDisplays.filter { $0.persistentUUID == target.persistentUUID }
+            if matching.count == 1, let current = matching.first, current.canMap,
+               current.matchesConfiguration(of: target) {
+                displays = currentDisplays
+                selectedDisplay = current.id
+                return
+            }
+            guard releaseMapping() else {
+                rememberStoppedState()
+                return
+            }
+            handleMappingFailure(.deviceChanged(.displayValidation), previousDisplay: target)
+            return
+        }
+        if !interruptions.isEmpty || interruptionResumePending || canRetryTargetChange {
+            if running {
+                resumePending = savedMapping?.resumeMapping == true
+                interruptionResumePending = resumePending
+                recoveryDeadline = settlingContext?.deadline
+                if !releaseMapping() {
+                    rememberStoppedState()
+                    return
+                }
+            }
+            // Wait for one quiet second without extending the ten-second deadline.
+            nextRecoveryAttempt = max(nextRecoveryAttempt, ProcessInfo.processInfo.systemUptime + 1)
+            refresh(attemptResume: false)
+        } else {
+            stopForEnvironmentChange()
+            refresh()
+        }
     }
 
     func selectDevice(_ key: String) {
@@ -197,9 +477,65 @@ final class ProofModel: ObservableObject {
     }
 
     private func rememberStoppedState() {
-        resumePending = false
+        cancelPendingResume()
         MappingPreferences.setResumeMapping(false)
         savedMapping = MappingPreferences.load()
+    }
+
+    private var canRetryTargetChange: Bool {
+        guard !terminating, !modeRestorePending, let settlingContext,
+              savedMapping?.resumeMapping == true else { return false }
+        return !interruptions.isEmpty
+            || settlingContext.deadline.map { ProcessInfo.processInfo.systemUptime < $0 } == true
+    }
+
+    private func handleMappingFailure(_ error: ProofError, previousDisplay: DisplayTarget? = nil) {
+        if case .deviceChanged = error, canRetryTargetChange, let settlingContext {
+            savedMapping = settlingContext.savedMapping
+            resumePending = true
+            interruptionResumePending = true
+            recoveryDeadline = settlingContext.deadline
+            nextRecoveryAttempt = ProcessInfo.processInfo.systemUptime + 1
+            targetConfirmed = false
+            messageState = interruptions.isEmpty ? .mappingResuming : .mappingSuspended
+            return
+        }
+        if case .deviceChanged(.displayValidation) = error, !terminating, !modeRestorePending,
+           let previousDisplay, let savedMapping, savedMapping.resumeMapping,
+           previousDisplay.persistentUUID == savedMapping.displayUUID {
+            pendingDisplayInterruption = PendingDisplayInterruption(savedMapping: savedMapping,
+                                                                    display: previousDisplay, error: error,
+                                                                    expiresAt: ProcessInfo.processInfo.systemUptime + 2)
+            resumePending = true
+            interruptionResumePending = true
+            recoveryDeadline = nil
+            messageState = .checkingInterruption
+            synchronizeDisplayPowerAvailability()
+            synchronizeAvailability()
+            return
+        }
+        rememberStoppedState()
+        targetConfirmed = false
+        messageState = .failure(error)
+    }
+
+    private func expirePendingDisplayInterruption() {
+        guard let pendingDisplayInterruption,
+              ProcessInfo.processInfo.systemUptime >= pendingDisplayInterruption.expiresAt else { return }
+        rememberStoppedState()
+        targetConfirmed = false
+        messageState = .interruptionUnconfirmed(pendingDisplayInterruption.error)
+    }
+
+    private func cancelPendingResume(clearSettling: Bool = true) {
+        resumePending = false
+        interruptionResumePending = false
+        recoveryDeadline = nil
+        nextRecoveryAttempt = 0
+        if clearSettling {
+            settlingContext = nil
+            pendingDisplayInterruption = nil
+        }
     }
 
     @discardableResult
@@ -210,9 +546,7 @@ final class ProofModel: ObservableObject {
 
     @discardableResult
     func stopForEnvironmentChange() -> Bool {
-        // Preserve the existing fail-closed policy: an environment interruption
-        // clears resume intent, unlike a normal Quit. Do not overwrite a restore
-        // failure with an informational message.
+        // An independent display change still needs manual confirmation.
         let stopped = stop()
         if stopped { messageState = .environmentStopped }
         return stopped
@@ -221,7 +555,12 @@ final class ProofModel: ObservableObject {
     @discardableResult
     func stopForTermination() -> Bool {
         // Cleanup must not turn a running session into a saved user pause.
-        return releaseMapping()
+        if pendingDisplayInterruption != nil { rememberStoppedState() }
+        terminating = true
+        cancelPendingResume()
+        let stopped = releaseMapping()
+        if !stopped { terminating = false }
+        return stopped
     }
 
     @discardableResult
