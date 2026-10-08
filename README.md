@@ -6,7 +6,9 @@
 
 # Use your ZEUSLAP touchscreen on macOS
 
-Touch Me is a menu bar app for resolving ZEUSLAP touchscreen input issues on macOS. It maps your touches to the display you select, so you can tap to click, drag with one finger and scroll with two.
+Touch Me is a macOS menu bar app built to help you use ZEUSLAP touch-enabled monitors on a Mac. Its purpose is to address touch input that does not work properly on MacBooks and other Macs, helping you interact directly with the screen using your fingers.
+
+It maps touch input to the display you select, enabling taps, double-clicks, one-finger dragging and two-finger scrolling. Choose and confirm the target display in the app, then start mapping. Use the menu bar to stop mapping or change settings.
 
 The current beta, `0.8.0-beta.2`, requires the **USB/HID profile verified on the P16KT**. Mapping won't start if the device identifiers or HID (Human Interface Device) input layout differ. Support for other ZEUSLAP models isn't guaranteed, so check the setup below first.
 
