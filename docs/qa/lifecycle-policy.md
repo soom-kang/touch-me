@@ -1,8 +1,8 @@
 # Mapping lifecycle policy
 
 Ticket: TMQA-002. The development source preserves mapping intent across
-temporary lock, sleep and user-session interruptions. This change is not in
-the published beta.2 app.
+temporary lock, sleep and user-session interruptions. Beta.3 includes this
+recovery change; the published beta.2 app requires manual restart.
 
 | Event | Release input and restore device | Saved resume intent | Next action |
 | --- | --- | --- | --- |

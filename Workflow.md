@@ -16,9 +16,9 @@ The app keeps these identifiers and versions:
 | --------------------- | ------------------------------------------------- |
 | App and executable    | `Touch Me.app` / `TouchMe`                        |
 | Bundle identifier     | `io.github.soom-kang.touchme`                     |
-| Release version       | `0.8.0-beta.2`, read from `VERSION`               |
+| Release version       | `0.8.0-beta.3`, read from `VERSION`               |
 | Bundle version        | `0.8.0` plus an incrementing numeric build number |
-| Full release metadata | `TouchMeReleaseVersion=0.8.0-beta.2`              |
+| Full release metadata | `TouchMeReleaseVersion=0.8.0-beta.3`              |
 | Target                | `arm64`, macOS 26 or later                        |
 
 Keep the identifier and saved-preference format stable when changing documentation or packaging. Changing the signing identity or installation path can require permission checks in the installed app.
@@ -39,7 +39,7 @@ No app networking code or raw-input logging is implemented in the current source
 
 ## Build and inspect the app
 
-Build the release executable and bundle it with icons and the project license:
+Build the release executable and bundle it with icons and the project license. For the approved beta.3 release, run these commands from a separate release checkout to preserve the active build 18 app in the working checkout and `/Applications/Touch Me.app`:
 
 ```bash
 bash scripts/build-app.sh
@@ -52,7 +52,7 @@ Check the bundle metadata and license resource before making a disk image:
 ```bash
 plutil -p 'dist/Touch Me.app/Contents/Info.plist'
 cat 'dist/Touch Me.app/Contents/Resources/Licenses.txt'
-codesign --verify --strict 'dist/Touch Me.app'
+cmp Resources/TouchMe.icns 'dist/Touch Me.app/Contents/Resources/TouchMe.icns'
 ```
 
 `Licenses.txt` contains the project `LICENSE`. A missing license file stops bundling. Ad hoc signature verification confirms local bundle integrity; it does not establish Developer ID signing or notarization.
@@ -70,13 +70,14 @@ The script verifies the app's identifier, release metadata against `VERSION`, li
 | Output                                        | Purpose                   |
 | --------------------------------------------- | ------------------------- |
 | `dist/Touch Me.app`                           | Locally signed app bundle |
-| `dist/touch-me-0.8.0-beta.2-arm64.dmg`        | Local beta disk image     |
-| `dist/touch-me-0.8.0-beta.2-arm64.dmg.sha256` | SHA-256 checksum          |
+| `dist/touch-me-0.8.0-beta.3-arm64.dmg`        | Local beta disk image     |
+| `dist/touch-me-0.8.0-beta.3-arm64.dmg.sha256` | SHA-256 checksum          |
 
-An existing image moves to `dist/previous-builds`. Verify the new checksum from `dist`:
+An existing image moves to `dist/previous-builds` in the release checkout. Verify DMG integrity and its checksum:
 
 ```bash
-(cd dist && shasum -a 256 -c touch-me-0.8.0-beta.2-arm64.dmg.sha256)
+hdiutil verify dist/touch-me-0.8.0-beta.3-arm64.dmg
+(cd dist && shasum -a 256 -c touch-me-0.8.0-beta.3-arm64.dmg.sha256)
 ```
 
 ![Local packaging flow from source and license files to a signed app, personal disk image and SHA-256 checksum.](docs/assets/packaging.png)
@@ -98,7 +99,7 @@ Match verification to the behavior you changed. Add checks only when a defect or
 | Device opening, mode restoration or lifecycle | Check exclusive ownership, input release and restoration on the target panel                                |
 | Signing, login launch or compatibility        | Check the installed app in the changed environment                                                          |
 
-The existing core tests cover pure logic. They do not prove HID access, device-mode restoration, permissions or behavior on a physical panel. Do not add test infrastructure for a documentation-only change.
+The existing core tests cover pure logic. They do not prove HID access, device-mode restoration, permissions or behavior on a physical panel. Do not add test infrastructure for a documentation-only change. The approved beta.3 release keeps packaging and source contract checks unchanged, so it adds no tests and does not repeat the existing full suites. Its release checks are one build and packaging run, strict signature, metadata, license/icon, arm64, DMG integrity/checksum, Cask style, public downloads and online audit. Repeat a successful build only after a relevant source change: another build can change its number, signature and DMG bytes.
 
 Before opening a language-check candidate, confirm that any other app with the same Bundle Identifier has quit and the P16KT is disconnected. Otherwise record GUI checks as `NOT_RUN`. An existing app being activated, or a saved mapping session resuming, is not evidence for the candidate. Check the menu and an already-open test window as well as settings; switching languages must preserve target confirmation and test history. Recorded build 8 and build 9 checks below remain historical evidence.
 
@@ -128,6 +129,12 @@ On 2026-10-07 (`Asia/Seoul`), the existing Python packaging suite initially pass
 
 One release build produced build 12 with numeric bundle version `0.8.0` and `TouchMeReleaseVersion=0.8.0-beta.2`. Release compilation, strict ad hoc signature verification, exact bundled license/icon content, arm64 packaging, `hdiutil verify` and SHA-256 verification passed. Missing Command Line Tools framework/library search paths produced non-fatal linker warnings. The frozen DMG SHA-256 is `b667c7ba2518b966fec2fdc4b92152d66db58b0758460e5c5f4daa42cd5d3469`. These are local artifact results; publication, Cask style and online audit results are recorded separately. GUI, Gatekeeper, real-device, login-launch and Homebrew installation checks are `NOT_RUN`. See the [release notes](docs/releases/v0.8.0-beta.2.md) for this release's changes and limits.
 
+### v0.8.0-beta.3 release preparation
+
+On 2026-10-08 (`Asia/Seoul`), one release build and packaging run in a separate checkout produced build 19 with `TouchMeReleaseVersion=0.8.0-beta.3`, preserving the active development build 18 and the Applications app. The 23 compilation and bundle inputs matched the working checkout. Release compilation, strict ad hoc signature verification, bundle metadata, exact license/icon content, arm64 architecture, `hdiutil verify` and SHA-256 verification passed. The frozen DMG SHA-256 is `7f3b500c8efa0d7195e54f581fd0cc4d0fb6265ff54464b39ce6eeb9e7dfef76`. Homebrew style inspected the actual Tap `Casks/touch-me.rb` and passed with one file and no offenses. No new tests or full-suite reruns were added for release preparation.
+
+These are local artifact and style results. Public download and online audit results are recorded separately on the [published beta.3 release](https://github.com/soom-kang/touch-me/releases/tag/v0.8.0-beta.3). Earlier test and artifact records above remain historical; they do not establish beta.3 artifact or installation checks. The release app was not installed or launched for new GUI, Gatekeeper, real-device or login-launch checks.
+
 ## Handle failures without changing the scope
 
 A build or packaging failure is a stop condition for delivering a new artifact. Fix the reported local cause and repeat only the failed command. Retain the previous usable artifact until the replacement passes its checks.
@@ -138,10 +145,10 @@ After a completed cleanup, `.build` and `dist/previous-builds` may be absent. Su
 
 ## Publish the reviewed release
 
-The `0.8.0-beta.2` route updates the ad hoc beta Cask in the existing personal Tap `soom-kang/homebrew-touch-me`. The source repository is [soom-kang/touch-me](https://github.com/soom-kang/touch-me). The reviewed release starts from `main` at `abbfece6ea621b13bd9832b53976ce0acd67f839`. On 2026-10-07, the release task authorized the reviewed source update, tag/prerelease and Tap update through online audit. Each phase advances when its checks pass; a new decision or failed check stops the affected phase.
+The approved `0.8.0-beta.3` prerelease updates the ad hoc beta Cask in the existing personal Tap `soom-kang/homebrew-touch-me`. The source repository is [soom-kang/touch-me](https://github.com/soom-kang/touch-me). The 2026-10-08 baseline is clean source `main` at `c8b78c89e77ca6636db429cff46db9db68aebf9b`, with public beta.2 already present and Tap remote `main` at `fb0cea082d066bf0d34559eec6348ae09c0a5e8d`. The release authorization covers the reviewed source update, new tag/prerelease and existing Tap update through online audit. Each phase advances when its checks pass; a new consequential decision or failed check stops the affected phase.
 
 Follow [Homebrew distribution](docs/Homebrew.md) for release phases, checksum freeze, first-launch handling and Tap checks. The ad hoc beta is not notarized and does not claim Gatekeeper approval. A future Developer ID release requires signing, notarization and a new check of the final installed artifact's permissions and device behavior.
 
-Homebrew installation, replacement of `/Applications/Touch Me.app`, GUI/device checks, privacy changes and login-item registration are outside this release run. Future executions require their own authorized scope. Keep credentials out of commands, logs and documentation.
+After publishing the Tap, fast-forward the clean installed Tap to the reviewed public revision and audit its named Cask using the existing selected-Cask trust. Do not expand trust or install/upgrade the app. Homebrew installation, replacement of `/Applications/Touch Me.app`, GUI/device checks, privacy changes and login-item registration are outside this release run. Future executions require their own authorized scope. Keep credentials out of commands, logs and documentation.
 
 Touch Me uses the [project MIT License](LICENSE).

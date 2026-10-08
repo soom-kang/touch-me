@@ -10,7 +10,7 @@ Touch Me is a macOS menu bar app built to help you use ZEUSLAP touch-enabled mon
 
 It maps touch input to the display you select, enabling taps, double-clicks, one-finger dragging and two-finger scrolling. Choose and confirm the target display in the app, then start mapping. Use the menu bar to stop mapping or change settings.
 
-The current beta, `0.8.0-beta.2`, requires the **USB/HID profile verified on the P16KT**. Mapping won't start if the device identifiers or HID (Human Interface Device) input layout differ. Support for other ZEUSLAP models isn't guaranteed, so check the setup below first.
+The current beta, `0.8.0-beta.3`, requires the **USB/HID profile verified on the P16KT**. Mapping won't start if the device identifiers or HID (Human Interface Device) input layout differ. Support for other ZEUSLAP models isn't guaranteed, so check the setup below first.
 
 ## Check your setup first
 
@@ -43,7 +43,7 @@ brew install --cask soom-kang/touch-me/touch-me
 
 ### Install from the DMG
 
-Download the arm64 DMG and its `.sha256` file from the [v0.8.0-beta.2 release](https://github.com/soom-kang/touch-me/releases/tag/v0.8.0-beta.2). Verify the source and checksum, then open the disk image and drag **Touch Me.app** to **Applications**. Eject the image after copying.
+Download the arm64 DMG and its `.sha256` file from the [v0.8.0-beta.3 release](https://github.com/soom-kang/touch-me/releases/tag/v0.8.0-beta.3). Verify the source and checksum, then open the disk image and drag **Touch Me.app** to **Applications**. Eject the image after copying.
 
 The beta has an ad hoc signature and isn't notarized. If macOS blocks the downloaded app's first launch, verify its source and checksum before following [Apple's manual approval guidance](https://support.apple.com/en-us/102445). An available approval option doesn't guarantee the app can run.
 
@@ -78,7 +78,7 @@ Use one finger to click or drag and two fingers to scroll:
 
 Select **Stop mapping** from the menu to release input and keep mapping stopped on the next launch. Quitting normally while mapping saves the intent to resume. Automatic resume requires the saved display and USB location to match and both permissions to be granted.
 
-The development source pauses mapping for screen lock, sleep or an inactive user session while preserving the intent to resume. After returning, it checks the saved panel, USB location, display and permissions before restarting. It waits for up to ten seconds for that setup to become ready; otherwise start manually. For a confirmed interruption, that same recovery window stays open after the first restart: a temporary target change can retry only when the original display configuration and saved device match again. Retries do not extend the window. Explicit **Stop mapping**, other mapping errors and independent target changes outside that window cancel automatic resume. A device-mode restoration error requires **Retry restore** first. This recovery change is not included in the published beta.2 app yet; that version requires a manual restart after a system interruption.
+The app pauses mapping for screen lock, sleep or an inactive user session while preserving the intent to resume. After returning, it checks the saved panel, USB location, display and permissions before restarting. Readiness retries have a ten-second window; native device calls already in progress can take longer. If recovery expires, start manually. For a confirmed interruption, that same recovery window stays open after the first restart: a temporary target change can retry only when the original display configuration and saved device match again. Retries do not extend the window. Explicit **Stop mapping**, other mapping errors and independent target changes outside that window cancel automatic resume. A device-mode restoration error requires **Retry restore** first.
 
 **Open Touch Me at login** is off by default. Enable it in settings after installing the app in Applications. This option opens the app at login; the saved mapping state determines whether mapping resumes.
 
@@ -111,10 +111,10 @@ For local builds or distribution details, read these documents:
 
 - [Build workflow](Workflow.md): module responsibilities, local builds, packaging and checks for each change
 - [Homebrew distribution](docs/Homebrew.md): Tap and release procedure, installation conflicts, updates and removal
-- [Beta.2 release notes](docs/releases/v0.8.0-beta.2.md): changes and validation limits for this version
+- [Beta.3 release notes](docs/releases/v0.8.0-beta.3.md): changes and validation limits for this version
 - [Editable architecture diagram](docs/assets/architecture.html)
 
-A local build produces `dist/touch-me-0.8.0-beta.2-arm64.dmg`.
+A local build produces `dist/touch-me-0.8.0-beta.3-arm64.dmg`.
 
 ## Recorded validation
 
@@ -126,9 +126,11 @@ These results preserve standalone build 8 checks from 2026-10-07, in `Asia/Seoul
 - Stop-state persistence and login-item registration and removal
 - Finder installation from the personal DMG and subsequent mapping
 
-These are historical results, not new device checks for beta.2 or a rebuilt app. A full logout/login launch is `NOT_RUN`; horizontal scrolling after automatic resume is `NOT_RETESTED`. Earlier checks with possible interference from another mapper don't establish standalone behavior.
+These are historical results, not new device checks for beta.3 or a rebuilt app. A full logout/login launch is `NOT_RUN`; horizontal scrolling after automatic resume is `NOT_RETESTED`. Earlier checks with possible interference from another mapper don't establish standalone behavior.
 
-Beta.2 Homebrew installation, Gatekeeper, GUI, real-device and login-launch checks are `NOT_RUN`. See the [build workflow's validation records](Workflow.md#choose-the-minimum-checks) and [release notes](docs/releases/v0.8.0-beta.2.md) for local artifact results and validation limits.
+On 2026-10-08, the user confirmed that touch worked immediately after login following a lock/unlock cycle in build 18. That build contains the recovery code included in beta.3. This is a user-reported result for one cycle, not an exact latency guarantee.
+
+The newly packaged beta.3 app has not been installed or exercised on the device. Homebrew installation, Gatekeeper, sleep/wake and full logout/login checks are `NOT_RUN` for this release. See the [build workflow's validation records](Workflow.md#choose-the-minimum-checks) and [release notes](docs/releases/v0.8.0-beta.3.md) for artifact results and validation limits.
 
 ## License
 

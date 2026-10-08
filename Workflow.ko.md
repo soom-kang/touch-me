@@ -16,9 +16,9 @@ Apple Silicon Mac, macOS 26 이상, 패키지의 Swift 6.0 manifest와 호환되
 | --------------------- | ------------------------------------ |
 | 앱과 실행 파일        | `Touch Me.app` / `TouchMe`           |
 | Bundle Identifier     | `io.github.soom-kang.touchme`        |
-| Release 버전          | `VERSION`에서 읽는 `0.8.0-beta.2`    |
+| Release 버전          | `VERSION`에서 읽는 `0.8.0-beta.3`    |
 | 번들 버전             | `0.8.0`과 증가하는 숫자 build 번호   |
-| 전체 release metadata | `TouchMeReleaseVersion=0.8.0-beta.2` |
+| 전체 release metadata | `TouchMeReleaseVersion=0.8.0-beta.3` |
 | 대상 환경             | `arm64`, macOS 26 이상               |
 
 문서나 패키징을 바꿀 때는 식별자와 저장한 환경설정 형식을 유지하세요. 서명 identity나 설치 경로를 바꾸면 설치 앱의 권한 확인이 필요할 수 있습니다.
@@ -39,7 +39,7 @@ Apple Silicon Mac, macOS 26 이상, 패키지의 Swift 6.0 manifest와 호환되
 
 ## 앱 빌드와 번들 확인하기
 
-Release 실행 파일을 빌드하고 아이콘과 프로젝트 라이선스를 번들에 포함하세요:
+Release 실행 파일을 빌드하고 아이콘과 프로젝트 라이선스를 번들에 포함하세요. 승인된 beta.3 배포는 별도 release checkout에서 아래 명령을 실행해 작업 checkout의 실행 중인 build 18과 `/Applications/Touch Me.app`을 보존합니다:
 
 ```bash
 bash scripts/build-app.sh
@@ -52,7 +52,7 @@ bash scripts/build-app.sh
 ```bash
 plutil -p 'dist/Touch Me.app/Contents/Info.plist'
 cat 'dist/Touch Me.app/Contents/Resources/Licenses.txt'
-codesign --verify --strict 'dist/Touch Me.app'
+cmp Resources/TouchMe.icns 'dist/Touch Me.app/Contents/Resources/TouchMe.icns'
 ```
 
 `Licenses.txt`에는 프로젝트 `LICENSE`를 넣습니다. 라이선스 파일이 없으면 번들 생성을 중단합니다. Ad hoc 서명 검증은 로컬 번들의 무결성을 확인하며, Developer ID 서명이나 notarization의 근거가 되지는 않습니다.
@@ -70,13 +70,14 @@ python3 scripts/package-dmg.py
 | 산출물                                        | 용도                    |
 | --------------------------------------------- | ----------------------- |
 | `dist/Touch Me.app`                           | 로컬 서명한 앱 번들     |
-| `dist/touch-me-0.8.0-beta.2-arm64.dmg`        | 로컬 beta 디스크 이미지 |
-| `dist/touch-me-0.8.0-beta.2-arm64.dmg.sha256` | SHA-256 checksum        |
+| `dist/touch-me-0.8.0-beta.3-arm64.dmg`        | 로컬 beta 디스크 이미지 |
+| `dist/touch-me-0.8.0-beta.3-arm64.dmg.sha256` | SHA-256 checksum        |
 
-기존 이미지는 `dist/previous-builds`로 옮깁니다. `dist`에서 새 checksum을 검증하세요:
+Release checkout의 기존 이미지는 `dist/previous-builds`로 옮깁니다. DMG 무결성과 checksum을 확인하세요:
 
 ```bash
-(cd dist && shasum -a 256 -c touch-me-0.8.0-beta.2-arm64.dmg.sha256)
+hdiutil verify dist/touch-me-0.8.0-beta.3-arm64.dmg
+(cd dist && shasum -a 256 -c touch-me-0.8.0-beta.3-arm64.dmg.sha256)
 ```
 
 ![소스와 라이선스로 로컬 서명 앱을 만들고 개인용 디스크 이미지와 SHA-256 checksum을 생성하는 흐름입니다.](docs/assets/packaging.ko.png)
@@ -98,7 +99,7 @@ python3 scripts/package-dmg.py
 | 장치 열기, 모드 복구 또는 lifecycle | 대상 패널의 독점 점유, 입력 해제와 복구 확인                                     |
 | 서명, 로그인 실행 또는 호환 범위    | 변경한 환경에서 설치 앱 확인                                                     |
 
-기존 core tests는 순수 로직을 검증합니다. HID 접근, 장치 모드 복구, 권한이나 실기기 동작은 검증하지 않습니다. 문서만 바꾸는 작업에 테스트 인프라를 추가하지 마세요.
+기존 core tests는 순수 로직을 검증합니다. HID 접근, 장치 모드 복구, 권한이나 실기기 동작은 검증하지 않습니다. 문서만 바꾸는 작업에 테스트 인프라를 추가하지 마세요. 승인된 beta.3 배포에서는 패키징·source 계약 검사가 바뀌지 않아 새 tests를 작성하거나 기존 전체 suite를 다시 실행하지 않습니다. 빌드·패키징 각 한 번, strict 서명, metadata, 라이선스·아이콘, arm64, DMG 무결성·checksum, Cask style, 공개 다운로드와 online audit를 확인합니다. 관련 source 변경이 있을 때만 성공한 빌드를 다시 실행하세요. 재빌드는 build 번호, 서명과 DMG bytes를 바꿀 수 있습니다.
 
 언어 확인용 후보 앱을 열기 전에 같은 Bundle Identifier의 다른 앱이 종료됐고 P16KT가 분리됐는지 확인하세요. 확인할 수 없으면 GUI 검증은 `NOT_RUN`으로 기록합니다. 기존 앱이 활성화되거나 저장한 매핑이 재개되는 동작은 후보 검증으로 보지 않습니다. 설정과 메뉴, 이미 열린 시험 창을 확인하고 언어 전환 후 대상 확인과 시험 기록이 유지돼야 합니다. 아래 build 8·9 기록은 과거 검증으로 유지합니다.
 
@@ -128,6 +129,12 @@ GUI 언어 전환, 재실행 후 선택 유지, 열린 시험 창과 문구 잘�
 
 Release build 한 번으로 build 12를 생성했습니다. 숫자 번들 버전은 `0.8.0`, 전체 release metadata는 `TouchMeReleaseVersion=0.8.0-beta.2`입니다. Release 컴파일, strict ad hoc 서명 검증, 정확한 번들 라이선스·아이콘 내용, arm64 패키징, `hdiutil verify`와 SHA-256 검사를 통과했습니다. Command Line Tools의 framework/library search path가 없다는 linker 경고는 빌드를 막지 않았습니다. 확정한 DMG SHA-256은 `b667c7ba2518b966fec2fdc4b92152d66db58b0758460e5c5f4daa42cd5d3469`입니다. 이는 로컬 산출물 결과이며 게시, Cask style과 online audit 결과는 별도로 기록합니다. GUI, Gatekeeper, 실기기, 로그인 실행과 Homebrew 설치 검사는 `NOT_RUN`입니다. 변경 사항과 검증 경계는 [release notes](docs/releases/v0.8.0-beta.2.md)를 확인하세요.
 
+### v0.8.0-beta.3 배포 준비
+
+2026-10-08(`Asia/Seoul`)에 별도 checkout에서 빌드·패키징을 각각 한 번 실행해 `TouchMeReleaseVersion=0.8.0-beta.3`인 build 19를 생성했습니다. 실행 중인 개발 build 18과 Applications 앱은 보존했습니다. 컴파일·번들 입력 23개는 작업 checkout과 일치했습니다. Release 컴파일, strict ad hoc 서명 검증, bundle metadata, 정확한 라이선스·아이콘 내용, arm64 아키텍처, `hdiutil verify`와 SHA-256 검사를 통과했습니다. 확정한 DMG SHA-256은 `7f3b500c8efa0d7195e54f581fd0cc4d0fb6265ff54464b39ce6eeb9e7dfef76`입니다. Homebrew style은 실제 Tap의 `Casks/touch-me.rb` 한 파일을 검사해 오류 없이 통과했습니다. Release 준비를 위한 새 tests나 기존 전체 suite 재실행은 추가하지 않았습니다.
+
+이는 로컬 산출물과 style 결과입니다. 공개 다운로드와 online audit 결과는 [공개 beta.3 release](https://github.com/soom-kang/touch-me/releases/tag/v0.8.0-beta.3)에 별도로 기록합니다. 위의 테스트·산출물 기록은 과거 결과로 유지하며 beta.3 산출물이나 설치 검증의 근거로 사용하지 않습니다. Release 앱을 설치하거나 실행해 GUI, Gatekeeper, 실기기나 로그인 실행을 새로 확인하지 않았습니다.
+
 ## 실패 시 작업 범위 유지하기
 
 빌드나 패키징이 실패하면 새 산출물 전달을 중단합니다. 보고된 로컬 원인을 수정하고 실패한 명령만 다시 실행하세요. 대체 산출물의 검증을 마칠 때까지 이전에 사용할 수 있던 산출물을 유지합니다.
@@ -138,10 +145,10 @@ Release build 한 번으로 build 12를 생성했습니다. 숫자 번들 버전
 
 ## 검토한 릴리즈 공개하기
 
-`0.8.0-beta.2` 경로는 기존 개인 Tap `soom-kang/homebrew-touch-me`의 ad hoc beta Cask를 갱신합니다. Source repository는 [soom-kang/touch-me](https://github.com/soom-kang/touch-me)입니다. 검토한 release의 시작 기준은 `main`의 `abbfece6ea621b13bd9832b53976ce0acd67f839`입니다. 2026-10-07 release 작업에서는 검토한 source 갱신, tag·prerelease와 Tap 갱신부터 online audit까지 합의했습니다. 각 페이즈의 검사가 통과하면 다음으로 진행하며, 새 결정이 필요하거나 검사에 실패하면 해당 페이즈를 중단합니다.
+승인된 `0.8.0-beta.3` prerelease는 기존 개인 Tap `soom-kang/homebrew-touch-me`의 ad hoc beta Cask를 갱신합니다. Source repository는 [soom-kang/touch-me](https://github.com/soom-kang/touch-me)입니다. 2026-10-08 시작 기준은 clean source `main`의 `c8b78c89e77ca6636db429cff46db9db68aebf9b`이며, 공개 beta.2가 있고 Tap 원격 `main`은 `fb0cea082d066bf0d34559eec6348ae09c0a5e8d`입니다. 이번 승인은 검토한 source 갱신, 새 tag·prerelease, 기존 Tap 갱신과 online audit까지 포함합니다. 각 단계의 검사가 통과하면 다음으로 진행하고, 새로운 중요한 결정이 필요하거나 검사에 실패하면 해당 단계를 중단합니다.
 
 [Homebrew 배포](docs/Homebrew.ko.md)에서 release 페이즈, checksum 확정, 첫 실행과 Tap 검사를 확인하세요. Ad hoc beta는 공증하지 않으며 Gatekeeper 승인을 주장하지 않습니다. 향후 Developer ID 배포는 서명·공증을 준비하고 최종 설치 산출물의 권한과 장치 동작을 다시 확인해야 합니다.
 
-이번 release에서는 Homebrew 설치, `/Applications/Touch Me.app` 대치, GUI·실기기 확인, 개인정보 보호 설정 변경과 로그인 항목 등록을 수행하지 않습니다. 이후 실행은 해당 작업의 승인 범위에 따라 진행하세요. Credential은 명령, 로그와 문서에 기록하지 않습니다.
+Tap 공개 후 clean 상태의 설치 Tap을 검토한 공개 revision으로 fast-forward하고, 기존 개별 Cask trust로 해당 이름의 Cask를 audit합니다. Trust 범위를 넓히거나 앱을 설치·업그레이드하지 않습니다. Homebrew 설치, `/Applications/Touch Me.app` 대치, GUI·실기기 확인, 개인정보 보호 설정 변경과 로그인 항목 등록은 이번 release 실행 범위 밖입니다. 이후 실행은 해당 작업의 승인 범위에 따라 진행하세요. Credential은 명령, 로그와 문서에 기록하지 않습니다.
 
 Touch Me에는 [프로젝트 MIT License](LICENSE)를 적용합니다.
