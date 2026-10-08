@@ -1,6 +1,7 @@
 import Foundation
 import IOKit
 import IOKit.hid
+import OSLog
 import TouchMappingCore
 
 public struct ContactElements {
@@ -29,6 +30,7 @@ public struct HIDCollection {
     public let hasKeyboardElements: Bool
     public let hasTouchScreen: Bool
     public let hasMouse: Bool
+    fileprivate let descriptorVerified: Bool
     public var isPointer: Bool { hasTouchScreen || hasMouse }
 }
 
@@ -51,6 +53,7 @@ public struct TouchDevice {
     public var canMap: Bool {
         let pointerCollections = collections.filter { $0.isPointer }
         return groupingVerified && !pointerCollections.isEmpty
+            && collections.allSatisfy { $0.descriptorVerified }
             && pointerCollections.allSatisfy { !$0.contacts.isEmpty }
             && !collections.contains { $0.hasKeyboardElements }
     }
@@ -99,23 +102,68 @@ public struct HIDScan {
 }
 
 public enum HIDDiscovery {
+    private static let recoveryLog = Logger(subsystem: "io.github.soom-kang.touchme", category: "MappingRecovery")
+
+    private struct DeviceMetadata {
+        let device: IOHIDDevice
+        let registryID: UInt64
+        let physicalID: UInt64?
+        let vendor: Int
+        let product: Int
+        let usagePage: Int
+        let usage: Int
+        let hasTouchScreen: Bool?
+        let hasMouse: Bool?
+        var groupKey: String {
+            "\(vendor):\(product):\(physicalID.map(String.init) ?? "unverified-\(registryID)")"
+        }
+    }
+
     public static func scan() -> HIDScan {
+        let startedAt = ProcessInfo.processInfo.systemUptime
+        func phase(_ name: String, count: Int = 0) {
+            recoveryLog.notice("HID discovery \(name, privacy: .public), elapsed \(ProcessInfo.processInfo.systemUptime - startedAt, format: .fixed(precision: 3))s, count \(count)")
+        }
         let manager = IOHIDManagerCreate(kCFAllocatorDefault, IOOptionBits(kIOHIDOptionsTypeNone))
+        phase("manager_created")
         // Discovery only: do not open or schedule this manager.
         IOHIDManagerSetDeviceMatching(manager, [kIOHIDTransportKey: "USB"] as CFDictionary)
+        phase("matching_finished")
         guard let set = IOHIDManagerCopyDevices(manager) as? Set<IOHIDDevice> else {
+            phase("copy_devices_failed")
             return HIDScan(devices: [], queryReturnedSet: false)
         }
-        let collections = set.compactMap(describe)
-        let candidateKeys = Set(collections.filter { $0.hasTouchScreen }
-            .map(groupKey))
-        let grouped = Dictionary(grouping: collections.filter { candidateKeys.contains(groupKey($0)) }, by: groupKey)
+        phase("copy_devices_finished", count: set.count)
+        let metadata = set.compactMap(readMetadata)
+        phase("metadata_finished", count: metadata.count)
+
+        var described: [UInt64: HIDCollection] = [:]
+        var candidateKeys: Set<String> = []
+        // UsagePairs covers every device behavior; PrimaryUsage can hide a composite touchscreen.
+        // Missing or malformed metadata falls back to the complete descriptor.
+        for item in metadata where item.hasTouchScreen != false {
+            let collection = describe(item)
+            described[item.registryID] = collection
+            if item.hasTouchScreen == true || collection.hasTouchScreen {
+                candidateKeys.insert(item.groupKey)
+            }
+        }
+        // Keep every sibling, including keyboard and mouse interfaces, in the safety checks.
+        for item in metadata where candidateKeys.contains(item.groupKey) && described[item.registryID] == nil {
+            described[item.registryID] = describe(item)
+        }
+        phase("full_descriptors_finished", count: described.count)
+        let collections = metadata.compactMap { item -> HIDCollection? in
+            candidateKeys.contains(item.groupKey) ? described[item.registryID] : nil
+        }
+        let grouped = Dictionary(grouping: collections, by: groupKey)
         let devices = grouped.compactMap { key, group -> TouchDevice? in
             guard let first = group.first else { return nil }
             return TouchDevice(key: key, vendor: first.vendor, product: first.product,
                                collections: group.sorted { $0.registryID < $1.registryID },
                                groupingVerified: group.allSatisfy { $0.physicalID != nil })
         }.sorted { $0.key < $1.key }
+        phase("finished", count: devices.count)
         return HIDScan(devices: devices, queryReturnedSet: true)
     }
 
@@ -127,7 +175,7 @@ public enum HIDDiscovery {
         (IOHIDDeviceGetProperty(d, key as CFString) as? NSNumber)?.intValue ?? -1
     }
 
-    private static func describe(_ device: IOHIDDevice) -> HIDCollection? {
+    private static func readMetadata(_ device: IOHIDDevice) -> DeviceMetadata? {
         guard (IOHIDDeviceGetProperty(device, kIOHIDTransportKey as CFString) as? String)?
             .caseInsensitiveCompare("USB") == .orderedSame else { return nil }
         let vendor = integer(device, kIOHIDVendorIDKey), product = integer(device, kIOHIDProductIDKey)
@@ -135,7 +183,55 @@ public enum HIDDiscovery {
         let service = IOHIDDeviceGetService(device)
         var registryID: UInt64 = 0
         guard service != 0, IORegistryEntryGetRegistryEntryID(service, &registryID) == KERN_SUCCESS else { return nil }
+        let usages = usagePairs(device)
+        return DeviceMetadata(device: device, registryID: registryID, physicalID: usbAncestor(service),
+                              vendor: vendor, product: product,
+                              usagePage: integer(device, kIOHIDPrimaryUsagePageKey),
+                              usage: integer(device, kIOHIDPrimaryUsageKey),
+                              hasTouchScreen: usages.map { $0.contains { $0.page == 0x0D && $0.usage == 0x04 } },
+                              hasMouse: usages.map { $0.contains { $0.page == 0x01 && $0.usage == 0x02 } })
+    }
+
+    private static func usagePairs(_ device: IOHIDDevice) -> [(page: UInt32, usage: UInt32)]? {
+        guard let pairs = IOHIDDeviceGetProperty(device, kIOHIDDeviceUsagePairsKey as CFString) as? [[String: Any]],
+              !pairs.isEmpty else { return nil }
+        var usages: [(page: UInt32, usage: UInt32)] = []
+        for pair in pairs {
+            guard let page = pair[kIOHIDDeviceUsagePageKey] as? NSNumber,
+                  let usage = pair[kIOHIDDeviceUsageKey] as? NSNumber,
+                  CFGetTypeID(page) == CFNumberGetTypeID(), CFGetTypeID(usage) == CFNumberGetTypeID() else { return nil }
+            let pageValue = page.int64Value, usageValue = usage.int64Value
+            guard pageValue >= 0, pageValue <= Int64(UInt32.max),
+                  usageValue >= 0, usageValue <= Int64(UInt32.max),
+                  page.doubleValue == Double(pageValue), usage.doubleValue == Double(usageValue) else { return nil }
+            usages.append((UInt32(pageValue), UInt32(usageValue)))
+        }
+        return usages
+    }
+
+    private static func conforms(_ elements: [IOHIDElement], page: UInt32, usage: UInt32) -> Bool {
+        elements.contains {
+            guard IOHIDElementGetType($0) == kIOHIDElementTypeCollection,
+                  IOHIDElementGetUsagePage($0) == page, IOHIDElementGetUsage($0) == usage else { return false }
+            let type = IOHIDElementGetCollectionType($0)
+            return type == kIOHIDElementCollectionTypeApplication || type == kIOHIDElementCollectionTypePhysical
+        }
+    }
+
+    private static func describe(_ metadata: DeviceMetadata) -> HIDCollection {
+        let device = metadata.device, registryID = metadata.registryID
         let elements = IOHIDDeviceCopyMatchingElements(device, nil, 0) as? [IOHIDElement] ?? []
+        var touchScreen = conforms(elements, page: 0x0D, usage: 0x04)
+        var mouse = conforms(elements, page: 0x01, usage: 0x02)
+        let descriptorVerified = !elements.isEmpty
+            && (metadata.hasTouchScreen != true || touchScreen)
+            && (metadata.hasMouse != true || mouse)
+        if elements.isEmpty {
+            // Preserve legacy classification if the full query failed but a filtered query succeeds.
+            // Metadata-confirmed panels remain candidates; incomplete descriptors never authorize mapping.
+            touchScreen = metadata.hasTouchScreen ?? IOHIDDeviceConformsTo(device, 0x0D, 0x04)
+            mouse = metadata.hasMouse ?? IOHIDDeviceConformsTo(device, 0x01, 0x02)
+        }
         let keyboard = elements.contains { IOHIDElementGetUsagePage($0) == 0x07 }
         let input = elements.filter {
             let type = IOHIDElementGetType($0)
@@ -156,12 +252,11 @@ public enum HIDDiscovery {
                                     isDigitizer: IOHIDElementGetUsagePage(tips[0]) == 0x0D)
             if e.xRange.isValid && e.yRange.isValid { contacts.append(e) }
         }
-        return HIDCollection(device: device, registryID: registryID, physicalID: usbAncestor(service),
-                             vendor: vendor, product: product, usagePage: integer(device, kIOHIDPrimaryUsagePageKey),
-                             usage: integer(device, kIOHIDPrimaryUsageKey), contacts: contacts.sorted { $0.key < $1.key },
+        return HIDCollection(device: device, registryID: registryID, physicalID: metadata.physicalID,
+                             vendor: metadata.vendor, product: metadata.product, usagePage: metadata.usagePage,
+                             usage: metadata.usage, contacts: contacts.sorted { $0.key < $1.key },
                              hasKeyboardElements: keyboard,
-                             hasTouchScreen: IOHIDDeviceConformsTo(device, 0x0D, 0x04),
-                             hasMouse: IOHIDDeviceConformsTo(device, 0x01, 0x02))
+                             hasTouchScreen: touchScreen, hasMouse: mouse, descriptorVerified: descriptorVerified)
     }
 
     private static func contactCookie(_ element: IOHIDElement) -> UInt32 {

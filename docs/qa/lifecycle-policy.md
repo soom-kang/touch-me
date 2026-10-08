@@ -74,6 +74,18 @@ state. USB location, VID/PID and supported descriptors must still match the save
 device. Initial application state without an active mapping target does not create
 this context.
 
+Each fresh HID scan still enumerates all USB HID devices. Complete
+`DeviceUsagePairs` metadata identifies touchscreen candidates; missing, empty or
+malformed metadata falls back to the full descriptor. Every HID interface in a
+candidate's physical USB group is then checked, including keyboard and mouse
+interfaces. Failed or contradictory descriptors block mapping while retaining
+metadata-confirmed touchscreen candidates. A successful descriptor snapshot is
+reused for conformance and contact checks instead of copying elements again.
+Application and Physical collection matching follows the [Apple IOKitUser
+implementation](https://github.com/apple-oss-distributions/IOKitUser/blob/main/hid.subproj/IOHIDDevice.c#L497-L547);
+usage-pair coverage follows [Apple IOHIDFamily](https://github.com/apple-oss-distributions/IOHIDFamily/blob/main/IOHIDFamily/IOHIDDevice.cpp#L1523-L1557).
+No saved-device-only filter or cached scan replaces either fresh safety check.
+
 The ten-second window bounds readiness retries before starting. It does not
 interrupt a native device call already in progress. Synchronous feature-report
 reads and writes in `P16KTDeviceMode` may block the main thread until the device
@@ -190,10 +202,10 @@ build 16 remains NOT_RUN.
 
 The subsequent source revision adds scoped recovery activity, faster availability
 polling and phase timing logs. No private unlock signal, new dependency, test or
-probe was introduced. The cause of the thirty-second delay is not established:
-App Nap and synchronous device calls remain candidates. Physical latency
-verification of this revision remains NOT_RUN. Release compilation with warnings
-as errors passed; the known non-fatal linker search-path warnings remained.
+probe was introduced. At packaging, the cause of the thirty-second delay was not
+established, and physical latency verification remained NOT_RUN. Release
+compilation with warnings as errors passed; the known non-fatal linker search-path
+warnings remained.
 Review covered activity lifetime through automatic Start, pending cancellation,
 sleep/session suspension and the unchanged retry cadence. After the user confirmed
 normal Quit of build 16 and no mapper process was running, the existing bundle
@@ -202,6 +214,44 @@ agent launched that local candidate and confirmed its process path. The installe
 app remains build 12. A five-minute OSLog stream filtered only to the app's
 `MappingRecovery` category was started for one user-performed cycle; starting it
 does not establish a latency result.
+
+The user performed the build 17 cycle and estimated roughly ten seconds from the
+monitor turning on to touch returning. The live stream had expired before the
+cycle; the retained OSLog entries were then read with `log show`, filtered to the
+same app subsystem and category. The logged process matched the running local
+build 17 candidate. From public interruption clearance to `running`, the recorded
+interval was 14.750 seconds: 1.011 seconds before the first readiness attempt,
+6.847 seconds for the model's device/display scan, and 6.886 seconds for the
+mapper's fresh device scan. Display validation, open, mode read/enable and contact
+initialization then completed in about 0.005 seconds. The user's estimate and the
+logged interval use different starting points and are not treated as equivalent.
+These entries establish discovery as the dominant delay in this cycle. They do
+not establish which internal discovery operation was slow or provide an
+instrumented comparison with build 16.
+
+The subsequent discovery revision skips full descriptors for USB interfaces whose
+complete usage-pair metadata excludes a touchscreen, unless they belong to a
+touchscreen candidate's physical group. It also removes repeated conformance
+queries after a successful full descriptor read. Source review covered unknown
+metadata fallback, all candidate siblings, failed descriptor rejection and both
+fresh scans. Release compilation with warnings as errors passed; the known
+non-fatal linker search-path warnings remained. No tests or probes were added.
+Discovery stage timings now distinguish manager setup, device copying, metadata
+and full descriptor reads. After the user confirmed normal Quit of build 17 and
+a process check found no active mapper, the existing bundle script produced build
+18 and passed strict ad hoc signature verification. The previous candidate was
+preserved. The agent launched the local build 18 bundle and confirmed its process
+path. Release metadata remains `0.8.0-beta.2`; the installed app was not replaced.
+The launch scan in that process took 0.006 seconds: it enumerated 17 USB HID
+interfaces, read metadata for all 17 and fully described one candidate interface.
+This is startup discovery evidence, not a lock/unlock latency result.
+
+On 2026-10-08 (Asia/Seoul), the user confirmed normal operation in build 18 and
+reported that touch worked immediately after login following the requested
+lock/unlock cycle. Functional recovery and acceptable perceived latency are
+PASS_USER_REPORTED for that cycle. No stopwatch or phase-log measurement was
+reported for this cycle, so an exact recovery duration is not established.
+Sleep/wake and full logout/login verification remain NOT_RUN.
 
 On an approved native test setup, run the following separately:
 
