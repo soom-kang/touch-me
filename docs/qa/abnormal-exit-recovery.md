@@ -56,3 +56,24 @@ a different unit. Do not choose mode 0 merely because it is common.
 Acceptance requires approved backend fault tests and native evidence for the
 selected policy. Documentation alone does not close the runtime risk. Track the
 native checks in [the release checklist](build-11-release-checklist.md).
+
+## 2026-10-09 disposition (TMQA-003)
+
+**BLOCKED — not resolved by the macOS QA fix branch.** This cloud executor has no
+macOS/P16KT device access, and the user's Mac is outside the authorized scope.
+`DeviceModeTransaction` now exposes the existing mode ownership logic to injected
+I/O (TMQA-005). Its process-loss case explicitly preserves the limit: a new owner
+observing mode 2 does not know whether a predecessor changed it from 0. Adding a
+journal without a verified identity/reset policy would turn that uncertainty
+into potentially incorrect writes to a replacement panel on a reused USB port.
+No journal, guessed reset, or cross-process feature write is introduced.
+
+To unblock: use a separately authorized controlled Apple Silicon/macOS 26+
+setup and one identified P16KT on a recorded USB-C connection. Record original
+mode/identifier, normal restoration, then (only with explicit fault-test
+approval) whether a process crash and a panel power cycle retain or reset the
+mode. Record both original-0 and original-2 cases, device identity across
+re-enumeration, and whether swapping a unit on the same port is distinguishable.
+Choose the reset procedure or identity-bound journal only from those results.
+The existing runtime risk remains open until that policy and native acceptance
+are verified. Passing an injected-I/O test cannot close this ticket.
