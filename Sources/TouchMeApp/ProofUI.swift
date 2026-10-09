@@ -127,12 +127,14 @@ final class ProofModel: ObservableObject {
     }
     private var terminating = false
 
-    private var sessionAvailable: Bool {
-        guard let session = CGSessionCopyCurrentDictionary() as? [String: Any] else { return false }
+    private var sessionBlocker: MappingReadiness? {
+        guard let session = CGSessionCopyCurrentDictionary() as? [String: Any] else { return .sessionUnavailable }
         // Public keys from CoreGraphics/CGSession.h; never read private lock keys.
         return session["kCGSSessionOnConsoleKey"] as? Bool == true
-            && session["kCGSessionLoginDoneKey"] as? Bool == true
+            && session["kCGSessionLoginDoneKey"] as? Bool == true ? nil : .inactiveSession
     }
+
+    private var sessionAvailable: Bool { sessionBlocker == nil }
 
     init() {
         savedMapping = MappingPreferences.load()
@@ -208,14 +210,34 @@ final class ProofModel: ObservableObject {
         }
     }
 
-    var canStart: Bool {
-        !terminating && pendingDisplayInterruption == nil && interruptions.isEmpty
-            && NSApp.isProtectedDataAvailable && sessionAvailable
-            && !running && !modeRestorePending && targetConfirmed && permissions.canMap && devices.count == 1
-            && devices.first(where: { $0.key == selectedDevice })?.canMap == true
-            && devices.first(where: { $0.key == selectedDevice })?.locationID != nil
-            && displays.first(where: { $0.id == selectedDisplay })?.canMap == true
-            && displays.first(where: { $0.id == selectedDisplay })?.persistentUUID != nil
+    var canStart: Bool { readiness.canStart }
+
+    var readiness: MappingReadiness {
+        if terminating { return .terminating }
+        if running { return .running }
+        if modeRestorePending { return .restoreRequired }
+        if pendingDisplayInterruption != nil { return .checkingInterruption }
+        if !NSApp.isProtectedDataAvailable || interruptions.contains(.protectedDataUnavailable) {
+            return .protectedDataUnavailable
+        }
+        if let blocker = sessionBlocker { return blocker }
+        if interruptions.contains(.sessionUnavailable) { return .sessionUnavailable }
+        if interruptions.contains(.inactiveSession) { return .inactiveSession }
+        if interruptions.contains(.sleep) { return .sleeping }
+        if interruptions.contains(.displaySleep) || interruptions.contains(.screensSleep) { return .displaysSleeping }
+        if !permissions.inputMonitoring && !permissions.accessibility { return .permissionsRequired }
+        if !permissions.inputMonitoring { return .inputMonitoringRequired }
+        if !permissions.accessibility { return .accessibilityRequired }
+        if devices.isEmpty { return scanReturnedSet ? .noDevice : .deviceQueryFailed }
+        if devices.count > 1 { return .multipleDevices }
+        guard let device = devices.first(where: { $0.key == selectedDevice }) else { return .selectDevice }
+        if device.vendor != 0x0457 || device.product != 0x0819 { return .unsupportedModel }
+        if !device.canMap { return .unverifiedDescriptor }
+        if device.locationID == nil { return .missingLocation }
+        guard let display = displays.first(where: { $0.id == selectedDisplay }) else { return .selectDisplay }
+        if let blocker = MappingReadiness.displayBlocker(display) { return blocker }
+        if !targetConfirmed { return .targetConfirmationRequired }
+        return .ready
     }
 
     func refresh(attemptResume: Bool = true) {
@@ -657,6 +679,8 @@ struct ProofSettingsView: View {
                                 .disabled(model.displays.first(where: { $0.id == model.selectedDisplay })?.canMap != true)
                         }
                         Toggle(Texts.get("시험 창이 P16KT에 표시되는 것을 확인했습니다", "I confirmed the test window is on the P16KT"), isOn: Binding(get: { model.targetConfirmed }, set: model.confirmTarget))
+                        Text(model.readiness.text)
+                            .font(.callout).fixedSize(horizontal: false, vertical: true)
                     }.padding(8).disabled(model.running || model.modeRestorePending)
                 }
                 GroupBox(Texts.get("3. 로그인 시작", "3. Launch at login")) {
@@ -722,8 +746,8 @@ struct ProofSettingsView: View {
             ($0.deviceDescription[NSDeviceDescriptionKey("NSScreenNumber")] as? NSNumber)?.uint32Value == display.id
         })?.localizedName ?? Texts.get("화면", "Display")
         let kind = Texts.get("화면", "Display")
-        let builtIn = display.builtIn ? Texts.get(" · 내장", " · built-in") : ""
-        return "\(name) · \(kind) \(display.id) · \(Int(display.bounds.width)) × \(Int(display.bounds.height))\(builtIn)"
+        let reason = MappingReadiness.displayBlocker(display).map { " · " + $0.displayAnnotation } ?? ""
+        return "\(name) · \(kind) \(display.id) · \(Int(display.bounds.width)) × \(Int(display.bounds.height))\(reason)"
     }
 }
 
