@@ -181,7 +181,7 @@ public final class ProofMapper {
             }
             _ = post(session.start())
             running = true
-            if contacts.values.allSatisfy({ !$0.down }) { _ = session.update(points: []) }
+            if contacts.values.allSatisfy({ !$0.down }) { _ = session.update(contacts: []) }
             watchdog = Timer.scheduledTimer(withTimeInterval: 0.25, repeats: true) { [weak self] _ in self?.checkEnvironment() }
             if let watchdog { RunLoop.main.add(watchdog, forMode: .common) }
             onChange?()
@@ -338,22 +338,22 @@ public final class ProofMapper {
             scrollRemainderX = 0
             scrollRemainderY = 0
         }
-        // Unknown X/Y abort this gesture until all fingers lift.
-        // Never fabricate a zero coordinate from the descriptor's logical minimum.
-        if active.contains(where: { $0.x == nil || $0.y == nil }) {
+        let mappedContacts = active.compactMap { state -> ProofContact? in
+            guard let x = state.x, let y = state.y,
+                  let point = CoordinateMapper.map(x: x, y: y, xRange: state.elements.xRange,
+                                                   yRange: state.elements.yRange, to: target.rect) else { return nil }
+            return ProofContact(id: state.elements.key, point: point)
+        }
+        // Reject the whole gesture rather than interpreting partial data as a tap/lift.
+        if mappedContacts.count != active.count || (active.isEmpty && !downs.isEmpty) {
             clickSequence.cancelTap()
             scrollRemainderX = 0
             scrollRemainderY = 0
-            _ = post(session.rejectContact())
+            guard post(session.rejectContact()) else { fail(.eventCreationFailed); return }
             onChange?()
             return
         }
-        let points = active.compactMap { state -> MappedPoint? in
-            guard let x = state.x, let y = state.y else { return nil }
-            return CoordinateMapper.map(x: x, y: y, xRange: state.elements.xRange, yRange: state.elements.yRange, to: target.rect)
-        }
-        if points.count != active.count { clickSequence.cancelTap() }
-        guard post(session.update(points: points), completedTap: downs.isEmpty) else { fail(.eventCreationFailed); return }
+        guard post(session.update(contacts: mappedContacts), completedTap: downs.isEmpty) else { fail(.eventCreationFailed); return }
         onChange?()
     }
 
@@ -367,6 +367,10 @@ public final class ProofMapper {
 
     @discardableResult
     private func post(_ actions: [ProofAction], completedTap: Bool = false) -> Bool {
+        // A drag-start Down must not inherit a preceding tap's double-click count.
+        if actions.contains(where: { if case .drag = $0 { return true }; return false }) {
+            clickSequence.cancelTap()
+        }
         for action in actions {
             if case .scroll(let dx, let dy, let point) = action {
                 clickSequence.cancelTap()

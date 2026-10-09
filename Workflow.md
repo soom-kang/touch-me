@@ -16,9 +16,9 @@ The app keeps these identifiers and versions:
 | --------------------- | ------------------------------------------------- |
 | App and executable    | `Touch Me.app` / `TouchMe`                        |
 | Bundle identifier     | `io.github.soom-kang.touchme`                     |
-| Release version       | `0.8.0-beta.3`, read from `VERSION`               |
+| Release version       | `0.8.0-beta.4`, read from `VERSION`               |
 | Bundle version        | `0.8.0` plus an incrementing numeric build number |
-| Full release metadata | `TouchMeReleaseVersion=0.8.0-beta.3`              |
+| Full release metadata | `TouchMeReleaseVersion=0.8.0-beta.4`              |
 | Target                | `arm64`, macOS 26 or later                        |
 
 Keep the identifier and saved-preference format stable when changing documentation or packaging. Changing the signing identity or installation path can require permission checks in the installed app.
@@ -39,7 +39,7 @@ No app networking code or raw-input logging is implemented in the current source
 
 ## Build and inspect the app
 
-Build the release executable and bundle it with icons and the project license. For the approved beta.3 release, run these commands from a separate release checkout to preserve the active build 18 app in the working checkout and `/Applications/Touch Me.app`:
+Build the release executable and bundle it with icons and the project license. For the approved beta.4 release, use a separate release checkout to preserve the local build 20 app and `/Applications/Touch Me.app`. Copy build 20 into that checkout's `dist/Touch Me.app` as the build-number baseline, then run the build once to produce build 21:
 
 ```bash
 bash scripts/build-app.sh
@@ -70,14 +70,14 @@ The script verifies the app's identifier, release metadata against `VERSION`, li
 | Output                                        | Purpose                   |
 | --------------------------------------------- | ------------------------- |
 | `dist/Touch Me.app`                           | Locally signed app bundle |
-| `dist/touch-me-0.8.0-beta.3-arm64.dmg`        | Local beta disk image     |
-| `dist/touch-me-0.8.0-beta.3-arm64.dmg.sha256` | SHA-256 checksum          |
+| `dist/touch-me-0.8.0-beta.4-arm64.dmg`        | Local beta disk image     |
+| `dist/touch-me-0.8.0-beta.4-arm64.dmg.sha256` | SHA-256 checksum          |
 
 An existing image moves to `dist/previous-builds` in the release checkout. Verify DMG integrity and its checksum:
 
 ```bash
-hdiutil verify dist/touch-me-0.8.0-beta.3-arm64.dmg
-(cd dist && shasum -a 256 -c touch-me-0.8.0-beta.3-arm64.dmg.sha256)
+hdiutil verify dist/touch-me-0.8.0-beta.4-arm64.dmg
+(cd dist && shasum -a 256 -c touch-me-0.8.0-beta.4-arm64.dmg.sha256)
 ```
 
 ![Local packaging flow from source and license files to a signed app, personal disk image and SHA-256 checksum.](docs/assets/packaging.png)
@@ -99,7 +99,7 @@ Match verification to the behavior you changed. Add checks only when a defect or
 | Device opening, mode restoration or lifecycle | Check exclusive ownership, input release and restoration on the target panel                                |
 | Signing, login launch or compatibility        | Check the installed app in the changed environment                                                          |
 
-The existing core tests cover pure logic. They do not prove HID access, device-mode restoration, permissions or behavior on a physical panel. Do not add test infrastructure for a documentation-only change. The approved beta.3 release keeps packaging and source contract checks unchanged, so it adds no tests and does not repeat the existing full suites. Its release checks are one build and packaging run, strict signature, metadata, license/icon, arm64, DMG integrity/checksum, Cask style, public downloads and online audit. Repeat a successful build only after a relevant source change: another build can change its number, signature and DMG bytes.
+The existing core tests cover pure logic. They do not prove HID access, device-mode restoration, permissions or behavior on a physical panel. The gesture fix already passed all 14 existing Swift tests, and build 20 gesture behavior is `PASS_USER_REPORTED`; neither result is a direct device check of build 21. The approved beta.4 release reuses these results while gesture code stays unchanged. It adds no tests or validation infrastructure and does not repeat the full suites. Its release checks are one build and packaging run, strict signature, metadata, license/icon, arm64, DMG integrity/checksum, Cask style, public downloads and online audit. Build 21 device, Gatekeeper and Homebrew installation checks are `NOT_RUN`. Repeat a successful build only after a relevant source change: another build can change its number, signature and DMG bytes. Record beta.4 artifact and publication results in the [release notes](docs/releases/v0.8.0-beta.4.md).
 
 Before opening a language-check candidate, confirm that any other app with the same Bundle Identifier has quit and the P16KT is disconnected. Otherwise record GUI checks as `NOT_RUN`. An existing app being activated, or a saved mapping session resuming, is not evidence for the candidate. Check the menu and an already-open test window as well as settings; switching languages must preserve target confirmation and test history. Recorded build 8 and build 9 checks below remain historical evidence.
 
@@ -145,7 +145,7 @@ After a completed cleanup, `.build` and `dist/previous-builds` may be absent. Su
 
 ## Publish the reviewed release
 
-The approved `0.8.0-beta.3` prerelease updates the ad hoc beta Cask in the existing personal Tap `soom-kang/homebrew-touch-me`. The source repository is [soom-kang/touch-me](https://github.com/soom-kang/touch-me). The 2026-10-08 baseline is clean source `main` at `c8b78c89e77ca6636db429cff46db9db68aebf9b`, with public beta.2 already present and Tap remote `main` at `fb0cea082d066bf0d34559eec6348ae09c0a5e8d`. The release authorization covers the reviewed source update, new tag/prerelease and existing Tap update through online audit. Each phase advances when its checks pass; a new consequential decision or failed check stops the affected phase.
+The approved `0.8.0-beta.4` prerelease updates the ad hoc beta Cask in the existing personal Tap `soom-kang/homebrew-touch-me`. The source repository is [soom-kang/touch-me](https://github.com/soom-kang/touch-me). The 2026-10-09 baseline is source `main` at `91142b7bb1137452ae6618b09cea5488e1c8849e`, with six uncommitted gesture-related files, public beta.1–beta.3 releases and Tap remote `main` at `55d661ae2d5a4409db7d720d4988556592769970`. Preserve existing tags and assets. The release authorization covers the reviewed source and release-documentation updates, source/Tap commits and pushes, the new tag/prerelease and the existing Tap update through online audit. Before tagging, compare compilation and packaging inputs in the frozen release checkout with the final source commit. Each phase advances when its checks pass; a new consequential decision or failed check stops the affected phase.
 
 Follow [Homebrew distribution](docs/Homebrew.md) for release phases, checksum freeze, first-launch handling and Tap checks. The ad hoc beta is not notarized and does not claim Gatekeeper approval. A future Developer ID release requires signing, notarization and a new check of the final installed artifact's permissions and device behavior.
 

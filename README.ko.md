@@ -10,7 +10,7 @@ Touch Me는 ZEUSLAP 터치 모니터를 Mac에서 활용할 수 있도록 만든
 
 터치 입력을 선택한 화면의 좌표에 맞춰 전달해 탭과 더블 클릭, 한 손가락 드래그, 두 손가락 스크롤을 사용할 수 있습니다. 앱에서 대상 화면을 선택하고 확인한 뒤 매핑을 시작하며, 메뉴 막대에서 매핑을 중지하거나 설정을 바꿀 수 있습니다.
 
-현재 beta `0.8.0-beta.3`는 **P16KT에서 확인한 USB/HID profile**을 요구합니다. 장치 식별자와 HID(Human Interface Device) 입력 구조가 다르면 매핑을 시작하지 않습니다. 다른 ZEUSLAP 모델까지 지원한다고 보장하지 않으므로 아래 환경을 먼저 확인해 주세요.
+현재 beta `0.8.0-beta.4`는 **P16KT에서 확인한 USB/HID profile**을 요구합니다. 장치 식별자와 HID(Human Interface Device) 입력 구조가 다르면 매핑을 시작하지 않습니다. 다른 ZEUSLAP 모델까지 지원한다고 보장하지 않으므로 아래 환경을 먼저 확인해 주세요.
 
 ## 먼저 사용 환경을 확인하세요
 
@@ -43,7 +43,7 @@ brew install --cask soom-kang/touch-me/touch-me
 
 ### DMG로 설치하기
 
-[v0.8.0-beta.3 release](https://github.com/soom-kang/touch-me/releases/tag/v0.8.0-beta.3)에서 arm64 DMG와 `.sha256` 파일을 받으세요. 출처와 checksum을 확인한 뒤 디스크 이미지를 열어 **Touch Me.app**을 **Applications**로 끌어 복사하세요. 복사를 마치면 이미지를 추출하세요.
+[v0.8.0-beta.4 release](https://github.com/soom-kang/touch-me/releases/tag/v0.8.0-beta.4)에서 arm64 DMG와 `.sha256` 파일을 받으세요. 출처와 checksum을 확인한 뒤 디스크 이미지를 열어 **Touch Me.app**을 **Applications**로 끌어 복사하세요. 복사를 마치면 이미지를 추출하세요.
 
 Beta는 ad hoc 서명을 사용하며 공증하지 않았습니다. macOS가 다운로드한 앱의 첫 실행을 차단하면 출처와 checksum을 확인한 뒤 [Apple의 수동 실행 승인 안내](https://support.apple.com/en-us/102445)를 따르세요. 승인 항목이 보이더라도 앱 실행을 보장하지는 않습니다.
 
@@ -69,10 +69,13 @@ Beta는 ad hoc 서명을 사용하며 공증하지 않았습니다. macOS가 다
 
 | 동작 | 제스처 |
 | --- | --- |
-| 클릭 또는 더블 클릭 | 한 번 또는 두 번 탭 |
-| 드래그 | 한 손가락으로 누른 채 이동 |
-| 세로 또는 가로 스크롤 | 두 손가락을 함께 이동 |
-| 스크롤 후 드래그 시작 | 두 손가락을 모두 뗀 뒤 새 한 손가락 제스처 시작 |
+| 클릭 또는 더블 클릭 | 한 번 또는 두 번 탭하며, 각 클릭은 손가락을 뗄 때 발생 |
+| 드래그 | 한 손가락을 처음 위치에서 화면 좌표 8단위보다 멀리 이동 |
+| 세로 또는 가로 스크롤 | 드래그가 시작되기 전에 두 손가락을 대고 함께 이동하며, 클릭은 발생하지 않음 |
+| 드래그 중 두 번째 손가락 추가 | 드래그는 처음 손가락을 계속 따라감 |
+| 드래그와 스크롤 전환 | 손가락을 모두 뗀 뒤 새 제스처 시작 |
+
+스크롤 후 화면에 남은 손가락으로는 클릭이나 드래그를 시작할 수 없습니다. 손가락을 모두 뗀 뒤 다시 시작하세요.
 
 ## 중지하고 다시 시작하기
 
@@ -111,10 +114,10 @@ Beta는 ad hoc 서명을 사용하며 공증하지 않았습니다. macOS가 다
 
 - [개발 Workflow](Workflow.ko.md): 모듈별 역할, 로컬 빌드와 패키징, 변경에 맞는 검증
 - [Homebrew 배포](docs/Homebrew.ko.md): Tap과 release 절차, 설치 충돌, 업데이트와 제거
-- [beta.3 release notes](docs/releases/v0.8.0-beta.3.md): 이번 버전의 변경과 검증 한계
+- [beta.4 release notes](docs/releases/v0.8.0-beta.4.md): 이번 버전의 변경과 검증 한계
 - [편집 가능한 구조 다이어그램](docs/assets/architecture.ko.html)
 
-직접 빌드한 DMG의 경로는 `dist/touch-me-0.8.0-beta.3-arm64.dmg`입니다.
+직접 빌드한 DMG의 경로는 `dist/touch-me-0.8.0-beta.4-arm64.dmg`입니다.
 
 ## 기록된 검증 결과
 
@@ -130,7 +133,9 @@ Beta는 ad hoc 서명을 사용하며 공증하지 않았습니다. macOS가 다
 
 2026-10-08에 사용자는 build 18의 잠금·해제 후 로그인하자마자 터치가 정상 작동했다고 확인했습니다. 해당 build에는 beta.3에 포함되는 복구 코드가 들어 있습니다. 한 번의 사용자 확인 결과이며 정확한 복구 시간을 보장하지 않습니다.
 
-새로 패키징한 beta.3 앱을 설치하거나 실기기에서 실행하지는 않았습니다. 이번 release의 Homebrew 설치, Gatekeeper, 절전·복귀와 실제 로그아웃·로그인 검사는 `NOT_RUN`입니다. 산출물 검사 결과와 검증 한계는 [개발 Workflow의 검증 기록](Workflow.ko.md#변경에-맞는-최소-검증-선택하기)과 [release notes](docs/releases/v0.8.0-beta.3.md)에서 확인하세요.
+beta.3 release 앱을 설치하거나 실기기에서 실행하지는 않았습니다. 해당 release의 Homebrew 설치, Gatekeeper, 절전·복귀와 실제 로그아웃·로그인 검사는 `NOT_RUN`이었습니다.
+
+2026-10-09 제스처 수정 후 기존 Swift 테스트 14개가 모두 통과했습니다. 사용자는 build 20에서 엇갈린 두 손가락 스크롤 중 누름 횟수가 늘지 않고 탭·더블 클릭·드래그와 최초 손가락 추적이 정상이라고 보고했습니다(`PASS_USER_REPORTED`). 실제 이벤트를 직접 관찰한 결과는 아닙니다. beta.4 build 21은 설치하거나 패널에서 실행하지 않았으며, 해당 산출물의 native/device·Homebrew 설치·Gatekeeper 검사는 `NOT_RUN`입니다. [개발 Workflow의 검증 기록](Workflow.ko.md#변경에-맞는-최소-검증-선택하기)과 [beta.4 release notes](docs/releases/v0.8.0-beta.4.md)를 확인하세요.
 
 ## 라이선스
 

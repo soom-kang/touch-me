@@ -10,7 +10,7 @@ Touch Me is a macOS menu bar app built to help you use ZEUSLAP touch-enabled mon
 
 It maps touch input to the display you select, enabling taps, double-clicks, one-finger dragging and two-finger scrolling. Choose and confirm the target display in the app, then start mapping. Use the menu bar to stop mapping or change settings.
 
-The current beta, `0.8.0-beta.3`, requires the **USB/HID profile verified on the P16KT**. Mapping won't start if the device identifiers or HID (Human Interface Device) input layout differ. Support for other ZEUSLAP models isn't guaranteed, so check the setup below first.
+The current beta, `0.8.0-beta.4`, requires the **USB/HID profile verified on the P16KT**. Mapping won't start if the device identifiers or HID (Human Interface Device) input layout differ. Support for other ZEUSLAP models isn't guaranteed, so check the setup below first.
 
 ## Check your setup first
 
@@ -43,7 +43,7 @@ brew install --cask soom-kang/touch-me/touch-me
 
 ### Install from the DMG
 
-Download the arm64 DMG and its `.sha256` file from the [v0.8.0-beta.3 release](https://github.com/soom-kang/touch-me/releases/tag/v0.8.0-beta.3). Verify the source and checksum, then open the disk image and drag **Touch Me.app** to **Applications**. Eject the image after copying.
+Download the arm64 DMG and its `.sha256` file from the [v0.8.0-beta.4 release](https://github.com/soom-kang/touch-me/releases/tag/v0.8.0-beta.4). Verify the source and checksum, then open the disk image and drag **Touch Me.app** to **Applications**. Eject the image after copying.
 
 The beta has an ad hoc signature and isn't notarized. If macOS blocks the downloaded app's first launch, verify its source and checksum before following [Apple's manual approval guidance](https://support.apple.com/en-us/102445). An available approval option doesn't guarantee the app can run.
 
@@ -69,10 +69,13 @@ Use one finger to click or drag and two fingers to scroll:
 
 | Action | Gesture |
 | --- | --- |
-| Click or double-click | Tap once or twice |
-| Drag | Hold one finger and move it |
-| Scroll vertically or horizontally | Move two fingers together |
-| Start dragging after scrolling | Lift both fingers before starting a new one-finger gesture |
+| Click or double-click | Tap once or twice; each click happens when you lift the finger |
+| Drag | Move one finger more than 8 screen-coordinate units from its starting position |
+| Scroll vertically or horizontally | Place two fingers before dragging starts, then move them together; no click is sent |
+| Add a second finger during a drag | The drag continues to follow the first finger |
+| Switch between dragging and scrolling | Lift all fingers, then start the new gesture |
+
+After scrolling, a finger left on the screen cannot start a click or drag. Lift all fingers before starting again.
 
 ## Stop and start again
 
@@ -111,10 +114,10 @@ For local builds or distribution details, read these documents:
 
 - [Build workflow](Workflow.md): module responsibilities, local builds, packaging and checks for each change
 - [Homebrew distribution](docs/Homebrew.md): Tap and release procedure, installation conflicts, updates and removal
-- [Beta.3 release notes](docs/releases/v0.8.0-beta.3.md): changes and validation limits for this version
+- [Beta.4 release notes](docs/releases/v0.8.0-beta.4.md): changes and validation limits for this version
 - [Editable architecture diagram](docs/assets/architecture.html)
 
-A local build produces `dist/touch-me-0.8.0-beta.3-arm64.dmg`.
+A local build produces `dist/touch-me-0.8.0-beta.4-arm64.dmg`.
 
 ## Recorded validation
 
@@ -130,7 +133,9 @@ These are historical results, not new device checks for beta.3 or a rebuilt app.
 
 On 2026-10-08, the user confirmed that touch worked immediately after login following a lock/unlock cycle in build 18. That build contains the recovery code included in beta.3. This is a user-reported result for one cycle, not an exact latency guarantee.
 
-The newly packaged beta.3 app has not been installed or exercised on the device. Homebrew installation, Gatekeeper, sleep/wake and full logout/login checks are `NOT_RUN` for this release. See the [build workflow's validation records](Workflow.md#choose-the-minimum-checks) and [release notes](docs/releases/v0.8.0-beta.3.md) for artifact results and validation limits.
+The beta.3 release app was not installed or exercised on the device. Homebrew installation, Gatekeeper, sleep/wake and full logout/login checks were `NOT_RUN` for that release.
+
+On 2026-10-09, all 14 existing Swift tests passed after the gesture change. The user reported normal staggered two-finger scrolling without additional downs, taps, double-clicks, dragging and first-finger tracking in build 20 (`PASS_USER_REPORTED`). This was not a directly observed event trace. The beta.4 build 21 artifact has not been installed or exercised on the panel; its native/device, Homebrew installation and Gatekeeper checks are `NOT_RUN`. See the [build workflow's validation records](Workflow.md#choose-the-minimum-checks) and [beta.4 release notes](docs/releases/v0.8.0-beta.4.md).
 
 ## License
 

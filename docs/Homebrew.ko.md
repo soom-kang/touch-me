@@ -2,7 +2,7 @@
 
 # Touch Me Homebrew beta 배포
 
-2026-10-08 release 작업은 `0.8.0-beta.3` GitHub prerelease 공개와 기존 개인 Tap 갱신, online audit까지 승인됐습니다. 각 단계의 검사가 통과하면 다음으로 진행하며, 실패하거나 새로운 중요한 결정이 필요하면 해당 단계를 중단합니다. 별도 release checkout에서 빌드·패키징해 작업 checkout의 실행 중인 build 18과 기존 Applications 앱을 보존합니다. Cask 설치·업그레이드, trust 변경, GUI와 실기기 확인은 이번 배포 범위 밖입니다.
+2026-10-09 release 작업은 `0.8.0-beta.4` GitHub prerelease 공개, source·Tap의 commit·push와 기존 개인 Tap 갱신, online audit까지 승인됐습니다. 각 단계의 검사가 통과하면 다음으로 진행하며, 실패하거나 새로운 중요한 결정이 필요하면 해당 단계를 중단합니다. 별도 release checkout에서 빌드·패키징해 로컬 build 20 앱과 기존 Applications 앱을 보존합니다. Cask 설치·업그레이드, trust 변경, GUI와 실기기 확인은 이번 배포 범위 밖입니다.
 
 ## 배포 기준
 
@@ -11,22 +11,22 @@
 | Source repository | [soom-kang/touch-me](https://github.com/soom-kang/touch-me) |
 | Tap repository | `soom-kang/homebrew-touch-me` |
 | Tap / Cask token | `soom-kang/touch-me` / `touch-me` |
-| Release 버전 / tag | `0.8.0-beta.3` / `v0.8.0-beta.3` |
-| Asset | `touch-me-0.8.0-beta.3-arm64.dmg`과 `.sha256` 파일 |
+| Release 버전 / tag | `0.8.0-beta.4` / `v0.8.0-beta.4` |
+| Asset | `touch-me-0.8.0-beta.4-arm64.dmg`과 `.sha256` 파일 |
 | 앱 / 식별자 | `Touch Me.app` / `io.github.soom-kang.touchme` |
 | 최소 환경 | Apple Silicon, macOS 26(Tahoe) 이상 |
 | 장치 범위 | ZEUSLAP P16KT 한 대, USB `0x0457:0x0819`, 조건에 맞는 외부 화면 |
 | 서명 | Ad hoc; Developer ID 서명과 notarization 없음 |
 | 로컬 초안 / Tap 파일 | `packaging/homebrew/touch-me.rb.in` / `Casks/touch-me.rb` |
 
-Release 버전은 `VERSION`에서 읽습니다. 번들에는 숫자 형식의 `CFBundleShortVersionString=0.8.0`, 증가하는 숫자 `CFBundleVersion`과 `TouchMeReleaseVersion=0.8.0-beta.3`를 기록합니다. 앱 About과 설정에는 전체 release 버전을 표시합니다. [Apple 버전 형식](https://developer.apple.com/help/glossary/version-number/)
+Release 버전은 `VERSION`에서 읽습니다. 번들에는 숫자 형식의 `CFBundleShortVersionString=0.8.0`, 증가하는 숫자 `CFBundleVersion`과 `TouchMeReleaseVersion=0.8.0-beta.4`를 기록합니다. 앱 About과 설정에는 전체 release 버전을 표시합니다. [Apple 버전 형식](https://developer.apple.com/help/glossary/version-number/)
 
 하나의 앱이 영어와 한국어를 포함합니다. 저장한 선택이 없으면 영어로 시작하고 설정에서 선택한 언어를 유지합니다. Cask에는 언어별 다운로드를 넣지 않습니다.
 
 다음 versioned asset URL을 사용합니다:
 
 ```text
-https://github.com/soom-kang/touch-me/releases/download/v0.8.0-beta.3/touch-me-0.8.0-beta.3-arm64.dmg
+https://github.com/soom-kang/touch-me/releases/download/v0.8.0-beta.4/touch-me-0.8.0-beta.4-arm64.dmg
 ```
 
 Cask의 SHA-256은 실제 업로드한 DMG와 일치해야 합니다. GitHub에서는 asset 대치가 가능하므로 공개한 버전의 파일을 대치하지 않는 원칙으로 관리하세요. 공개 후 source, 서명이나 DMG가 바뀌면 새 버전과 checksum을 사용합니다. 불일치를 `:no_check`로 우회하거나 기존 release asset을 대치하지 않습니다.
@@ -50,28 +50,30 @@ gh release list --repo soom-kang/touch-me
 
 **Beta.2 당시 시작 기준(2026-10-07):** source `main`은 `abbfece6ea621b13bd9832b53976ce0acd67f839`였고 beta.1과 public Tap이 이미 있었습니다.
 
-**Beta.3 시작 기준(2026-10-08):** source `main`은 `c8b78c89e77ca6636db429cff46db9db68aebf9b`에서 clean 상태이며 공개 source와 일치합니다. Beta.2 prerelease와 public `soom-kang/homebrew-touch-me` Tap이 있고, Tap 원격 `main`은 `fb0cea082d066bf0d34559eec6348ae09c0a5e8d`입니다. 공개한 beta.1·beta.2 tag와 asset을 보존합니다. 게시 전에 원격 상태를 다시 확인하고, 별도 checkout에서 기존 Tap을 갱신합니다. Tap을 다시 만들지 않습니다.
+**Beta.3 당시 시작 기준(2026-10-08):** source `main`은 `c8b78c89e77ca6636db429cff46db9db68aebf9b`에서 clean 상태였고 공개 source와 일치했습니다. Beta.2 prerelease와 public `soom-kang/homebrew-touch-me` Tap이 있었고, Tap 원격 `main`은 `fb0cea082d066bf0d34559eec6348ae09c0a5e8d`였습니다.
+
+**Beta.4 시작 기준(2026-10-09):** source `main`은 `91142b7bb1137452ae6618b09cea5488e1c8849e`와 미커밋 제스처 관련 6개 파일에서 시작합니다. Beta.1·beta.2·beta.3가 공개돼 있고 Tap 원격 `main`은 `55d661ae2d5a4409db7d720d4988556592769970`입니다. 기존 tag와 asset을 모두 보존합니다. 게시 전에 원격 상태를 다시 확인하고, 별도 checkout에서 기존 Tap을 갱신합니다. Tap을 다시 만들지 않습니다.
 
 **완료 조건:** 소유권, release 대상과 변경할 파일 범위가 명확합니다. **중단 조건:** 원격 불일치, 기존 tag·release 충돌, 예상하지 못한 Tap 변경, 보존할 수 없는 변경이나 마운트된 대치 대상 이미지가 있습니다. 정상 추출하며 강제 추출하지 않습니다.
 
 ### Phase 1 — Source·라이선스·배포 문서 정렬
 
-**입력:** 검토한 잠금·절전 복구와 HID 탐색 개선, release 버전 갱신. 저작권 2026 Soom Kang인 프로젝트 `LICENSE`와 번들의 `Licenses.txt`를 유지합니다. 기존 UI, 다이어그램, bundle identifier와 저장한 환경설정 형식을 유지합니다. README, Workflow와 이 문서의 두 언어를 함께 검토합니다. 변경 사항과 실제 검증 범위는 [beta.3 release notes](releases/v0.8.0-beta.3.md)에 기록하며, 충돌 전 장치 모드 복구를 구현했다고 표현하지 않습니다.
+**입력:** 검토한 제스처 관련 6개 파일과 release metadata·문서 갱신. 한 손가락 탭은 손을 뗄 때 클릭하며, 화면 좌표 8단위를 초과해 이동하면 드래그를 시작합니다. 드래그 전에 두 번째 접촉이 감지되면 대기 중인 클릭을 취소하고 스크롤합니다. 진행 중인 드래그는 첫 접촉을 추적하며, 스크롤 뒤나 첫 접촉 해제 뒤에는 모든 접촉이 해제될 때까지 기다립니다. 저작권 2026 Soom Kang인 프로젝트 `LICENSE`와 번들의 `Licenses.txt`를 유지합니다. 기존 다이어그램, bundle identifier, 환경설정 형식과 다른 장치·lifecycle 계약은 유지하고 기존 UI의 제스처 안내를 갱신합니다. README, Workflow와 이 문서의 두 언어를 함께 검토합니다. 변경 사항과 실제 검증 범위는 [beta.4 release notes](releases/v0.8.0-beta.4.md)에 기록합니다.
 
 **완료 조건:** 배포 문서와 번들 입력이 일치하고 최종 diff에는 요청한 변경만 있습니다. **중단 조건:** source 누락, 해결되지 않은 권리 관계나 관련 없는 변경으로 release를 검토할 수 없습니다. 이전에 만든 산출물이 현재 번들 입력과 일치한다고 가정하지 않습니다.
 
 ### Phase 2 — 후보 빌드와 확정
 
-**입력:** 별도 release checkout의 검토한 source와 `VERSION=0.8.0-beta.3`. 이번 배포에서는 패키징·source 계약 검사가 바뀌지 않아 새 tests를 작성하거나 기존 전체 suite를 다시 실행하지 않습니다. 해당 checkout 루트에서 빌드·패키징을 각각 한 번 실행합니다:
+**입력:** 별도 release checkout의 검토한 source와 `VERSION=0.8.0-beta.4`. 기존 build 20 앱을 해당 checkout의 `dist/Touch Me.app`에 복사해 build 번호 기준으로 사용하며, 빌드 한 번으로 build 21을 생성해야 합니다. 제스처 수정 후 기존 Swift tests 14개가 통과했고 build 20의 제스처 확인은 직접 event·process 증거 없이 `PASS_USER_REPORTED`로 기록합니다. 제스처 코드가 유지되는 동안 이 결과를 재사용합니다. 패키징 계약은 유지하며 새 tests나 검증 인프라를 추가하거나 전체 suite를 반복하지 않습니다. 해당 checkout 루트에서 빌드·패키징을 각각 한 번 실행합니다:
 
 ```bash
 bash scripts/build-app.sh
 python3 scripts/package-dmg.py
-hdiutil verify dist/touch-me-0.8.0-beta.3-arm64.dmg
-(cd dist && shasum -a 256 -c touch-me-0.8.0-beta.3-arm64.dmg.sha256)
+hdiutil verify dist/touch-me-0.8.0-beta.4-arm64.dmg
+(cd dist && shasum -a 256 -c touch-me-0.8.0-beta.4-arm64.dmg.sha256)
 ```
 
-기존 scripts는 warnings-as-errors release 컴파일, 번들 생성, strict ad hoc 서명 검증과 식별자·버전·라이선스 내용 일치·arm64 패키징 검사를 수행합니다. [Workflow](../Workflow.ko.md)에 따라 `Info.plist`를 확인하고 번들 아이콘을 source와 비교합니다. 생성한 build 번호와 정확한 checksum을 [beta.3 release notes](releases/v0.8.0-beta.3.md)에 기록하고 해당 digest를 로컬 Cask 초안에 넣습니다. 검사 전에는 beta.3 build 번호나 checksum을 확정하지 않습니다. 최종 Cask의 style은 Phase 4에서 검사합니다.
+기존 scripts는 warnings-as-errors release 컴파일, 번들 생성, strict ad hoc 서명 검증과 식별자·버전·라이선스 내용 일치·arm64 패키징 검사를 수행합니다. [Workflow](../Workflow.ko.md)에 따라 `Info.plist`를 확인하고 번들 아이콘을 source와 비교합니다. Build 21을 확인하고 정확한 checksum을 [beta.4 release notes](releases/v0.8.0-beta.4.md)에 기록한 뒤 해당 digest를 로컬 Cask 초안에 넣습니다. Build 21 실기기, Gatekeeper와 Homebrew 설치 검사는 `NOT_RUN`이며 과거 결과로 대신하지 않습니다. 최종 Cask의 style은 Phase 4에서 검사합니다.
 
 Cask에는 `app "Touch Me.app"`, arm64/Tahoe 조건, beta 수동 관리용 `livecheck` skip과 설치 안내를 둡니다. 자동 실행 hooks, 권한 변경, `zap`, 언어별 다운로드와 auto-update 주장은 넣지 않습니다. [Cask Cookbook](https://docs.brew.sh/Cask-Cookbook)
 
@@ -79,20 +81,20 @@ Cask에는 `app "Touch Me.app"`, arm64/Tahoe 조건, beta 수동 관리용 `live
 
 ### Phase 3 — 검토한 Source·tag·prerelease 게시
 
-**입력:** 확정한 후보, 최종 diff와 두 언어의 release notes. Notes에는 기능, 지원 범위, ad hoc 서명과 실제 검증 한계를 기록합니다. 의도한 source, 라이선스, 문서와 Cask 초안만 검토하고 commit합니다. 생성한 앱·DMG는 Git에 넣지 않습니다. 검토한 commit을 source `main`에 push하고 원격 revision이 일치하는지 확인한 뒤 tag를 만듭니다.
+**입력:** 확정한 후보, 최종 diff와 두 언어의 release notes. Notes에는 기능, 지원 범위, ad hoc 서명과 실제 검증 한계를 기록합니다. 의도한 source, 라이선스, 문서와 Cask 초안만 검토하고 commit합니다. 생성한 앱·DMG는 Git에 넣지 않습니다. 확정한 release checkout과 최종 source commit 사이에서 Sources, Package, VERSION, scripts, 라이선스·아이콘을 포함한 모든 컴파일·패키징 입력을 비교합니다. 입력이 다른 commit에 확정 DMG를 연결하지 않습니다. 검토한 commit을 source `main`에 push하고 원격 revision이 일치하는지 확인한 뒤 tag를 만듭니다.
 
 Git 게시 명령은 해당 commit이 있는 source checkout에서 실행합니다. 아래 asset 경로는 확정한 release checkout 기준입니다. 다른 폴더에서 게시하면 작업 checkout의 실행 중인 `dist` 대신 release DMG와 checksum의 절대 경로를 사용합니다.
 
 ```bash
 git push origin main
-git tag -a v0.8.0-beta.3 "$(git rev-parse HEAD)" -m 'Touch Me v0.8.0-beta.3'
-git push origin refs/tags/v0.8.0-beta.3
-gh release create v0.8.0-beta.3 \
+git tag -a v0.8.0-beta.4 "$(git rev-parse HEAD)" -m 'Touch Me v0.8.0-beta.4'
+git push origin refs/tags/v0.8.0-beta.4
+gh release create v0.8.0-beta.4 \
   --repo soom-kang/touch-me --verify-tag --prerelease --latest=false \
-  --title 'Touch Me v0.8.0-beta.3' \
-  --notes-file docs/releases/v0.8.0-beta.3.md \
-  dist/touch-me-0.8.0-beta.3-arm64.dmg \
-  dist/touch-me-0.8.0-beta.3-arm64.dmg.sha256
+  --title 'Touch Me v0.8.0-beta.4' \
+  --notes-file docs/releases/v0.8.0-beta.4.md \
+  dist/touch-me-0.8.0-beta.4-arm64.dmg \
+  dist/touch-me-0.8.0-beta.4-arm64.dmg.sha256
 ```
 
 검토한 notes 파일 경로를 사용합니다. Annotated tag를 commit으로 해석한 결과가 검토한 revision과 일치해야 합니다. Tag나 release가 이미 있으면 commit과 asset을 확인하고 일치하는 미완료 작업만 이어갑니다. 공개한 tag·asset은 강제 대치하거나 삭제하지 않습니다. 별도 검증 폴더로 두 공개 asset을 다운로드하고 업로드한 `.sha256`을 검증해 확정 후보의 digest와 비교합니다. Release가 prerelease인지도 확인합니다.
@@ -105,7 +107,7 @@ gh release create v0.8.0-beta.3 \
 
 ```json
 {
-  "touch-me": "0.8.0-beta.3"
+  "touch-me": "0.8.0-beta.4"
 }
 ```
 
@@ -133,9 +135,9 @@ git -C "$TASK_TAP_PATH" rev-parse HEAD
 brew audit --cask --online soom-kang/touch-me/touch-me
 ```
 
-Audit에는 설치된 Cask 이름을 사용합니다. Homebrew 7.0.8은 `.rb` 경로를 넘기는 `brew audit`를 지원하지 않으며, 외부 checkout에는 버전 한정 prerelease 예외를 읽는 설치 Tap context도 없습니다. 별도 checkout은 편집과 Phase 4 style 검사에 사용합니다. 기존 개별 Cask trust가 사라졌다면 trust를 바꾸지 않고 해당 단계를 중단해 합의합니다.
+Audit에는 설치된 Cask 이름을 사용합니다. Homebrew 7.0.9는 `.rb` 경로를 넘기는 `brew audit`를 지원하지 않으며, 외부 checkout에는 버전 한정 prerelease 예외를 읽는 설치 Tap context도 없습니다. 별도 checkout은 편집과 Phase 4 style 검사에 사용합니다. 기존 개별 Cask trust가 사라졌다면 trust를 바꾸지 않고 해당 단계를 중단해 합의합니다.
 
-2026-10-07에 확인한 Homebrew 7.0.8의 관련 계약을 2026-10-08에 로컬 소스에서 다시 확인했습니다. 비공식 Tap의 일반 online audit은 signing 검사를 건너뜁니다. `--new`는 signing 검사를 요청하므로 이번 ad hoc beta 경로에 사용하지 않습니다. Tap의 버전 한정 예외로 의도한 prerelease를 처리하며 다른 일반 audit 검사는 유지합니다. Homebrew가 바뀌면 이 동작을 다시 확인합니다. 관련 upstream 코드는 [Cask audit](https://github.com/Homebrew/brew/blob/7.0.8/Library/Homebrew/cask/audit.rb), [audit command](https://github.com/Homebrew/brew/blob/7.0.8/Library/Homebrew/dev-cmd/audit.rb)와 [GitHub release 검사](https://github.com/Homebrew/brew/blob/7.0.8/Library/Homebrew/utils/shared_audits.rb)입니다.
+2026-10-07에 확인한 Homebrew 7.0.8의 관련 계약을 2026-10-08에 로컬 소스에서 다시 확인했으며, 이번 release를 위해 2026-10-09에 Homebrew 7.0.9도 확인했습니다. 비공식 Tap의 일반 online audit은 signing 검사를 건너뜁니다. `--new`는 signing 검사를 요청하므로 이번 ad hoc beta 경로에 사용하지 않습니다. Tap의 버전 한정 예외로 의도한 prerelease를 처리하며 다른 일반 audit 검사는 유지합니다. Homebrew가 바뀌면 이 동작을 다시 확인합니다. 관련 upstream 코드는 [Cask audit](https://github.com/Homebrew/brew/blob/7.0.9/Library/Homebrew/cask/audit.rb), [audit command](https://github.com/Homebrew/brew/blob/7.0.9/Library/Homebrew/dev-cmd/audit.rb)와 [GitHub release 검사](https://github.com/Homebrew/brew/blob/7.0.9/Library/Homebrew/utils/shared_audits.rb)입니다.
 
 **완료 조건:** 기존 개별 Cask trust를 유지한 채 일반 online audit이 성공하고 release·Tap URL, source revision, build 번호, checksum과 실행 결과를 기록했습니다. **중단 조건:** Tap 동기화가 실패하거나 trust가 없거나 audit에 설명되지 않은 실패가 있습니다. 검사 제외로 숨기지 않습니다. 이번 release 작업은 여기서 종료합니다. Homebrew 설치, Gatekeeper 승인, GUI 언어 전환, 실기기 매핑과 로그인 실행은 `NOT_RUN`이며 audit이 해당 동작을 검증하지는 않습니다. 기존 `/Applications/Touch Me.app`은 그대로 둡니다.
 

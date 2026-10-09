@@ -607,8 +607,8 @@ struct ProofSettingsView: View {
                     .pickerStyle(.menu).controlSize(.small).fixedSize()
                 }
                 Text(Texts.get("터치 설정", "Touch settings")).font(.headline)
-                Text(Texts.get("한 손가락은 탭·드래그, 두 손가락 이동은 스크롤입니다. 오래 눌러도 드래그를 유지합니다.",
-                               "Use one finger to tap or drag and two fingers to scroll. Holding one finger keeps drag mode."))
+                Text(Texts.get("한 손가락 탭은 손을 뗄 때 클릭합니다. 손가락을 움직여 드래그하거나, 드래그 전에 두 손가락을 대고 클릭 없이 스크롤하세요. 동작을 바꾸려면 손가락을 모두 뗀 뒤 다시 시작하세요.",
+                               "A one-finger tap clicks when you lift it. Move one finger to drag, or place two fingers before dragging to scroll without clicking. Lift all fingers before switching gestures."))
                     .foregroundStyle(.secondary).fixedSize(horizontal: false, vertical: true)
                 GroupBox(Texts.get("1. 권한 확인", "1. Permissions")) {
                     VStack(alignment: .leading, spacing: 10) {
