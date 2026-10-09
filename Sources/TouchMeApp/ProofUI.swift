@@ -102,6 +102,8 @@ final class ProofModel: ObservableObject {
     @Published var maximumContacts = 0
     @Published private var messageState: ProofMessage = .none
     var message: String { messageState.text }
+    @Published private var lastFailureState: ProofMessage?
+    var lastFailureMessage: String { lastFailureState?.text ?? "" }
     @Published var scanReturnedSet = false
     @Published private var confirmation = TargetConfirmation()
     var targetConfirmed: Bool { confirmation.isConfirmed }
@@ -300,7 +302,7 @@ final class ProofModel: ObservableObject {
             handleMappingFailure(error)
         } catch {
             rememberStoppedState()
-            messageState = .startFailed
+            recordFailure(.startFailed)
         }
     }
 
@@ -542,7 +544,7 @@ final class ProofModel: ObservableObject {
         }
         rememberStoppedState()
         confirmation.invalidate()
-        messageState = .failure(error)
+        recordFailure(.failure(error))
     }
 
     private func expirePendingDisplayInterruption() {
@@ -550,7 +552,13 @@ final class ProofModel: ObservableObject {
               ProcessInfo.processInfo.systemUptime >= pendingDisplayInterruption.expiresAt else { return }
         rememberStoppedState()
         confirmation.invalidate()
-        messageState = .interruptionUnconfirmed(pendingDisplayInterruption.error)
+        recordFailure(.interruptionUnconfirmed(pendingDisplayInterruption.error))
+    }
+
+    private func recordFailure(_ failure: ProofMessage) {
+        lastFailureState = failure
+        // Readiness is live; a past failure must not masquerade as its current blocker.
+        messageState = .none
     }
 
     private func cancelPendingResume(clearSettling: Bool = true) {
@@ -598,7 +606,7 @@ final class ProofModel: ObservableObject {
     private func releaseMapping() -> Bool {
         if let error = mapper.stop() {
             confirmation.invalidate()
-            messageState = .failure(error)
+            recordFailure(.failure(error))
             return false
         }
         messageState = .mappingStopped
@@ -679,6 +687,7 @@ struct ProofSettingsView: View {
                                 .disabled(model.displays.first(where: { $0.id == model.selectedDisplay })?.canMap != true)
                         }
                         Toggle(Texts.get("시험 창이 P16KT에 표시되는 것을 확인했습니다", "I confirmed the test window is on the P16KT"), isOn: Binding(get: { model.targetConfirmed }, set: model.confirmTarget))
+                        Text(Texts.get("현재 준비 상태", "Current readiness")).font(.caption).bold()
                         Text(model.readiness.text)
                             .font(.callout).fixedSize(horizontal: false, vertical: true)
                     }.padding(8).disabled(model.running || model.modeRestorePending)
@@ -719,6 +728,12 @@ struct ProofSettingsView: View {
                                "Maximum contacts observed: \(model.maximumContacts) · Scroll events: \(model.scrolls)"))
                     .font(.system(.caption, design: .monospaced))
                 if !model.message.isEmpty { Text(model.message).font(.callout).fixedSize(horizontal: false, vertical: true) }
+                if !model.lastFailureMessage.isEmpty {
+                    VStack(alignment: .leading, spacing: 4) {
+                        Text(Texts.get("마지막 오류 기록", "Last failure (history)")).font(.caption).bold()
+                        Text(model.lastFailureMessage).font(.callout).fixedSize(horizontal: false, vertical: true)
+                    }.foregroundStyle(.secondary)
+                }
                 Text(Texts.get("실행 중 종료하면 다음 실행에서 재개하고, 중지하면 그 상태를 유지합니다. 처음 시작할 때 손을 뗀 뒤 탭하세요.",
                                "Quitting while running resumes on next launch; Stop stays stopped. Lift your finger before the first tap."))
                     .font(.caption).foregroundStyle(.secondary).fixedSize(horizontal: false, vertical: true)
