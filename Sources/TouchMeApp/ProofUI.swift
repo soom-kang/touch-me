@@ -5,6 +5,7 @@ import Combine
 import IOKit.hid
 import OSLog
 import TouchMePlatform
+import TouchMappingCore
 
 enum Texts {
     static var korean: Bool { LanguagePreferences.shared.selected == .korean }
@@ -102,7 +103,8 @@ final class ProofModel: ObservableObject {
     @Published private var messageState: ProofMessage = .none
     var message: String { messageState.text }
     @Published var scanReturnedSet = false
-    @Published var targetConfirmed = false
+    @Published private var confirmation = TargetConfirmation()
+    var targetConfirmed: Bool { confirmation.isConfirmed }
     @Published private(set) var resumePending = false
     let mapper = ProofMapper()
     var onRunChange: ((Bool) -> Void)?
@@ -220,7 +222,7 @@ final class ProofModel: ObservableObject {
         synchronizeAvailability()
         guard pendingDisplayInterruption == nil, !running && !modeRestorePending else { return }
         permissions = PermissionState.current()
-        targetConfirmed = false
+        confirmation.invalidate()
         let recoveryScanStart = interruptionResumePending ? ProcessInfo.processInfo.systemUptime : nil
         let scan = HIDDiscovery.scan()
         devices = scan.devices
@@ -234,7 +236,8 @@ final class ProofModel: ObservableObject {
             let matchingDisplays = displays.filter { $0.persistentUUID == savedMapping.displayUUID && $0.canMap }
             selectedDevice = matchingDevices.count == 1 ? matchingDevices[0].key : ""
             selectedDisplay = matchingDisplays.count == 1 ? matchingDisplays[0].id : 0
-            targetConfirmed = devices.count == 1 && !selectedDevice.isEmpty && selectedDisplay != 0
+            confirmation.restore(savedTargetMatches: devices.count == 1
+                && !selectedDevice.isEmpty && selectedDisplay != 0)
         } else {
             if !devices.contains(where: { $0.key == selectedDevice }) { selectedDevice = devices.first?.key ?? "" }
             if !displays.contains(where: { $0.id == selectedDisplay }) {
@@ -268,6 +271,7 @@ final class ProofModel: ObservableObject {
             MappingPreferences.save(saved)
             savedMapping = saved
             restoreSavedSelection = true
+            confirmation.confirm(true)
             messageState = .mappingActive
             synchronizeAvailability()
         } catch let error as ProofError {
@@ -461,13 +465,13 @@ final class ProofModel: ObservableObject {
     }
 
     func confirmTarget(_ confirmed: Bool) {
-        targetConfirmed = confirmed
+        confirmation.confirm(confirmed)
         if !confirmed { rememberStoppedState() }
     }
 
     private func selectionChanged() {
         restoreSavedSelection = false
-        targetConfirmed = false
+        confirmation.invalidate()
         rememberStoppedState()
     }
 
@@ -496,7 +500,7 @@ final class ProofModel: ObservableObject {
             interruptionResumePending = true
             recoveryDeadline = settlingContext.deadline
             nextRecoveryAttempt = ProcessInfo.processInfo.systemUptime + 1
-            targetConfirmed = false
+            confirmation.invalidate()
             messageState = interruptions.isEmpty ? .mappingResuming : .mappingSuspended
             return
         }
@@ -515,7 +519,7 @@ final class ProofModel: ObservableObject {
             return
         }
         rememberStoppedState()
-        targetConfirmed = false
+        confirmation.invalidate()
         messageState = .failure(error)
     }
 
@@ -523,7 +527,7 @@ final class ProofModel: ObservableObject {
         guard let pendingDisplayInterruption,
               ProcessInfo.processInfo.systemUptime >= pendingDisplayInterruption.expiresAt else { return }
         rememberStoppedState()
-        targetConfirmed = false
+        confirmation.invalidate()
         messageState = .interruptionUnconfirmed(pendingDisplayInterruption.error)
     }
 
@@ -571,7 +575,7 @@ final class ProofModel: ObservableObject {
 
     private func releaseMapping() -> Bool {
         if let error = mapper.stop() {
-            targetConfirmed = false
+            confirmation.invalidate()
             messageState = .failure(error)
             return false
         }
