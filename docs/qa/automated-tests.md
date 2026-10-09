@@ -34,16 +34,37 @@ On the Linux QA executor, Swift and xcrun are absent. The new Swift tests are
 **NOT_RUN**, and the Swift test target still needs compilation on supported tools.
 No external CI result is implied by adding these files.
 
-## Remaining test work
+## Focused macOS QA seams (2026-10-09)
 
-- SavedMapping persistence, malformed schema and identifier cases need an app
-  state test seam; no executable-target dependency trick is introduced here.
-- Feature write/readback/rebind failures need an injected HID adapter before
-  deterministic device-mode tests can be written safely.
-- App lifecycle message transitions need a model/observer test seam.
-- Native release, restore, permission and login checks remain in the
-  [build 11 checklist](build-11-release-checklist.md).
+The fix branch reuses the existing test targets. No CI service, device simulator,
+app-target test framework, duplicated Python gesture model or dependency is added.
+The added tests call small helpers used by production:
 
-The ticket is partially addressed: runnable portable regression coverage and
-Swift cases are added, but the above integration gaps remain open. Never replace
-an UNTESTED native row with a mock result.
+- `HIDContactFrameAssembler`: queued/mixed reports, callback order, unchanged
+  axes, reused slots and rejection of future snapshots (TM PLAT 01).
+- `HIDContactLayout` / `HIDMappingEligibility`: reject a partial or ambiguous
+  contact layout while preserving unrelated vendor elements (TM PLAT 02).
+- `TargetConfirmation`: explicit cancellation survives Refresh; a changed
+  target is not already confirmed (APP-B01).
+- `DeviceModeTransaction`: modes 0/2, partial write, failed readback/restore,
+  replacement I/O preserving the original pair, and the cross-process ownership
+  limit. P16KTDeviceMode retains all native descriptor/location validation.
+- `RecoveryWindow`: settling can delay the next attempt but cannot extend the
+  original ten-second deadline. ProofModel uses this helper and accepts a
+  monotonic clock provider; the default remains system uptime (TMQA-005).
+
+The 18 existing Python packaging tests passed on 2026-10-09 in Linux. Swift and
+xcrun remain unavailable here: the new and existing Swift suites are **NOT_RUN**,
+not PASS. `bash scripts/test.sh` must compile/run them on a supported authorized
+Mac before these source fixes are release-ready. No new artifact was built.
+
+## Remaining native and integration verification
+
+SavedMapping persistence/schema validation and full AppKit lifecycle observation
+are not expanded into a new framework in this task. The focused defects now have
+production test seams; this is not exhaustive model or OS integration coverage.
+Native descriptor validation/re-enumeration, feature I/O, permissions, UI states,
+backlog event tracing and login behavior still require supported macOS/P16KT.
+Use the [build 21 checklist](build-21-native-checklist.md) for the public artifact,
+and a separately built candidate for the source fixes. TMQA-003 remains blocked
+on its [hardware decision gate](abnormal-exit-recovery.md).

@@ -121,8 +121,8 @@ final class ProofModel: ObservableObject {
     private var interruptionResumePending = false {
         didSet { updateRecoveryScheduling() }
     }
-    private var recoveryDeadline: TimeInterval?
-    private var nextRecoveryAttempt: TimeInterval = 0
+    private var recoveryWindow = RecoveryWindow()
+    private let uptime: () -> TimeInterval
     private var settlingContext: MappingSettlingContext?
     private var pendingDisplayInterruption: PendingDisplayInterruption? {
         didSet { updateRecoveryScheduling() }
@@ -138,7 +138,8 @@ final class ProofModel: ObservableObject {
 
     private var sessionAvailable: Bool { sessionBlocker == nil }
 
-    init() {
+    init(uptime: @escaping () -> TimeInterval = { ProcessInfo.processInfo.systemUptime }) {
+        self.uptime = uptime
         savedMapping = MappingPreferences.load()
         resumePending = savedMapping?.resumeMapping == true
         mapper.onChange = { [weak self] in
@@ -164,7 +165,7 @@ final class ProofModel: ObservableObject {
             self.synchronizeDisplayPowerAvailability()
             self.synchronizeAvailability()
             if let deadline = self.settlingContext?.deadline,
-               ProcessInfo.processInfo.systemUptime >= deadline, !self.interruptionResumePending {
+               self.uptime() >= deadline, !self.interruptionResumePending {
                 self.settlingContext = nil
             }
             let previouslyAllowed = self.permissions.canMap
@@ -247,13 +248,13 @@ final class ProofModel: ObservableObject {
         guard pendingDisplayInterruption == nil, !running && !modeRestorePending else { return }
         permissions = PermissionState.current()
         confirmation.invalidate()
-        let recoveryScanStart = interruptionResumePending ? ProcessInfo.processInfo.systemUptime : nil
+        let recoveryScanStart = interruptionResumePending ? self.uptime() : nil
         let scan = HIDDiscovery.scan()
         devices = scan.devices
         scanReturnedSet = scan.queryReturnedSet
         displays = DisplayDiscovery.scan()
         if let recoveryScanStart {
-            recoveryLog.notice("Readiness scan finished in \(ProcessInfo.processInfo.systemUptime - recoveryScanStart, format: .fixed(precision: 3))s")
+            recoveryLog.notice("Readiness scan finished in \(self.uptime() - recoveryScanStart, format: .fixed(precision: 3))s")
         }
         if restoreSavedSelection, let savedMapping {
             let matchingDevices = devices.filter { matches($0, saved: savedMapping) }
@@ -309,14 +310,14 @@ final class ProofModel: ObservableObject {
     func resumeSavedMappingIfPossible() {
         synchronizeAvailability()
         if interruptionResumePending {
-            guard interruptions.isEmpty, let recoveryDeadline else { return }
-            let now = ProcessInfo.processInfo.systemUptime
-            if now >= recoveryDeadline {
+            guard interruptions.isEmpty, recoveryWindow.deadline != nil else { return }
+            let now = self.uptime()
+            if recoveryWindow.hasExpired(at: now) {
                 rememberStoppedState()
                 messageState = .resumeTimedOut
                 return
             }
-            guard now >= nextRecoveryAttempt else { return }
+            guard now >= recoveryWindow.nextAttempt else { return }
         }
         guard resumePending, let savedMapping, savedMapping.resumeMapping,
               let device = devices.first(where: { $0.key == selectedDevice }),
@@ -406,17 +407,16 @@ final class ProofModel: ObservableObject {
             }
             interruptionResumePending = interruptionResumePending || running || resumePending
             resumePending = interruptionResumePending && savedMapping?.resumeMapping == true
-            recoveryDeadline = nil
+            recoveryWindow.deadline = nil
             if running, !releaseMapping() {
                 rememberStoppedState()
                 return
             }
             if resumePending && !modeRestorePending { messageState = .mappingSuspended }
         } else if wasInterrupted && interruptionResumePending && !modeRestorePending {
-            let now = ProcessInfo.processInfo.systemUptime
-            recoveryDeadline = now + 10
-            settlingContext?.deadline = recoveryDeadline
-            nextRecoveryAttempt = now + 1
+            let now = self.uptime()
+            recoveryWindow.begin(at: now)
+            settlingContext?.deadline = recoveryWindow.deadline
             messageState = .mappingResuming
             recoveryLog.notice("Interruption cleared; readiness window started")
         }
@@ -424,17 +424,17 @@ final class ProofModel: ObservableObject {
 
     private func attemptInterruptedResume() {
         guard interruptionResumePending, interruptions.isEmpty, !terminating,
-              !modeRestorePending, let recoveryDeadline else { return }
-        let now = ProcessInfo.processInfo.systemUptime
-        if now >= recoveryDeadline {
+              !modeRestorePending, recoveryWindow.deadline != nil else { return }
+        let now = self.uptime()
+        if recoveryWindow.hasExpired(at: now) {
             rememberStoppedState()
             messageState = .resumeTimedOut
             return
         }
-        guard now >= nextRecoveryAttempt else { return }
+        guard now >= recoveryWindow.nextAttempt else { return }
         recoveryLog.notice("Readiness attempt started")
         refresh()
-        if interruptionResumePending { nextRecoveryAttempt = now + 1 }
+        if interruptionResumePending { recoveryWindow.postpone(until: now + 1) }
     }
 
     func displayConfigurationChanged() {
@@ -461,14 +461,14 @@ final class ProofModel: ObservableObject {
             if running {
                 resumePending = savedMapping?.resumeMapping == true
                 interruptionResumePending = resumePending
-                recoveryDeadline = settlingContext?.deadline
+                recoveryWindow.deadline = settlingContext?.deadline
                 if !releaseMapping() {
                     rememberStoppedState()
                     return
                 }
             }
             // Wait for one quiet second without extending the ten-second deadline.
-            nextRecoveryAttempt = max(nextRecoveryAttempt, ProcessInfo.processInfo.systemUptime + 1)
+            recoveryWindow.postpone(until: self.uptime() + 1)
             refresh(attemptResume: false)
         } else {
             stopForEnvironmentChange()
@@ -514,7 +514,7 @@ final class ProofModel: ObservableObject {
         guard !terminating, !modeRestorePending, let settlingContext,
               savedMapping?.resumeMapping == true else { return false }
         return !interruptions.isEmpty
-            || settlingContext.deadline.map { ProcessInfo.processInfo.systemUptime < $0 } == true
+            || settlingContext.deadline.map { self.uptime() < $0 } == true
     }
 
     private func handleMappingFailure(_ error: ProofError, previousDisplay: DisplayTarget? = nil) {
@@ -522,8 +522,8 @@ final class ProofModel: ObservableObject {
             savedMapping = settlingContext.savedMapping
             resumePending = true
             interruptionResumePending = true
-            recoveryDeadline = settlingContext.deadline
-            nextRecoveryAttempt = ProcessInfo.processInfo.systemUptime + 1
+            recoveryWindow.deadline = settlingContext.deadline
+            recoveryWindow.postpone(until: self.uptime() + 1)
             confirmation.invalidate()
             messageState = interruptions.isEmpty ? .mappingResuming : .mappingSuspended
             return
@@ -533,10 +533,10 @@ final class ProofModel: ObservableObject {
            previousDisplay.persistentUUID == savedMapping.displayUUID {
             pendingDisplayInterruption = PendingDisplayInterruption(savedMapping: savedMapping,
                                                                     display: previousDisplay, error: error,
-                                                                    expiresAt: ProcessInfo.processInfo.systemUptime + 2)
+                                                                    expiresAt: self.uptime() + 2)
             resumePending = true
             interruptionResumePending = true
-            recoveryDeadline = nil
+            recoveryWindow.deadline = nil
             messageState = .checkingInterruption
             synchronizeDisplayPowerAvailability()
             synchronizeAvailability()
@@ -549,7 +549,7 @@ final class ProofModel: ObservableObject {
 
     private func expirePendingDisplayInterruption() {
         guard let pendingDisplayInterruption,
-              ProcessInfo.processInfo.systemUptime >= pendingDisplayInterruption.expiresAt else { return }
+              self.uptime() >= pendingDisplayInterruption.expiresAt else { return }
         rememberStoppedState()
         confirmation.invalidate()
         recordFailure(.interruptionUnconfirmed(pendingDisplayInterruption.error))
@@ -564,8 +564,7 @@ final class ProofModel: ObservableObject {
     private func cancelPendingResume(clearSettling: Bool = true) {
         resumePending = false
         interruptionResumePending = false
-        recoveryDeadline = nil
-        nextRecoveryAttempt = 0
+        recoveryWindow.reset()
         if clearSettling {
             settlingContext = nil
             pendingDisplayInterruption = nil
