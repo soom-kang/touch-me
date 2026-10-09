@@ -10,9 +10,9 @@ Touch Me는 ZEUSLAP 터치 모니터를 Mac에서 활용할 수 있도록 만든
 
 터치 입력을 선택한 화면의 좌표에 맞춰 전달해 탭과 더블 클릭, 한 손가락 드래그, 두 손가락 스크롤을 사용할 수 있습니다. 앱에서 대상 화면을 선택하고 확인한 뒤 매핑을 시작하며, 메뉴 막대에서 매핑을 중지하거나 설정을 바꿀 수 있습니다.
 
-Beta `0.8.0-beta.5`는 **P16KT에서 확인한 USB/HID profile**을 요구합니다. 장치 식별자와 HID(Human Interface Device) 입력 구조가 다르면 매핑을 시작하지 않습니다. 다른 ZEUSLAP 모델까지 지원한다고 보장하지 않으므로 아래 환경을 먼저 확인해 주세요.
+Beta `0.8.0-beta.6`는 **P16KT에서 확인한 USB/HID profile**을 요구합니다. 장치 식별자와 HID(Human Interface Device) 입력 구조가 다르면 매핑을 시작하지 않습니다. 다른 ZEUSLAP 모델까지 지원한다고 보장하지 않으므로 아래 환경을 먼저 확인해 주세요.
 
-[Beta.5 build 23](https://github.com/soom-kang/touch-me/releases/tag/v0.8.0-beta.5)을 공개했고 public DMG·checksum 확인은 통과했습니다. 공개 beta.4 → beta.5 Homebrew 업그레이드 단계가 완료됐으며 설치 산출물도 build 23과 일치했습니다. QA01은 합의한 공개 업그레이드 범위에서 `PASS`입니다. 설치 build 23·두 권한·두 위치 탭·Stop/정상 Quit는 `PASS_USER_REPORTED`이며 종료 후 process·record 부재와 같은 패널의 현재 `(0,0)`은 직접 관측했습니다. [Acceptance 기록](docs/qa/beta5-native-acceptance.md)을 확인하세요.
+Beta.6는 QA 완료 기록을 포함한 재배포 후보이며 beta.5 이후 실행 코드 변경은 없습니다. Build 24의 로컬 산출물 검사는 통과했고 공개는 대기 중입니다. 확인한 산출물 식별은 [beta.6 release notes](docs/releases/v0.8.0-beta.6.md)에 있습니다. [Beta.5 build 23 acceptance](docs/qa/beta5-native-acceptance.md)는 회귀 근거로만 인용합니다. Beta.6 설치·GUI·Gatekeeper·실기기 사용·Homebrew upgrade는 `NOT_RUN`이며 설치된 beta.5 앱은 유지합니다.
 
 ## 먼저 사용 환경을 확인하세요
 
@@ -31,7 +31,7 @@ Apple Silicon Mac에서 P16KT 한 대를 연결하는 환경을 대상으로 합
 
 ## 설치하고 첫 매핑 시작하기
 
-Homebrew로 설치하거나 공개한 beta.5 DMG에서 앱을 복사할 수 있습니다. 어느 쪽으로 설치하든 다음 권한과 대상 화면 설정은 같습니다.
+Beta.6 공개와 public asset 확인 후 Homebrew로 설치하거나 DMG에서 앱을 복사할 수 있습니다. 어느 쪽으로 설치하든 다음 권한과 대상 화면 설정은 같습니다.
 
 ### Homebrew로 설치하기
 
@@ -45,7 +45,7 @@ brew install --cask soom-kang/touch-me/touch-me
 
 ### DMG로 설치하기
 
-[Beta.5 release](https://github.com/soom-kang/touch-me/releases/tag/v0.8.0-beta.5)에서 `touch-me-0.8.0-beta.5-arm64.dmg`와 `.sha256` 파일을 받으세요. 버전·build `0.8.0-beta.5`/23과 [release notes](docs/releases/v0.8.0-beta.5.md)의 checksum을 확인한 뒤 디스크 이미지를 열어 **Touch Me.app**을 **Applications**로 끌어 복사하세요. 복사를 마치면 이미지를 추출하세요.
+공개 후 [beta.6 release](https://github.com/soom-kang/touch-me/releases/tag/v0.8.0-beta.6)에서 `touch-me-0.8.0-beta.6-arm64.dmg`와 `.sha256` 파일을 받으세요. 실제 버전·build와 [release notes](docs/releases/v0.8.0-beta.6.md)의 checksum을 확인한 뒤 디스크 이미지를 열어 **Touch Me.app**을 **Applications**로 끌어 복사하세요. 복사를 마치면 이미지를 추출하세요.
 
 Beta는 ad hoc 서명을 사용하며 공증하지 않았습니다. macOS가 다운로드한 앱의 첫 실행을 차단하면 출처와 checksum을 확인한 뒤 [Apple의 수동 실행 승인 안내](https://support.apple.com/en-us/102445)를 따르세요. 승인 항목이 보이더라도 앱 실행을 보장하지는 않습니다.
 
@@ -116,11 +116,12 @@ Beta는 ad hoc 서명을 사용하며 공증하지 않았습니다. macOS가 다
 
 - [개발 Workflow](Workflow.ko.md): 모듈별 역할, 로컬 빌드와 패키징, 변경에 맞는 검증
 - [Homebrew 배포](docs/Homebrew.ko.md): Tap과 release 절차, 설치 충돌, 업데이트와 제거
-- [beta.4 release notes](docs/releases/v0.8.0-beta.4.md): 이번 버전의 변경과 검증 한계
-- [beta.5 release notes](docs/releases/v0.8.0-beta.5.md): 변경, 검증 범위와 공개 업그레이드 상태
+- [beta.4 release notes](docs/releases/v0.8.0-beta.4.md): 과거 변경과 검증 한계
+- [beta.5 release notes](docs/releases/v0.8.0-beta.5.md): 과거 release snapshot
+- [beta.6 release notes](docs/releases/v0.8.0-beta.6.md): 재배포 후보와 검증 한계
 - [편집 가능한 구조 다이어그램](docs/assets/architecture.ko.html)
 
-로컬 후보 DMG 경로는 `dist/touch-me-0.8.0-beta.5-arm64.dmg`이며 공개 다운로드 경로가 아닙니다.
+로컬 후보 DMG 경로는 `dist/touch-me-0.8.0-beta.6-arm64.dmg`이며 공개 다운로드 경로가 아닙니다.
 
 ## 기록된 검증 결과
 

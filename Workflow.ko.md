@@ -16,9 +16,9 @@ Apple Silicon Mac, macOS 26 이상, 패키지의 Swift 6.0 manifest와 호환되
 | --------------------- | ------------------------------------ |
 | 앱과 실행 파일        | `Touch Me.app` / `TouchMe`           |
 | Bundle Identifier     | `io.github.soom-kang.touchme`        |
-| Release 버전          | `VERSION`에서 읽는 `0.8.0-beta.5`    |
+| Release 버전          | `VERSION`에서 읽는 `0.8.0-beta.6`    |
 | 번들 버전             | `0.8.0`과 증가하는 숫자 build 번호   |
-| 전체 release metadata | `TouchMeReleaseVersion=0.8.0-beta.5` |
+| 전체 release metadata | `TouchMeReleaseVersion=0.8.0-beta.6` |
 | 대상 환경             | `arm64`, macOS 26 이상               |
 
 문서나 패키징을 바꿀 때는 식별자와 저장한 환경설정 형식을 유지하세요. 서명 identity나 설치 경로를 바꾸면 설치 앱의 권한 확인이 필요할 수 있습니다.
@@ -38,6 +38,8 @@ Apple Silicon Mac, macOS 26 이상, 패키지의 Swift 6.0 manifest와 호환되
 현재 소스에는 앱의 네트워크 통신이나 원시 입력 로그 기능이 없습니다. 환경설정에는 선택한 장치·화면 정보, 재개할 의도와 앱 언어 선택을 저장하며, 터치 이력은 저장하지 않습니다. 기본 언어는 영어입니다. 언어를 바꾸면 앱이 만든 UI를 즉시 갱신하며 세션을 재시작하거나 macOS 언어 설정을 바꾸지 않습니다.
 
 ## 앱 빌드와 번들 확인하기
+
+Beta.6는 QA 완료 기록을 재배포하며 beta.5 이후 실행 코드 변경은 없습니다. 빌드·패키징 각 한 번으로 build 24를 생성했고 frozen inputs 28개 일치, numeric version `0.8.0`, macOS 26+/arm64, strict 서명과 라이선스·아이콘 검사를 통과했습니다. 로컬과 설치된 beta.5 build 23의 hash는 보존했습니다. Build 23 실기기 PASS는 beta.6 acceptance가 아닌 회귀 근거입니다. [Beta.6 release notes](docs/releases/v0.8.0-beta.6.md)를 확인하세요.
 
 Release 실행 파일을 빌드하고 아이콘과 프로젝트 라이선스를 번들에 포함하세요. 최초 beta.5 준비는 설치된 build 21을 번호의 기준으로 build 22를 한 번 생성했습니다. Journal 도입 전인 이 산출물은 과거 기록으로 보존합니다. 합의한 recovery journal의 build 23을 생성했고 strict 서명, arm64, metadata, 라이선스·아이콘과 frozen inputs 28개 검사가 통과했습니다. 패키징도 통과했습니다. Build 23 정상 사용·재실행 확인은 `PASS_USER_REPORTED`입니다. 조건부 SIGKILL·재실행 한 번에서 매핑 재개 전 이전 기록을 복구했고 Stop·Quit 뒤 `(0,0)`을 확인했습니다. 이전 산출물을 보존하며 재빌드는 번호를 다시 증가시킵니다:
 
@@ -70,18 +72,19 @@ python3 scripts/package-dmg.py
 | 산출물                                        | 용도                    |
 | --------------------------------------------- | ----------------------- |
 | `dist/Touch Me.app`                           | 로컬 서명한 앱 번들     |
-| `dist/touch-me-0.8.0-beta.5-arm64.dmg`        | 로컬 beta 후보 이미지   |
-| `dist/touch-me-0.8.0-beta.5-arm64.dmg.sha256` | SHA-256 checksum        |
+| `dist/touch-me-0.8.0-beta.6-arm64.dmg`        | 로컬 beta 후보 이미지   |
+| `dist/touch-me-0.8.0-beta.6-arm64.dmg.sha256` | SHA-256 checksum        |
 
 Release checkout의 기존 이미지는 `dist/previous-builds`로 옮깁니다. DMG 무결성과 checksum을 확인하세요:
 
-현재 beta.5 DMG는 build 23을 포함하며 checksum은
-[후보 기록](docs/releases/v0.8.0-beta.5.md)에 있습니다. Build 22 checksum은
-과거 결과이며 build 23의 근거로 사용할 수 없습니다.
+확인한 beta.6 DMG는 build 24를 포함하며 455,405 bytes입니다. Digest는
+[후보 기록](docs/releases/v0.8.0-beta.6.md)에 있습니다. DMG 무결성·sidecar,
+읽기 전용 mount 내부 identity와 정상 detach 검사를 통과했습니다. Beta.5 build
+23과 과거 build 22의 checksum은 새 산출물을 검증하는 근거로 사용할 수 없습니다.
 
 ```bash
-hdiutil verify dist/touch-me-0.8.0-beta.5-arm64.dmg
-(cd dist && shasum -a 256 -c touch-me-0.8.0-beta.5-arm64.dmg.sha256)
+hdiutil verify dist/touch-me-0.8.0-beta.6-arm64.dmg
+(cd dist && shasum -a 256 -c touch-me-0.8.0-beta.6-arm64.dmg.sha256)
 ```
 
 ![소스와 라이선스로 로컬 서명 앱을 만들고 개인용 디스크 이미지와 SHA-256 checksum을 생성하는 흐름입니다.](docs/assets/packaging.ko.png)
@@ -152,6 +155,10 @@ Release build 한 번으로 build 12를 생성했습니다. 숫자 번들 버전
 정리를 마친 폴더에는 `.build`와 `dist/previous-builds`가 없을 수 있습니다. 다음 빌드에서 다시 생성합니다. 삭제 전 정확한 생성 경로와 마운트 상태를 확인하고 외부 폴더를 가리키는 링크는 따라가지 마세요.
 
 ## 검토한 릴리즈 공개하기
+
+2026-10-09 beta.6 준비 상태는 **CANDIDATE / NOT_PUBLISHED**입니다. 승인 범위는 `v0.8.0-beta.6` prerelease와 공개 Tap 갱신까지입니다. Source baseline은 `4582b02`이며 build 24와 산출물 식별을 확인했습니다. 실제 Tap Cask의 Ruby syntax와 Homebrew style은 통과했으며 파일 한 개에서 offenses는 없었습니다. Frozen 입력과 최종 tag source를 비교하고 공개 DMG·sidecar를 검증한 뒤 정확한 digest로 Tap을 갱신합니다. 공개 검사는 아직 대기 중입니다. 기존 tag·asset·QA 기록과 설치된 beta.5 앱을 보존합니다. Beta.6 설치·GUI·Gatekeeper·실기기 사용·Homebrew upgrade는 `NOT_RUN`이며 beta.5 build 23 결과는 회귀 근거로만 인용합니다. [Beta.6 release notes](docs/releases/v0.8.0-beta.6.md)를 확인하세요.
+
+### 과거 beta.5 공개와 acceptance
 
 2026-10-09 공개 후 기록: source·tag `4ead3d1acec3beb43a1f09261b308ef9fdef0e81`과 [beta.5 prerelease](https://github.com/soom-kang/touch-me/releases/tag/v0.8.0-beta.5)를 공개했습니다. 익명 DMG·sidecar 다운로드는 확정한 build 23과 일치했고 이전 beta.4 asset은 보존했습니다. Tap과 설치된 Tap은 `31cdb32c1e1415401c26fd338842bf811471b531`입니다. 공개 Homebrew 업그레이드 단계와 설치 산출물 검사는 통과했습니다. 이후 자동 core clone을 16:48:57 KST에 중단했고 자동 정리를 확인했으며 전체 command는 exit 130이었습니다.
 

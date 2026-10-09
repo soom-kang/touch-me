@@ -16,9 +16,9 @@ The app keeps these identifiers and versions:
 | --------------------- | ------------------------------------------------- |
 | App and executable    | `Touch Me.app` / `TouchMe`                        |
 | Bundle identifier     | `io.github.soom-kang.touchme`                     |
-| Release version       | `0.8.0-beta.5`, read from `VERSION`               |
+| Release version       | `0.8.0-beta.6`, read from `VERSION`               |
 | Bundle version        | `0.8.0` plus an incrementing numeric build number |
-| Full release metadata | `TouchMeReleaseVersion=0.8.0-beta.5`              |
+| Full release metadata | `TouchMeReleaseVersion=0.8.0-beta.6`              |
 | Target                | `arm64`, macOS 26 or later                        |
 
 Keep the identifier and saved-preference format stable when changing documentation or packaging. Changing the signing identity or installation path can require permission checks in the installed app.
@@ -38,6 +38,8 @@ The app accepts one verified panel and an eligible external display. Mapping ope
 No app networking code or raw-input logging is implemented in the current source. Preferences store the selected device/display identity, the intent to resume and the app's language selection; they do not store a touch history. English is the default, and changing language updates app-owned UI without restarting the session or changing macOS language settings.
 
 ## Build and inspect the app
+
+Beta.6 redistributes the completed QA records with no runtime-code changes since beta.5. One build and one packaging run produced verified build 24 with 28 frozen inputs matching; numeric version `0.8.0`, macOS 26+/arm64, strict signature and license/icon checks passed. The local and installed beta.5 build 23 hashes are preserved. Build 23's native PASS is regression evidence, not beta.6 acceptance. See the [beta.6 release notes](docs/releases/v0.8.0-beta.6.md).
 
 Build the release executable and bundle it with icons and the project license. Initial beta.5 preparation used installed build 21 as the local build-number baseline; one build produced verified build 22. That pre-journal artifact remains historical. The agreed recovery journal now has verified build 23, with strict signature, arm64, metadata, license/icon and 28 frozen inputs passed. Packaging also passed. Build 23 normal-use/relaunch checks are `PASS_USER_REPORTED`; one controlled SIGKILL/relaunch recovered the previous record before mapping resumed and verified `(0,0)` after Stop/Quit. Preserve earlier artifacts; another build increments the counter again:
 
@@ -70,18 +72,19 @@ The script verifies the app's identifier, release metadata against `VERSION`, li
 | Output                                        | Purpose                   |
 | --------------------------------------------- | ------------------------- |
 | `dist/Touch Me.app`                           | Locally signed app bundle |
-| `dist/touch-me-0.8.0-beta.5-arm64.dmg`        | Local beta candidate image |
-| `dist/touch-me-0.8.0-beta.5-arm64.dmg.sha256` | SHA-256 checksum          |
+| `dist/touch-me-0.8.0-beta.6-arm64.dmg`        | Local beta candidate image |
+| `dist/touch-me-0.8.0-beta.6-arm64.dmg.sha256` | SHA-256 checksum          |
 
 An existing image moves to `dist/previous-builds` in the release checkout. Verify DMG integrity and its checksum:
 
-The current beta.5 DMG contains build 23; its checksum is recorded in the
-[candidate notes](docs/releases/v0.8.0-beta.5.md). Build 22's checksum is historical
-and cannot validate build 23.
+Beta.6's verified DMG contains build 24 and is 455,405 bytes; its digest is in
+the [candidate notes](docs/releases/v0.8.0-beta.6.md). DMG integrity, sidecar,
+read-only mounted inner identity and normal detach passed. Beta.5 build 23 and
+historical build 22 checksums cannot validate the new artifact.
 
 ```bash
-hdiutil verify dist/touch-me-0.8.0-beta.5-arm64.dmg
-(cd dist && shasum -a 256 -c touch-me-0.8.0-beta.5-arm64.dmg.sha256)
+hdiutil verify dist/touch-me-0.8.0-beta.6-arm64.dmg
+(cd dist && shasum -a 256 -c touch-me-0.8.0-beta.6-arm64.dmg.sha256)
 ```
 
 ![Local packaging flow from source and license files to a signed app, personal disk image and SHA-256 checksum.](docs/assets/packaging.png)
@@ -152,6 +155,10 @@ If device restoration fails during an approved device check, keep the current co
 After a completed cleanup, `.build` and `dist/previous-builds` may be absent. Subsequent builds recreate them. Inspect the exact generated paths and active mounts before removing them; do not follow symlinks into external folders.
 
 ## Publish the reviewed release
+
+Beta.6 preparation, 2026-10-09: **CANDIDATE / NOT_PUBLISHED**. Approval covers the `v0.8.0-beta.6` prerelease and public Tap update only. Source baseline is `4582b02`; build 24 and its artifact identities are verified. The actual Tap Cask passed Ruby syntax and Homebrew style: one file inspected, no offenses. Compare frozen inputs with the final tagged source, verify the public DMG/sidecar, then update the Tap with the exact digest. Publication checks remain pending. Retain existing tags, assets, QA records and the installed beta.5 app. Beta.6 installation, GUI, Gatekeeper, real-device use and Homebrew upgrade are `NOT_RUN`; beta.5 build 23 results are regression evidence only. See the [beta.6 release notes](docs/releases/v0.8.0-beta.6.md).
+
+### Historical beta.5 publication and acceptance
 
 Postpublication record, 2026-10-09: source/tag `4ead3d1acec3beb43a1f09261b308ef9fdef0e81` and the [beta.5 prerelease](https://github.com/soom-kang/touch-me/releases/tag/v0.8.0-beta.5) are public. Anonymous DMG/sidecar download matched the frozen build 23; prior beta.4 assets were preserved. Tap and installed Tap are `31cdb32c1e1415401c26fd338842bf811471b531`. The public Homebrew upgrade phase and installed artifact checks passed. Its later automatic core clone was interrupted at 16:48:57 KST and cleaned up; the complete command exited 130.
 

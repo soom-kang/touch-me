@@ -10,9 +10,9 @@ Touch Me is a macOS menu bar app built to help you use ZEUSLAP touch-enabled mon
 
 It maps touch input to the display you select, enabling taps, double-clicks, one-finger dragging and two-finger scrolling. Choose and confirm the target display in the app, then start mapping. Use the menu bar to stop mapping or change settings.
 
-Beta `0.8.0-beta.5` requires the **USB/HID profile verified on the P16KT**. Mapping won't start if the device identifiers or HID (Human Interface Device) input layout differ. Support for other ZEUSLAP models isn't guaranteed, so check the setup below first.
+Beta `0.8.0-beta.6` requires the **USB/HID profile verified on the P16KT**. Mapping won't start if the device identifiers or HID (Human Interface Device) input layout differ. Support for other ZEUSLAP models isn't guaranteed, so check the setup below first.
 
-[Beta.5 build 23](https://github.com/soom-kang/touch-me/releases/tag/v0.8.0-beta.5) is published; public DMG/checksum verification passed. The public beta.4 → beta.5 Homebrew upgrade phase completed and the installed artifact matched build 23. QA01 is `PASS` for the agreed public-upgrade scope: installed build 23, both permissions, two-position taps and Stop/normal Quit are `PASS_USER_REPORTED`; post-Quit process/record absence and the same panel's current `(0,0)` were directly observed. See the [acceptance record](docs/qa/beta5-native-acceptance.md).
+Beta.6 is a redistribution candidate with completed QA records and no runtime-code changes since beta.5. Build 24 passed local artifact checks; publication is pending. Its verified identities are in the [beta.6 release notes](docs/releases/v0.8.0-beta.6.md). The [beta.5 build 23 acceptance](docs/qa/beta5-native-acceptance.md) is regression evidence only. Beta.6 installation, GUI, Gatekeeper, real-device use and Homebrew upgrade are `NOT_RUN`; the installed beta.5 app is retained.
 
 ## Check your setup first
 
@@ -31,7 +31,7 @@ Other panels, Intel Macs and older macOS versions have no recorded validation. S
 
 ## Install and start your first mapping session
 
-Install through Homebrew or copy the published beta.5 app from its DMG. Both routes use the same permission and target-display setup below.
+After beta.6 publication and public-asset verification, install through Homebrew or copy the app from its DMG. Both routes use the same permission and target-display setup below.
 
 ### Install with Homebrew
 
@@ -45,7 +45,7 @@ brew install --cask soom-kang/touch-me/touch-me
 
 ### Install from the DMG
 
-Download `touch-me-0.8.0-beta.5-arm64.dmg` and its `.sha256` file from the [beta.5 release](https://github.com/soom-kang/touch-me/releases/tag/v0.8.0-beta.5). Confirm version/build `0.8.0-beta.5`/23 and the checksum in the [release notes](docs/releases/v0.8.0-beta.5.md), then open the disk image and drag **Touch Me.app** to **Applications**. Eject the image after copying.
+After publication, download `touch-me-0.8.0-beta.6-arm64.dmg` and its `.sha256` file from the [beta.6 release](https://github.com/soom-kang/touch-me/releases/tag/v0.8.0-beta.6). Confirm the actual version/build and checksum in the [release notes](docs/releases/v0.8.0-beta.6.md), then open the disk image and drag **Touch Me.app** to **Applications**. Eject the image after copying.
 
 The beta has an ad hoc signature and isn't notarized. If macOS blocks the downloaded app's first launch, verify its source and checksum before following [Apple's manual approval guidance](https://support.apple.com/en-us/102445). An available approval option doesn't guarantee the app can run.
 
@@ -116,11 +116,12 @@ For local builds or distribution details, read these documents:
 
 - [Build workflow](Workflow.md): module responsibilities, local builds, packaging and checks for each change
 - [Homebrew distribution](docs/Homebrew.md): Tap and release procedure, installation conflicts, updates and removal
-- [Beta.4 release notes](docs/releases/v0.8.0-beta.4.md): changes and validation limits for this version
-- [Beta.5 release notes](docs/releases/v0.8.0-beta.5.md): changes, verified scope and public-upgrade status
+- [Beta.4 release notes](docs/releases/v0.8.0-beta.4.md): historical changes and validation limits
+- [Beta.5 release notes](docs/releases/v0.8.0-beta.5.md): historical release snapshot
+- [Beta.6 release notes](docs/releases/v0.8.0-beta.6.md): redistribution candidate and validation limits
 - [Editable architecture diagram](docs/assets/architecture.html)
 
-A local candidate build produces `dist/touch-me-0.8.0-beta.5-arm64.dmg`; this path is not a public download.
+A local candidate build produces `dist/touch-me-0.8.0-beta.6-arm64.dmg`; this path is not a public download.
 
 ## Recorded validation
 

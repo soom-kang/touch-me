@@ -2,9 +2,15 @@
 
 # Publish the Touch Me Homebrew beta
 
-Beta.5 is published and its public assets have been verified. This guide
-targets that release. The historical public baseline was beta.4 build 21; its release
-record and commands remain below.
+Beta.6 is a redistribution candidate; use its installation guidance after
+publication and public-asset verification. The current public baseline and
+installed app remain beta.5 build 23. Earlier release records remain below.
+
+## Beta.6 preparation
+
+Status on 2026-10-09: **CANDIDATE / NOT_PUBLISHED**. There are no runtime-code changes since beta.5; this release includes completed QA records. Build 24's local build/package checks passed. The 455,405-byte DMG and executable digests are recorded in the [beta.6 release notes](releases/v0.8.0-beta.6.md). Source baseline is `4582b02`; the planned tag is `v0.8.0-beta.6`, with `touch-me-0.8.0-beta.6-arm64.dmg` and its `.sha256` sidecar. The actual Tap Cask passed Ruby syntax and Homebrew style: one file inspected, no offenses.
+
+Approval covers prerelease publication and the public Tap update only. Freeze compilation/package inputs against the final commit, verify public bytes before updating the Cask, and retain existing tags/assets and the installed beta.5 app. Do not reuse beta.5's checksum. Beta.5 build 23 acceptance is regression evidence only. Beta.6 installation, GUI, Gatekeeper, real-device use and Homebrew upgrade are `NOT_RUN`.
 
 ## Published beta.5 — 2026-10-09
 
@@ -79,7 +85,7 @@ The Cask SHA-256 must match the exact uploaded DMG. GitHub permits asset replace
 
 ## Historical beta.4 release procedure
 
-These phases preserve the beta.4 release record and its previous approval scope. Do not run their version-specific commands against the beta.5 source or use that past approval as the candidate's acceptance result.
+These phases preserve the beta.4 release record and its previous approval scope. Do not run their version-specific commands against the current source or use that past approval as the candidate's acceptance result.
 
 ### Phase 0 — Confirm the source and preserve the starting state
 
@@ -191,7 +197,7 @@ Homebrew 7.0.8 was inspected on 2026-10-07 and its relevant contracts were reche
 
 ## Install, update and remove after publication
 
-These are user installation instructions and separate from the publication/audit run. Fully qualified installation scopes trust to the selected Cask rather than the whole Tap. [Tap Trust](https://docs.brew.sh/Tap-Trust)
+These are user installation instructions for after beta.6 publication and Tap verification; they are separate from the approved publication/audit run. This run retains the installed beta.5 app. Fully qualified installation scopes trust to the selected Cask rather than the whole Tap. [Tap Trust](https://docs.brew.sh/Tap-Trust)
 
 ```bash
 brew install --cask soom-kang/touch-me/touch-me
