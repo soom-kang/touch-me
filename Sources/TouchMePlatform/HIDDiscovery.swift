@@ -51,11 +51,10 @@ public struct TouchDevice {
         return UInt32(first)
     }
     public var canMap: Bool {
-        let pointerCollections = collections.filter { $0.isPointer }
-        return groupingVerified && !pointerCollections.isEmpty
-            && collections.allSatisfy { $0.descriptorVerified }
-            && pointerCollections.allSatisfy { !$0.contacts.isEmpty }
-            && !collections.contains { $0.hasKeyboardElements }
+        HIDMappingEligibility.canMap(groupingVerified: groupingVerified, collections: collections.map {
+            HIDMappingEligibility.Collection(descriptorVerified: $0.descriptorVerified, isPointer: $0.isPointer,
+                                             contactCount: $0.contacts.count, hasKeyboardElements: $0.hasKeyboardElements)
+        })
     }
     public var label: String { String(format: "USB touch · VID %04X / PID %04X", vendor, product) }
 }
@@ -237,26 +236,50 @@ public enum HIDDiscovery {
             let type = IOHIDElementGetType($0)
             return type == kIOHIDElementTypeInput_Misc || type == kIOHIDElementTypeInput_Button || type == kIOHIDElementTypeInput_Axis
         }
-        let groups = Dictionary(grouping: input, by: contactCookie)
+        var groups = Dictionary(grouping: input, by: contactCookie)
+        let fingerCookies = Set(elements.filter {
+            IOHIDElementGetType($0) == kIOHIDElementTypeCollection
+                && IOHIDElementGetUsagePage($0) == 0x0D && IOHIDElementGetUsage($0) == 0x22
+        }.map { IOHIDElementGetCookie($0) })
+        // Empty Finger collections are incomplete too; do not silently drop them.
+        for cookie in fingerCookies where groups[cookie] == nil { groups[cookie] = [] }
+        func isAxis(_ element: IOHIDElement, usage: UInt32) -> Bool {
+            IOHIDElementGetUsagePage(element) == 0x01 && IOHIDElementGetUsage(element) == usage
+        }
+        func isTip(_ element: IOHIDElement) -> Bool {
+            (IOHIDElementGetUsagePage(element) == 0x0D && IOHIDElementGetUsage(element) == 0x42)
+                || (IOHIDElementGetUsagePage(element) == 0x09 && IOHIDElementGetUsage(element) == 1)
+        }
+        func axisEvidence(_ element: IOHIDElement) -> HIDContactLayout.Axis {
+            HIDContactLayout.Axis(range: AxisRange(minimum: IOHIDElementGetLogicalMin(element),
+                                                   maximum: IOHIDElementGetLogicalMax(element)),
+                                  isRelative: IOHIDElementIsRelative(element))
+        }
+        let layout = groups.map { cookie, group in
+            HIDContactLayout.Group(cookie: cookie, isFinger: fingerCookies.contains(cookie),
+                x: group.filter { isAxis($0, usage: 0x30) }.map(axisEvidence),
+                y: group.filter { isAxis($0, usage: 0x31) }.map(axisEvidence),
+                tipCount: group.filter(isTip).count,
+                hasDigitizerTip: group.contains {
+                    IOHIDElementGetUsagePage($0) == 0x0D && IOHIDElementGetUsage($0) == 0x42
+                })
+        }
+        let verifiedCookies = HIDContactLayout.validatedCookies(layout)
         var contacts: [ContactElements] = []
-        for (cookie, group) in groups {
-            let xs = group.filter { IOHIDElementGetUsagePage($0) == 0x01 && IOHIDElementGetUsage($0) == 0x30 && !IOHIDElementIsRelative($0) }
-            let ys = group.filter { IOHIDElementGetUsagePage($0) == 0x01 && IOHIDElementGetUsage($0) == 0x31 && !IOHIDElementIsRelative($0) }
-            let tips = group.filter {
-                (IOHIDElementGetUsagePage($0) == 0x0D && IOHIDElementGetUsage($0) == 0x42)
-                    || (IOHIDElementGetUsagePage($0) == 0x09 && IOHIDElementGetUsage($0) == 1)
-            }
-            // Ambiguous descriptors are rejected, rather than guessing a finger.
-            guard xs.count == 1, ys.count == 1, tips.count == 1, cookie != 0 else { continue }
-            let e = ContactElements(x: xs[0], y: ys[0], tip: tips[0], key: "\(registryID):\(cookie)",
-                                    isDigitizer: IOHIDElementGetUsagePage(tips[0]) == 0x0D)
-            if e.xRange.isValid && e.yRange.isValid { contacts.append(e) }
+        for cookie in verifiedCookies ?? [] {
+            guard let group = groups[cookie],
+                  let x = group.first(where: { isAxis($0, usage: 0x30) }),
+                  let y = group.first(where: { isAxis($0, usage: 0x31) }),
+                  let tip = group.first(where: isTip) else { continue }
+            contacts.append(ContactElements(x: x, y: y, tip: tip, key: "\(registryID):\(cookie)",
+                                             isDigitizer: IOHIDElementGetUsagePage(tip) == 0x0D))
         }
         return HIDCollection(device: device, registryID: registryID, physicalID: metadata.physicalID,
                              vendor: metadata.vendor, product: metadata.product, usagePage: metadata.usagePage,
                              usage: metadata.usage, contacts: contacts.sorted { $0.key < $1.key },
                              hasKeyboardElements: keyboard,
-                             hasTouchScreen: touchScreen, hasMouse: mouse, descriptorVerified: descriptorVerified)
+                             hasTouchScreen: touchScreen, hasMouse: mouse,
+                             descriptorVerified: descriptorVerified && verifiedCookies != nil)
     }
 
     private static func contactCookie(_ element: IOHIDElement) -> UInt32 {

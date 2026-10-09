@@ -4,13 +4,9 @@ import Darwin
 
 /// Uses the mapper's already-open device and restores the verified original pair.
 final class P16KTDeviceMode {
-    private var device: IOHIDDevice
-    private var mode: IOHIDElement
-    private var identifier: IOHIDElement
     private let locationID: Int
-    private let originalMode: Int
-    private let originalIdentifier: Int
-    private(set) var needsRestore = false
+    private let transaction: DeviceModeTransaction
+    var needsRestore: Bool { transaction.needsRestore }
 
     init(collection: HIDCollection) throws {
         let device = collection.device
@@ -50,17 +46,11 @@ final class P16KTDeviceMode {
               reportFeatures.count == 2 else {
             throw ProofError.modeUnsupported
         }
-        let originalMode = try Self.read(device: device, element: mode)
-        let originalIdentifier = try Self.read(device: device, element: identifier)
-        guard (originalMode == 0 || originalMode == 2), originalIdentifier == 0 else {
-            throw ProofError.modeStateUnexpected
-        }
-        self.device = device
-        self.mode = mode
-        self.identifier = identifier
         self.locationID = locationID
-        self.originalMode = originalMode
-        self.originalIdentifier = originalIdentifier
+        transaction = try DeviceModeTransaction(
+            read: { (try Self.read(device: device, element: mode),
+                     try Self.read(device: device, element: identifier)) },
+            write: { try Self.write(device: device, mode: mode, identifier: identifier, pair: $0) })
     }
 
     func isAtOriginalLocation(_ collection: HIDCollection) -> Bool {
@@ -73,33 +63,17 @@ final class P16KTDeviceMode {
         }
         let replacement = try P16KTDeviceMode(collection: collection)
         // Replace stale handles only; preserve the original pair and pending recovery.
-        device = replacement.device
-        mode = replacement.mode
-        identifier = replacement.identifier
+        transaction.read = replacement.transaction.read
+        transaction.write = replacement.transaction.write
     }
 
     func enable() throws {
-        guard originalMode == 0 else { return }
-        // A failed write can still change the device; retain recovery responsibility.
-        needsRestore = true
-        try write(mode: 2, identifier: originalIdentifier)
-        guard try matches(mode: 2, identifier: originalIdentifier) else {
-            throw ProofError.modeReadbackMismatch
-        }
+        try transaction.enable()
     }
 
     func restore() throws {
-        guard needsRestore else { return }
         do {
-            if (try? matches(mode: originalMode, identifier: originalIdentifier)) == true {
-                needsRestore = false
-                return
-            }
-            try write(mode: originalMode, identifier: originalIdentifier)
-            guard try matches(mode: originalMode, identifier: originalIdentifier) else {
-                throw ProofError.modeReadbackMismatch
-            }
-            needsRestore = false
+            try transaction.restore()
         } catch let error as ProofError {
             switch error {
             case .modeReadFailed(let result), .modeWriteFailed(let result):
@@ -112,16 +86,11 @@ final class P16KTDeviceMode {
         }
     }
 
-    private func matches(mode expectedMode: Int, identifier expectedIdentifier: Int) throws -> Bool {
-        let actualMode = try Self.read(device: device, element: mode)
-        let actualIdentifier = try Self.read(device: device, element: identifier)
-        return actualMode == expectedMode && actualIdentifier == expectedIdentifier
-    }
-
-    private func write(mode value: Int, identifier identifierInteger: Int) throws {
+    private static func write(device: IOHIDDevice, mode: IOHIDElement,
+                              identifier: IOHIDElement, pair: DeviceModeTransaction.Pair) throws {
         let timestamp = mach_absolute_time()
-        let modeValue = IOHIDValueCreateWithIntegerValue(kCFAllocatorDefault, mode, timestamp, value)
-        let identifierValue = IOHIDValueCreateWithIntegerValue(kCFAllocatorDefault, identifier, timestamp, identifierInteger)
+        let modeValue = IOHIDValueCreateWithIntegerValue(kCFAllocatorDefault, mode, timestamp, pair.mode)
+        let identifierValue = IOHIDValueCreateWithIntegerValue(kCFAllocatorDefault, identifier, timestamp, pair.identifier)
         let values = [mode: modeValue, identifier: identifierValue] as CFDictionary
         let result = IOHIDDeviceSetValueMultiple(device, values)
         guard result == kIOReturnSuccess else { throw ProofError.modeWriteFailed(result) }

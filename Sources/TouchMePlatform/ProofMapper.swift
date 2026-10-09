@@ -54,14 +54,6 @@ public enum ProofError: Error, LocalizedError {
     }
 }
 
-private struct ContactState {
-    let elements: ContactElements
-    var x: Int?
-    var y: Int?
-    var down = false
-    var needsCoordinateRefresh = false
-}
-
 /// All methods and callbacks execute on the main run loop.
 /// Paired P16KT mode changes are scoped to the exclusive mapping session.
 /// No raw reports, raw logging, background daemon or shared-mode fallback.
@@ -82,11 +74,11 @@ public final class ProofMapper {
     private var releaseEvent: CGEvent?
     private var opened: [HIDCollection] = []
     private var deviceMode: (collection: HIDCollection, control: P16KTDeviceMode)?
-    private var contacts: [String: ContactState] = [:]
+    private var contacts: [String: ContactElements] = [:]
+    private var frameAssembler = HIDContactFrameAssembler()
     private var elementKeys: [String: String] = [:]
     private var target: DisplayTarget?
     private var watchdog: Timer?
-    private var pendingTimestamp: UInt64?
     private var flushScheduled = false
     private var generation = 0
     private var preferDigitizer = false
@@ -147,11 +139,10 @@ public final class ProofMapper {
                 try control.enable()
                 resumePhase("mode_enable_finished")
                 for e in collection.contacts {
-                    var state = ContactState(elements: e)
                     // Verify an initial tip state; actual coordinates still require callbacks.
-                    state.down = try currentValue(for: e.tip) != 0
-                    state.needsCoordinateRefresh = state.down
-                    contacts[e.key] = state
+                    let down = try currentValue(for: e.tip).integer != 0
+                    contacts[e.key] = e
+                    frameAssembler.addContact(key: e.key, down: down)
                     for el in [e.x, e.y, e.tip] {
                         elementKeys["\(collection.registryID):\(IOHIDElementGetCookie(el))"] = e.key
                     }
@@ -181,7 +172,7 @@ public final class ProofMapper {
             }
             _ = post(session.start())
             running = true
-            if contacts.values.allSatisfy({ !$0.down }) { _ = session.update(contacts: []) }
+            if frameAssembler.allLifted { _ = session.update(contacts: []) }
             watchdog = Timer.scheduledTimer(withTimeInterval: 0.25, repeats: true) { [weak self] _ in self?.checkEnvironment() }
             if let watchdog { RunLoop.main.add(watchdog, forMode: .common) }
             onChange?()
@@ -257,7 +248,7 @@ public final class ProofMapper {
         contacts.removeAll()
         elementKeys.removeAll()
         target = nil
-        pendingTimestamp = nil
+        frameAssembler = HIDContactFrameAssembler()
         flushScheduled = false
         preferDigitizer = false
         scrollRemainderX = 0
@@ -272,22 +263,32 @@ public final class ProofMapper {
         let device = IOHIDElementGetDevice(el)
         var id: UInt64 = 0
         guard IORegistryEntryGetRegistryEntryID(IOHIDDeviceGetService(device), &id) == KERN_SUCCESS,
-              let key = elementKeys["\(id):\(IOHIDElementGetCookie(el))"], var state = contacts[key] else { return }
+              let key = elementKeys["\(id):\(IOHIDElementGetCookie(el))"], let elements = contacts[key] else { return }
         let timestamp = IOHIDValueGetTimeStamp(value)
-        if let pendingTimestamp, pendingTimestamp != timestamp { flush() }
-        guard running else { return }
-        self.pendingTimestamp = timestamp
-        let number = IOHIDValueGetIntegerValue(value)
+        let field: HIDContactField
         switch IOHIDElementGetCookie(el) {
-        case IOHIDElementGetCookie(state.elements.x): state.x = number
-        case IOHIDElementGetCookie(state.elements.y): state.y = number
-        case IOHIDElementGetCookie(state.elements.tip):
-            let down = number != 0
-            if down && !state.down { state.needsCoordinateRefresh = true }
-            state.down = down
+        case IOHIDElementGetCookie(elements.x): field = .x
+        case IOHIDElementGetCookie(elements.y): field = .y
+        case IOHIDElementGetCookie(elements.tip): field = .tip
         default: return
         }
-        contacts[key] = state
+        if let pending = frameAssembler.pendingTimestamp, pending != timestamp {
+            guard canProcessFrame() else { return }
+        }
+        do {
+            if let frame = try frameAssembler.receive(key: key, field: field,
+                value: HIDContactValue(integer: IOHIDValueGetIntegerValue(value), timestamp: timestamp),
+                read: readCoordinate) {
+                process(frame)
+            }
+        } catch let error as ProofError {
+            fail(error)
+            return
+        } catch {
+            fail(.readFailed(kIOReturnError))
+            return
+        }
+        guard running else { return }
         receivedValues += 1
         if !flushScheduled {
             flushScheduled = true
@@ -305,30 +306,38 @@ public final class ProofMapper {
         return opened.contains { Unmanaged.passUnretained($0.device).toOpaque() == sender }
     }
 
-    private func flush() {
-        guard running else { return }
+    private func canProcessFrame() -> Bool {
+        guard running else { return false }
         onEnvironmentCheck?()
-        guard running, let target else { return }
-        guard PermissionState.current().canMap else { fail(.missingPermissions); return }
-        // Reused slots must start from the driver's last reported position, not
-        // this app's previous gesture. Unchanged axes may have no new callback.
+        guard running, target != nil else { return false }
+        guard PermissionState.current().canMap else { fail(.missingPermissions); return false }
+        return true
+    }
+
+    private func flush() {
+        guard frameAssembler.pendingTimestamp != nil, canProcessFrame() else { return }
         do {
-            for key in Array(contacts.keys) {
-                guard var state = contacts[key], state.down, state.needsCoordinateRefresh else { continue }
-                state.x = try currentValue(for: state.elements.x)
-                state.y = try currentValue(for: state.elements.y)
-                state.needsCoordinateRefresh = false
-                contacts[key] = state
-            }
+            if let frame = try frameAssembler.flush(read: readCoordinate) { process(frame) }
         } catch let error as ProofError {
             fail(error)
-            return
         } catch {
             fail(.readFailed(kIOReturnError))
-            return
         }
-        let downs = contacts.values.filter(\.down)
-        let digitizer = downs.filter { $0.elements.isDigitizer }
+    }
+
+    private func readCoordinate(key: String, field: HIDContactField) throws -> HIDContactValue {
+        guard let elements = contacts[key] else { throw ProofError.readFailed(kIOReturnError) }
+        switch field {
+        case .x: return try currentValue(for: elements.x)
+        case .y: return try currentValue(for: elements.y)
+        case .tip: return try currentValue(for: elements.tip)
+        }
+    }
+
+    private func process(_ frame: HIDContactFrame) {
+        guard running, let target else { return }
+        let downs = frame.contacts.filter(\.down)
+        let digitizer = downs.filter { contacts[$0.key]?.isDigitizer == true }
         if !digitizer.isEmpty { preferDigitizer = true }
         if downs.isEmpty { preferDigitizer = false }
         let active = preferDigitizer ? digitizer : downs
@@ -339,10 +348,10 @@ public final class ProofMapper {
             scrollRemainderY = 0
         }
         let mappedContacts = active.compactMap { state -> ProofContact? in
-            guard let x = state.x, let y = state.y,
-                  let point = CoordinateMapper.map(x: x, y: y, xRange: state.elements.xRange,
-                                                   yRange: state.elements.yRange, to: target.rect) else { return nil }
-            return ProofContact(id: state.elements.key, point: point)
+            guard let elements = contacts[state.key], let x = state.x, let y = state.y,
+                  let point = CoordinateMapper.map(x: x, y: y, xRange: elements.xRange,
+                                                   yRange: elements.yRange, to: target.rect) else { return nil }
+            return ProofContact(id: state.key, point: point)
         }
         // Reject the whole gesture rather than interpreting partial data as a tap/lift.
         if mappedContacts.count != active.count || (active.isEmpty && !downs.isEmpty) {
@@ -357,12 +366,13 @@ public final class ProofMapper {
         onChange?()
     }
 
-    private func currentValue(for element: IOHIDElement) throws -> Int {
+    private func currentValue(for element: IOHIDElement) throws -> HIDContactValue {
         let valuePointer = UnsafeMutablePointer<Unmanaged<IOHIDValue>>.allocate(capacity: 1)
         defer { valuePointer.deallocate() }
         let rc = IOHIDDeviceGetValue(IOHIDElementGetDevice(element), element, valuePointer)
         guard rc == kIOReturnSuccess else { throw ProofError.readFailed(rc) }
-        return IOHIDValueGetIntegerValue(valuePointer.pointee.takeUnretainedValue())
+        let value = valuePointer.pointee.takeUnretainedValue()
+        return HIDContactValue(integer: IOHIDValueGetIntegerValue(value), timestamp: IOHIDValueGetTimeStamp(value))
     }
 
     @discardableResult

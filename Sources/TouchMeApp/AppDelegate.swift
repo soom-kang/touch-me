@@ -1,4 +1,5 @@
 import AppKit
+import CoreServices
 import SwiftUI
 import Combine
 
@@ -13,10 +14,17 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSMenuItemValidation {
     private var signalSources: [DispatchSourceSignal] = []
 
     func applicationDidFinishLaunching(_ notification: Notification) {
+        // Public launch-event context; login registration status does not identify this launch.
+        let event = NSAppleEventManager.shared().currentAppleEvent
+        let launchedAtLogin = event?.eventID == kAEOpenApplication
+            && event?.paramDescriptor(forKeyword: keyAEPropData)?.enumCodeValue == keyAELaunchedAsLogInItem
         let identifier = Bundle.main.bundleIdentifier ?? "io.github.soom-kang.touchme"
         if let other = NSRunningApplication.runningApplications(withBundleIdentifier: identifier)
             .first(where: { $0.processIdentifier != ProcessInfo.processInfo.processIdentifier }) {
-            if let url = other.bundleURL {
+            if launchedAtLogin {
+                // A duplicate background launch must not bring the existing app forward.
+                NSApp.terminate(nil)
+            } else if let url = other.bundleURL {
                 let config = NSWorkspace.OpenConfiguration()
                 config.activates = true
                 config.createsNewApplicationInstance = false
@@ -70,7 +78,9 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSMenuItemValidation {
             .removeDuplicates()
             .receive(on: RunLoop.main)
             .sink { [weak self] _ in self?.updateLocalizedInterface() }
-        showSettings()
+        // Settings and recovery help remain available from the menu bar. Explicit
+        // launches and Finder reopen still show the window; login never steals focus.
+        if !launchedAtLogin { showSettings() }
         observers.append(NotificationCenter.default.addObserver(forName: NSApplication.didChangeScreenParametersNotification,
                                                                  object: nil, queue: .main) { [weak self] _ in
             self?.model.displayConfigurationChanged()
