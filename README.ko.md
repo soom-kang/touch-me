@@ -10,7 +10,9 @@ Touch Me는 ZEUSLAP 터치 모니터를 Mac에서 활용할 수 있도록 만든
 
 터치 입력을 선택한 화면의 좌표에 맞춰 전달해 탭과 더블 클릭, 한 손가락 드래그, 두 손가락 스크롤을 사용할 수 있습니다. 앱에서 대상 화면을 선택하고 확인한 뒤 매핑을 시작하며, 메뉴 막대에서 매핑을 중지하거나 설정을 바꿀 수 있습니다.
 
-현재 beta `0.8.0-beta.4`는 **P16KT에서 확인한 USB/HID profile**을 요구합니다. 장치 식별자와 HID(Human Interface Device) 입력 구조가 다르면 매핑을 시작하지 않습니다. 다른 ZEUSLAP 모델까지 지원한다고 보장하지 않으므로 아래 환경을 먼저 확인해 주세요.
+Beta `0.8.0-beta.5`는 **P16KT에서 확인한 USB/HID profile**을 요구합니다. 장치 식별자와 HID(Human Interface Device) 입력 구조가 다르면 매핑을 시작하지 않습니다. 다른 ZEUSLAP 모델까지 지원한다고 보장하지 않으므로 아래 환경을 먼저 확인해 주세요.
+
+이 beta.5 안내는 공개와 public asset 확인 뒤 사용합니다. 2026-10-09 공개 전 기록은 **READY_FOR_RELEASE_REVIEW / NOT_PUBLISHED**입니다. Build 23의 로컬 검사와 조건부 SIGKILL 복구 한 번은 통과했고 정상 사용·재실행은 `PASS_USER_REPORTED`입니다. QA01의 공개 Homebrew 업그레이드는 `NOT_RUN`입니다. 과거 공개 기준은 [beta.4, build 21](https://github.com/soom-kang/touch-me/releases/tag/v0.8.0-beta.4)입니다. [Release notes](docs/releases/v0.8.0-beta.5.md)와 [acceptance 기록](docs/qa/beta5-native-acceptance.md)을 확인하세요.
 
 ## 먼저 사용 환경을 확인하세요
 
@@ -29,7 +31,7 @@ Apple Silicon Mac에서 P16KT 한 대를 연결하는 환경을 대상으로 합
 
 ## 설치하고 첫 매핑 시작하기
 
-Homebrew로 설치하거나 DMG에서 앱을 복사할 수 있습니다. 어느 쪽으로 설치하든 다음 권한과 대상 화면 설정은 같습니다.
+Beta.5 asset과 Tap 갱신을 공개·확인한 뒤 Homebrew로 설치하거나 DMG에서 앱을 복사할 수 있습니다. 어느 쪽으로 설치하든 다음 권한과 대상 화면 설정은 같습니다.
 
 ### Homebrew로 설치하기
 
@@ -43,7 +45,7 @@ brew install --cask soom-kang/touch-me/touch-me
 
 ### DMG로 설치하기
 
-[v0.8.0-beta.4 release](https://github.com/soom-kang/touch-me/releases/tag/v0.8.0-beta.4)에서 arm64 DMG와 `.sha256` 파일을 받으세요. 출처와 checksum을 확인한 뒤 디스크 이미지를 열어 **Touch Me.app**을 **Applications**로 끌어 복사하세요. 복사를 마치면 이미지를 추출하세요.
+공개 뒤 [GitHub Releases](https://github.com/soom-kang/touch-me/releases)에서 `touch-me-0.8.0-beta.5-arm64.dmg`와 `.sha256` 파일을 받으세요. 버전·build `0.8.0-beta.5`/23과 [release notes](docs/releases/v0.8.0-beta.5.md)의 checksum을 확인한 뒤 디스크 이미지를 열어 **Touch Me.app**을 **Applications**로 끌어 복사하세요. 복사를 마치면 이미지를 추출하세요.
 
 Beta는 ad hoc 서명을 사용하며 공증하지 않았습니다. macOS가 다운로드한 앱의 첫 실행을 차단하면 출처와 checksum을 확인한 뒤 [Apple의 수동 실행 승인 안내](https://support.apple.com/en-us/102445)를 따르세요. 승인 항목이 보이더라도 앱 실행을 보장하지는 않습니다.
 
@@ -92,15 +94,15 @@ Beta는 ad hoc 서명을 사용하며 공증하지 않았습니다. macOS가 다
 | 상황 | 다음 행동 |
 | --- | --- |
 | 권한이 부족함 | 두 개인정보 보호 설정에서 Touch Me를 허용하고 **다시 조회**를 누르세요 |
-| 패널이나 화면이 바뀜 | 저장한 패널을 같은 USB 포트에 연결하고 화면을 다시 선택하고 확인하세요 |
+| 패널이나 화면이 바뀜 | 저장한 패널과 대상 화면을 다시 확인하세요. 미복구 기록은 같은 연속 연결을 요구합니다 |
 | 장치 접근에 실패함 | 다른 매핑 프로그램을 중지하고 USB 연결을 확인하세요 |
-| 장치 모드 복구에 실패함 | P16KT를 같은 USB 포트에 다시 연결하고 설정의 **복구 재시도**를 누르세요 |
+| 장치 모드 복구에 실패함 | 현재 연결을 유지하고 **복구 재시도**를 누르세요. 연결이 바뀌면 복구를 차단합니다 |
 
-강제 종료, 충돌이나 전원 손실에서는 정상 정리 절차를 실행할 수 없습니다. 원래 장치 모드는 현재 프로세스 메모리에만 저장하므로 이전 프로세스의 모드를 충돌 후 복구하는 기능은 없습니다. 이때 패널이 변경된 모드를 유지하는지는 아직 검증하지 않았습니다.
+강제 종료, 충돌이나 전원 손실에서는 정상 정리 절차를 실행할 수 없습니다. 공개 beta.4와 이전 beta.5 build 22는 원래 모드를 프로세스 메모리에만 저장합니다. Build 22는 한 번의 `SIGKILL`과 재실행 → Stop → 정상 Quit 뒤에도 모드 2가 남았고 별도 진단으로 저장한 `(0,0)`을 복구했습니다. 새 후보는 모드 변경 전에 원래 값을 기록하며 이전 소유자의 종료와 같은 부팅·계속 연결된 장치 식별이 확인될 때만 복구합니다. 연결이 바뀌거나 기록이 불확실하면 매핑을 차단하며 같은 포트에 다시 연결해도 복구를 허용하지 않습니다. Build 23은 원래 모드 0·같은 부팅·계속 연결된 P16KT 조건의 SIGKILL·재실행 복구 한 번을 통과했으며 다른 중단 조건은 아직 검증하지 않았습니다.
 
 앱 재실행이나 이후 중지 성공만으로 충돌 전 모드가 복구됐다고 판단하지 마세요. 장치 동작이 예상과 다르면 매핑을 중지하고 업데이트와 제거를 보류하며 오류 내용을 보존하세요. 추측한 모드 값을 장치에 강제로 쓰지 마세요. 자세한 확인 범위는 [비정상 종료 검증](docs/qa/abnormal-exit-recovery.md)에 정리했습니다.
 
-업데이트하거나 제거하기 전에는 **매핑 중지 → 장치 모드 복구 확인 → 정상 종료**를 수행하세요. 복구에 실패하면 같은 USB 포트에 패널을 연결하고 복구를 마칠 때까지 진행하지 마세요. Ad hoc 앱을 업데이트한 뒤에는 두 개인정보 보호 권한을 다시 확인하세요.
+업데이트하거나 제거하기 전에는 **매핑 중지 → 장치 모드 복구 확인 → 정상 종료**를 수행하세요. 복구에 실패하면 현재 연결을 유지하고 복구 재시도를 마칠 때까지 진행하지 마세요. 연결이 바뀌면 복구를 차단하므로 기록과 오류를 보존하세요. Ad hoc 앱을 업데이트한 뒤에는 두 개인정보 보호 권한을 다시 확인하세요.
 
 제거할 때는 **로그인 시 Touch Me 열기**도 꺼 주세요. 직접 설치한 앱은 복구와 종료를 마친 뒤 휴지통으로 옮기고 Homebrew로 설치한 앱은 [업데이트와 제거 안내](docs/Homebrew.ko.md#공개-후-설치업데이트제거)를 따르세요. 이 절차는 저장한 환경설정을 삭제하지 않습니다.
 
@@ -115,9 +117,10 @@ Beta는 ad hoc 서명을 사용하며 공증하지 않았습니다. macOS가 다
 - [개발 Workflow](Workflow.ko.md): 모듈별 역할, 로컬 빌드와 패키징, 변경에 맞는 검증
 - [Homebrew 배포](docs/Homebrew.ko.md): Tap과 release 절차, 설치 충돌, 업데이트와 제거
 - [beta.4 release notes](docs/releases/v0.8.0-beta.4.md): 이번 버전의 변경과 검증 한계
+- [beta.5 release notes](docs/releases/v0.8.0-beta.5.md): 변경, 검증 범위와 공개 업그레이드 상태
 - [편집 가능한 구조 다이어그램](docs/assets/architecture.ko.html)
 
-직접 빌드한 DMG의 경로는 `dist/touch-me-0.8.0-beta.4-arm64.dmg`입니다.
+로컬 후보 DMG 경로는 `dist/touch-me-0.8.0-beta.5-arm64.dmg`이며 공개 다운로드 경로가 아닙니다.
 
 ## 기록된 검증 결과
 
@@ -135,7 +138,7 @@ Beta는 ad hoc 서명을 사용하며 공증하지 않았습니다. macOS가 다
 
 beta.3 release 앱을 설치하거나 실기기에서 실행하지는 않았습니다. 해당 release의 Homebrew 설치, Gatekeeper, 절전·복귀와 실제 로그아웃·로그인 검사는 `NOT_RUN`이었습니다.
 
-2026-10-09 제스처 수정 후 기존 Swift 테스트 14개가 모두 통과했습니다. 사용자는 build 20에서 엇갈린 두 손가락 스크롤 중 누름 횟수가 늘지 않고 탭·더블 클릭·드래그와 최초 손가락 추적이 정상이라고 보고했습니다(`PASS_USER_REPORTED`). 실제 이벤트를 직접 관찰한 결과는 아닙니다. beta.4 build 21은 설치하거나 패널에서 실행하지 않았으며, 해당 산출물의 native/device·Homebrew 설치·Gatekeeper 검사는 `NOT_RUN`입니다. [개발 Workflow의 검증 기록](Workflow.ko.md#변경에-맞는-최소-검증-선택하기)과 [beta.4 release notes](docs/releases/v0.8.0-beta.4.md)를 확인하세요.
+2026-10-09 제스처 수정 후 기존 Swift 테스트 14개가 모두 통과했습니다. 사용자는 build 20에서 엇갈린 두 손가락 스크롤 중 누름 횟수가 늘지 않고 탭·더블 클릭·드래그와 최초 손가락 추적이 정상이라고 보고했습니다(`PASS_USER_REPORTED`). 실제 이벤트를 직접 관찰한 결과는 아닙니다. beta.4 배포 준비 당시 build 21은 설치하거나 패널에서 실행하지 않았으며, 해당 산출물의 native/device·Homebrew 설치·Gatekeeper 검사는 `NOT_RUN`이었습니다. [개발 Workflow의 검증 기록](Workflow.ko.md#변경에-맞는-최소-검증-선택하기)과 [beta.4 release notes](docs/releases/v0.8.0-beta.4.md)를 확인하세요.
 
 ## 라이선스
 

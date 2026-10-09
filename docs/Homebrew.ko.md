@@ -2,9 +2,43 @@
 
 # Touch Me Homebrew beta 배포
 
-2026-10-09 release 작업은 `0.8.0-beta.4` GitHub prerelease 공개, source·Tap의 commit·push와 기존 개인 Tap 갱신, online audit까지 승인됐습니다. 각 단계의 검사가 통과하면 다음으로 진행하며, 실패하거나 새로운 중요한 결정이 필요하면 해당 단계를 중단합니다. 별도 release checkout에서 빌드·패키징해 로컬 build 20 앱과 기존 Applications 앱을 보존합니다. Cask 설치·업그레이드, trust 변경, GUI와 실기기 확인은 이번 배포 범위 밖입니다.
+이 안내는 승인된 beta.5 공개와 public asset 확인 뒤 사용합니다. 과거 공개
+기준은 beta.4 build 21이며 당시 배포 기록과 명령은 아래에 보존합니다.
 
-## 배포 기준
+## Beta.5 준비
+
+2026-10-09 공개 전 기록은 **READY_FOR_RELEASE_REVIEW / NOT_PUBLISHED**입니다.
+후보 `0.8.0-beta.5`, build 23의 source 컴파일, 집중 backend 검사 9개,
+서명·metadata·라이선스·아이콘, 입력 비교 28개, DMG 무결성과 로컬 Cask·Tap
+검사는 통과했습니다. 원래 모드 0·같은 부팅·계속 연결된 P16KT 조건에서
+SIGKILL·재실행 한 번으로 이전 기록을 복구·삭제한 뒤 매핑을 재개했고,
+Stop·Quit 후 `(0,0)`을 확인했습니다. 진단 feature write는 없었습니다.
+정상 사용·재실행과 충돌 후 제스처는 `PASS_USER_REPORTED`입니다. 과거 build
+22의 실패는 [acceptance 기록](qa/beta5-native-acceptance.md)에 보존합니다.
+
+예정 tag는 `v0.8.0-beta.5`이며 asset은
+`touch-me-0.8.0-beta.5-arm64.dmg`와 `.sha256` 파일입니다. Build 23의 산출물
+식별과 엄격한 복구 정책은 [release notes](releases/v0.8.0-beta.5.md)에 있습니다.
+로컬 Cask 초안만으로 공개 Tap이나 다운로드 가능 상태를 판정하지 않습니다.
+
+검토·승인 뒤 다음 순서로 진행합니다:
+
+1. Frozen compilation/package 입력과 release commit을 비교합니다. 기존 앱,
+   환경설정, tag와 asset을 보존합니다.
+2. 검토한 DMG·sidecar를 공개하고 다운로드한 bytes·내부 앱을 build 23 기록과
+   비교합니다. 확인한 버전·checksum으로 기존 Tap을 갱신하며 과거 asset 대치나
+   `:no_check`로 불일치를 우회하지 않습니다.
+3. Beta.5 asset과 Tap 갱신 확인 후 아래 설치·업그레이드 안내를 사용합니다.
+   Beta.4 → beta.5 공개 업그레이드 acceptance는 별도 기록하며 QA01은 열려 있고
+   이 기록에서 해당 검사는 `NOT_RUN`입니다.
+
+이 시점에는 release commit·push, tag, 공개와 Tap 갱신을 수행하지 않았습니다.
+신규 설치·Gatekeeper, 권한 off/on, 잠금·절전, 실제 로그아웃·로그인, 제거와
+더 넓은 crash/device recovery는 `NOT_RUN`입니다. 기존 권한을 유지하고 필요한
+경우에만 재승인합니다. Retry 때 같은 연결을 유지하며 같은 포트 재연결만으로
+journal 복구를 허용하지 않습니다.
+
+## 과거 공개 beta.4 기준
 
 | 항목 | 값 |
 | --- | --- |
@@ -19,7 +53,7 @@
 | 서명 | Ad hoc; Developer ID 서명과 notarization 없음 |
 | 로컬 초안 / Tap 파일 | `packaging/homebrew/touch-me.rb.in` / `Casks/touch-me.rb` |
 
-Release 버전은 `VERSION`에서 읽습니다. 번들에는 숫자 형식의 `CFBundleShortVersionString=0.8.0`, 증가하는 숫자 `CFBundleVersion`과 `TouchMeReleaseVersion=0.8.0-beta.4`를 기록합니다. 앱 About과 설정에는 전체 release 버전을 표시합니다. [Apple 버전 형식](https://developer.apple.com/help/glossary/version-number/)
+새 빌드의 release 버전은 `VERSION`에서 읽습니다. 공개 beta.4 번들에는 숫자 형식의 `CFBundleShortVersionString=0.8.0`, `CFBundleVersion=21`과 `TouchMeReleaseVersion=0.8.0-beta.4`를 기록했습니다. 앱 About과 설정에는 전체 release 버전을 표시합니다. [Apple 버전 형식](https://developer.apple.com/help/glossary/version-number/)
 
 하나의 앱이 영어와 한국어를 포함합니다. 저장한 선택이 없으면 영어로 시작하고 설정에서 선택한 언어를 유지합니다. Cask에는 언어별 다운로드를 넣지 않습니다.
 
@@ -31,7 +65,9 @@ https://github.com/soom-kang/touch-me/releases/download/v0.8.0-beta.4/touch-me-0
 
 Cask의 SHA-256은 실제 업로드한 DMG와 일치해야 합니다. GitHub에서는 asset 대치가 가능하므로 공개한 버전의 파일을 대치하지 않는 원칙으로 관리하세요. 공개 후 source, 서명이나 DMG가 바뀌면 새 버전과 checksum을 사용합니다. 불일치를 `:no_check`로 우회하거나 기존 release asset을 대치하지 않습니다.
 
-## 페이즈별 실행
+## 과거 beta.4 배포 절차
+
+다음 페이즈는 beta.4 배포 기록과 당시 승인 범위를 보존합니다. 버전별 명령을 beta.5 source에서 실행하거나 과거 승인을 후보 acceptance 결과로 사용하지 마세요.
 
 ### Phase 0 — Source 확인과 변경 전 상태 보존
 
@@ -168,7 +204,7 @@ brew upgrade --cask soom-kang/touch-me/touch-me
 brew uninstall --cask soom-kang/touch-me/touch-me
 ```
 
-제거 후에도 앱 환경설정은 남습니다. `zap`, 자동 process kill과 장치 복구 hook은 없습니다. 복구에 실패하면 같은 USB 포트에 패널을 다시 연결해 중지가 성공할 때까지 업데이트·제거를 중단합니다.
+제거 후에도 앱 환경설정은 남습니다. `zap`, 자동 process kill과 장치 복구 hook은 없습니다. 복구에 실패하면 업데이트·제거를 중단하고 현재 연결을 유지한 채 복구 재시도를 수행합니다. 연결이 바뀌면 복구를 차단하므로 기록과 오류를 보존합니다.
 
 ## 결과 기록과 향후 서명 작업
 

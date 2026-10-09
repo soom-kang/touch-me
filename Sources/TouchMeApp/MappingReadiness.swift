@@ -2,7 +2,7 @@ import TouchMePlatform
 
 /// The same typed result controls Start and explains its first blocking condition.
 enum MappingReadiness: Equatable {
-    case ready, terminating, running, restoreRequired, checkingInterruption
+    case ready, terminating, running, restoreRequired, recordedRestoreRequired, checkingInterruption
     case protectedDataUnavailable, sessionUnavailable, inactiveSession, sleeping, displaysSleeping
     case permissionsRequired, inputMonitoringRequired, accessibilityRequired
     case deviceQueryFailed, noDevice, multipleDevices, selectDevice, unsupportedModel
@@ -30,8 +30,11 @@ enum MappingReadiness: Equatable {
             return Texts.get("매핑이 실행 중입니다. 대상을 바꾸려면 먼저 중지하세요.",
                              "Mapping is running. Stop before changing the target.")
         case .restoreRequired:
-            return Texts.get("원래 장치 모드 복구가 필요합니다. P16KT를 같은 USB 포트에 연결한 뒤 ‘복구 재시도’를 누르세요.",
-                             "The original device mode still needs restoring. Connect the P16KT to the same USB port and choose Retry restore.")
+            return Texts.get("현재 실행이 변경한 장치 모드를 복구해야 합니다. 연결을 유지한 채 ‘복구 재시도’를 누르세요. 연결이 바뀌면 원복이 차단됩니다.",
+                             "This session's device mode still needs restoring. Keep the connection and choose Retry restore; a changed attachment blocks restoration.")
+        case .recordedRestoreRequired:
+            return Texts.get("이전 실행의 복구 기록을 확인하지 못해 매핑을 차단했습니다. 아래 오류를 확인하고 ‘복구 재시도’를 누르세요. 기록을 보존한 채 정상 종료할 수 있습니다.",
+                             "Mapping is blocked by the previous session's recovery record. Check the error below and choose Retry restore. Normal Quit preserves the record.")
         case .checkingInterruption:
             return Texts.get("화면 변경 후 잠금·절전 여부를 확인하고 있습니다. 잠시 기다리세요.",
                              "Checking for a lock or sleep interruption after a display change. Please wait.")

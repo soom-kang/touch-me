@@ -154,7 +154,8 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSMenuItemValidation {
     func validateMenuItem(_ item: NSMenuItem) -> Bool {
         if item.action == #selector(startMapping) { return model?.canStart == true }
         if item.action == #selector(stopMapping) {
-            return model?.running == true || model?.modeRestorePending == true || model?.resumePending == true
+            return model?.running == true || model?.modeRestorePending == true
+                || model?.startupRecoveryBlocked == true || model?.resumePending == true
         }
         return true
     }

@@ -32,7 +32,9 @@ public enum ProofError: Error, LocalizedError {
         case .modeReadFailed(let rc): return String(format: "Device mode read failed (0x%08X).", UInt32(bitPattern: rc))
         case .modeWriteFailed(let rc): return String(format: "Multitouch mode change failed (0x%08X).", UInt32(bitPattern: rc))
         case .modeReadbackMismatch: return "Multitouch mode readback did not match. Mapping did not start."
-        case .modeRestoreFailed(let rc): return String(format: "Original device mode could not be restored (0x%08X). Reconnect the P16KT to the same USB port and retry restoration.", UInt32(bitPattern: rc))
+        case .modeRestoreFailed(let rc):
+            if let reason = recoveryJournalDescription(rc) { return reason }
+            return String(format: "Original device mode could not be restored (0x%08X). Keep the current connection and retry restoration; a changed attachment cannot authorize recovery.", UInt32(bitPattern: rc))
         }
     }
     public var code: String {
@@ -52,6 +54,38 @@ public enum ProofError: Error, LocalizedError {
         case .modeRestoreFailed(let rc): return String(format: "mode_restore_0x%08X", UInt32(bitPattern: rc))
         }
     }
+}
+
+// App-local reason codes keep the existing public error enum and callbacks.
+private func recoveryJournalDescription(_ result: IOReturn) -> String? {
+    switch UInt32(bitPattern: result) {
+    case 0xE0000F01: return "Another process owns mode recovery. Mapping is blocked; the recovery record is preserved."
+    case 0xE0000F02: return "The previous recovery owner could not be safely identified. Mapping is blocked; the recovery record is preserved."
+    case 0xE0000F03: return "The mode recovery record is invalid. No guessed mode was written; mapping is blocked."
+    case 0xE0000F04: return "The recovery record belongs to a different boot or attachment. Mapping is blocked; reconnecting to the same port does not authorize restoration."
+    case 0xE0000F05: return "The device mode does not match the recorded recovery states. No recovery write was authorized."
+    case 0xE0000F06: return "The recovery record changed unexpectedly. It was preserved and mapping is blocked."
+    case 0xE0000F07: return "The recovery record could not be safely stored or read. Mapping is blocked until it can be safely processed; the record is preserved."
+    default: return nil
+    }
+}
+
+private func modeRecoveryProofError(_ error: Error) -> ProofError {
+    if let error = error as? DeviceModeRecoveryJournalError {
+        let code: UInt32
+        switch error {
+        case .busy, .ownerAlive: code = 0xE0000F01
+        case .ownerChanged, .ownerUnknown: code = 0xE0000F02
+        case .invalidRecord: code = 0xE0000F03
+        case .identityChanged: code = 0xE0000F04
+        case .unexpectedState: code = 0xE0000F05
+        case .recordChanged: code = 0xE0000F06
+        case .unsafePath, .ioFailure: code = 0xE0000F07
+        }
+        return .modeRestoreFailed(IOReturn(bitPattern: code))
+    }
+    if let error = error as? ProofError { return error }
+    return .modeRestoreFailed(kIOReturnError)
 }
 
 /// All methods and callbacks execute on the main run loop.
@@ -136,6 +170,8 @@ public final class ProofMapper {
                 let control = try P16KTDeviceMode(collection: collection)
                 resumePhase("mode_read_finished")
                 deviceMode = (collection, control)
+                let journal = try DeviceModeRecoveryJournal.acquire()
+                try control.attachRecovery(journal, collection: collection)
                 try control.enable()
                 resumePhase("mode_enable_finished")
                 for e in collection.contacts {
@@ -179,15 +215,20 @@ public final class ProofMapper {
             resumePhase("running")
         } catch {
             resumePhase("rollback")
-            let restoreError = stop()
+            let restoreError = stop(recoverPreviousOwner: false)
             if let restoreError { throw restoreError }
-            throw error
+            throw modeRecoveryProofError(error)
         }
     }
 
     @discardableResult
     public func stop() -> ProofError? {
+        stop(recoverPreviousOwner: true)
+    }
+
+    private func stop(recoverPreviousOwner: Bool) -> ProofError? {
         precondition(Thread.isMainThread)
+        let hadControl = deviceMode != nil
         // Release before clearing the target or closing devices, including rollback.
         _ = post(session.stop())
         if let releaseEvent {
@@ -212,8 +253,8 @@ public final class ProofMapper {
             do {
                 if deviceMode.control.needsRestore,
                    !opened.contains(where: { $0.registryID == deviceMode.collection.registryID }) {
-                    // A reconnected USB device has a new service and HID handle.
-                    // Rebind only one verified panel at the original USB location.
+                    // Rebind stale handles only for the recorded continuous attachment.
+                    // A re-enumerated or replacement unit is rejected even on the same port.
                     let scan = HIDDiscovery.scan()
                     guard scan.devices.count == 1, let fresh = scan.devices.first,
                           fresh.canMap, fresh.vendor == deviceMode.collection.vendor,
@@ -231,11 +272,10 @@ public final class ProofMapper {
                 }
                 try deviceMode.control.restore()
                 self.deviceMode = nil
-            } catch let error as ProofError {
-                if case .modeRestoreFailed = error { restoreError = error }
-                else { restoreError = .modeRestoreFailed(kIOReturnError) }
             } catch {
-                restoreError = .modeRestoreFailed(kIOReturnError)
+                let failure = modeRecoveryProofError(error)
+                if case .modeRestoreFailed = failure { restoreError = failure }
+                else { restoreError = .modeRestoreFailed(kIOReturnError) }
             }
             if let openedForRestore {
                 IOHIDDeviceClose(openedForRestore, IOOptionBits(kIOHIDOptionsTypeNone))
@@ -253,8 +293,40 @@ public final class ProofMapper {
         preferDigitizer = false
         scrollRemainderX = 0
         scrollRemainderY = 0
+        if recoverPreviousOwner, !hadControl, restoreError == nil {
+            do { try restorePreviousMode() }
+            catch { restoreError = modeRecoveryProofError(error) }
+        }
         onChange?()
         return restoreError
+    }
+
+    private func restorePreviousMode() throws {
+        let journal = try DeviceModeRecoveryJournal.acquire()
+        defer { journal.close() }
+        guard let record = try journal.load() else { return }
+        guard PermissionState.current().inputMonitoring else { throw ProofError.missingPermissions }
+        let scan = HIDDiscovery.scan()
+        guard scan.queryReturnedSet, scan.devices.count == 1, let device = scan.devices.first,
+              device.canMap, device.usableCollections.count == 1,
+              let collection = device.usableCollections.first,
+              try P16KTDeviceMode.recoveryIdentity(collection) == record.identity else {
+            throw DeviceModeRecoveryJournalError.identityChanged
+        }
+        let result = IOHIDDeviceOpen(collection.device, IOOptionBits(kIOHIDOptionsTypeSeizeDevice))
+        guard result == kIOReturnSuccess else { throw ProofError.modeRestoreFailed(result) }
+        do {
+            let control = try P16KTDeviceMode(collection: collection)
+            try control.attachRecovery(journal, collection: collection)
+        } catch {
+            let close = IOHIDDeviceClose(collection.device, IOOptionBits(kIOHIDOptionsTypeNone))
+            if close != kIOReturnSuccess { throw ProofError.modeRestoreFailed(close) }
+            throw error
+        }
+        let close = IOHIDDeviceClose(collection.device, IOOptionBits(kIOHIDOptionsTypeNone))
+        guard close == kIOReturnSuccess else { throw ProofError.modeRestoreFailed(close) }
+        Logger(subsystem: "io.github.soom-kang.touchme", category: "MappingRecovery")
+            .notice("Previous mode recovery verified; record cleared before mapping resume")
     }
 
     private func receive(_ value: IOHIDValue) {

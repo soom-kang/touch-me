@@ -74,14 +74,16 @@ picker at the top of settings. The choice applies immediately and is saved.
 Use one finger to tap or drag and two fingers to scroll vertically or horizontally.
 Quitting while running preserves the intent to resume on next launch.
 Resume requires the saved display, USB location and both permissions to match.
+Any recorded mode change must first be recovered on the same continuously
+attached device in the same boot session. A changed attachment blocks resume.
 Stop stays stopped. Launch at login is off by default.
 Use the same USB port for the saved panel; confirm the target after changing ports.
 
 Before updating, stop mapping and quit normally. If restoring the device mode
-fails, stop the update and reconnect the panel to the same USB port, then retry Stop.
+fails, stop the update, keep the panel connected and use Retry restore.
+Reconnecting to the same port does not authorize recovery of a changed attachment.
 To uninstall, disable launch at login, stop mapping, quit, and move the app to Trash.
-If device-mode restoration fails, reconnect the P16KT to the same USB port and
-retry Stop before quitting.
+Resolve this process's pending mode restoration before quitting or removing it.
 This beta uses ad hoc signing without a Developer ID signature or Apple
 notarization. macOS may require first-launch approval and renewed privacy
 permissions after an update. Check both permissions before starting mapping.
@@ -104,18 +106,20 @@ Touch Me {VERSION} · Ad hoc beta 후보
 한 손가락으로 탭·드래그하고 두 손가락으로 위아래·좌우 스크롤합니다.
 실행 중 종료하면 다음 실행에서 재개할 의도를 저장합니다.
 저장한 화면·USB 위치가 일치하고 두 권한이 허용돼야 재개합니다.
+복구 기록이 있으면 같은 부팅 세션에서 계속 연결된 동일 장치의 모드를 먼저 복구합니다.
+장치 연결 identity가 바뀌면 자동 재개를 차단합니다.
 중지하면 중지 상태를 유지합니다.
 로그인 시작은 기본 off이며 설정에서 켜거나 끌 수 있습니다.
 저장한 P16KT는 같은 USB 포트에 연결하세요. 포트를 바꾸면 화면을 다시 확인하고 시작하세요.
 
 업데이트 전에 매핑을 중지하고 정상 종료합니다. 장치 모드 복구가 실패하면
-업데이트를 중단하고 같은 USB 포트에 다시 연결한 뒤 ‘매핑 중지’를 다시 누릅니다.
+업데이트를 중단하고 연결을 유지한 채 ‘복구 재시도’를 누릅니다.
+같은 포트에 다시 연결해도 바뀐 연결 identity의 복구를 허용하지 않습니다.
 삭제할 때는 로그인 시작을 끄고 매핑을 중지한 뒤 앱을 종료하고 휴지통으로 옮깁니다.
 이 beta는 Developer ID 서명과 Apple 공증 없이 ad hoc 서명을 사용합니다.
 macOS의 첫 실행 승인과 업데이트 후 권한 재승인이 필요할 수 있습니다.
 매핑을 시작하기 전에 두 권한을 확인하세요.
-장치 모드 복구가 실패하면 P16KT를 같은 USB 포트에 다시 연결하고
-‘매핑 중지’를 다시 눌러 복구한 뒤 종료합니다.
+현재 프로세스의 장치 모드 복구가 남아 있으면 복구한 뒤 종료하거나 삭제합니다.
 프로젝트 MIT 라이선스는 앱 메뉴의 ‘라이선스’에서 확인합니다.
 """, encoding="utf-8")
 subprocess.run(["hdiutil", "create", "-volname", "Touch Me", "-srcfolder", str(STAGING),

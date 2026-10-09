@@ -26,7 +26,17 @@ enum Texts {
         case .modeReadFailed: return "장치 모드를 읽지 못해 시작하지 않았습니다."
         case .modeWriteFailed: return "멀티터치 모드로 전환하지 못해 시작하지 않았습니다."
         case .modeReadbackMismatch: return "멀티터치 설정을 다시 읽은 결과가 달라 시작하지 않았습니다."
-        case .modeRestoreFailed: return "원래 장치 모드 복구에 실패했습니다. P16KT를 같은 USB 포트에 연결한 뒤 ‘복구 재시도’를 누르세요."
+        case .modeRestoreFailed(let result):
+            switch UInt32(bitPattern: result) {
+            case 0xE0000F01: return "다른 프로세스가 모드 복구를 사용 중입니다. 기록을 보존하고 매핑을 차단했습니다."
+            case 0xE0000F02: return "이전 복구 프로세스의 상태를 안전하게 확인하지 못했습니다. 기록을 보존하고 매핑을 차단했습니다."
+            case 0xE0000F03: return "모드 복구 기록이 올바르지 않습니다. 추측한 모드를 쓰지 않고 매핑을 차단했습니다."
+            case 0xE0000F04: return "복구 기록의 부팅 또는 장치 연결이 현재와 다릅니다. 같은 포트에 재연결해도 자동 원복하지 않습니다."
+            case 0xE0000F05: return "현재 장치 모드가 기록된 복구 상태와 달라 원복 값을 쓰지 않았습니다."
+            case 0xE0000F06: return "복구 기록이 예상과 다르게 변경되어 보존하고 매핑을 차단했습니다."
+            case 0xE0000F07: return "복구 기록을 안전하게 저장하거나 읽지 못했습니다. 기록을 보존하고 매핑을 차단했습니다."
+            default: return "원래 장치 모드 복구에 실패했습니다. 현재 연결을 유지한 채 ‘복구 재시도’를 누르세요. 연결이 달라지면 자동 원복하지 않습니다."
+            }
         }
     }
 }
@@ -96,6 +106,8 @@ final class ProofModel: ObservableObject {
     @Published var permissions = PermissionState.current()
     @Published var running = false
     @Published var modeRestorePending = false
+    @Published private(set) var startupRecoveryError: ProofError?
+    var startupRecoveryBlocked: Bool { startupRecoveryError != nil }
     @Published var values = 0
     @Published var clicks = 0
     @Published var scrolls = 0
@@ -219,6 +231,7 @@ final class ProofModel: ObservableObject {
         if terminating { return .terminating }
         if running { return .running }
         if modeRestorePending { return .restoreRequired }
+        if startupRecoveryBlocked { return .recordedRestoreRequired }
         if pendingDisplayInterruption != nil { return .checkingInterruption }
         if !NSApp.isProtectedDataAvailable || interruptions.contains(.protectedDataUnavailable) {
             return .protectedDataUnavailable
@@ -247,6 +260,12 @@ final class ProofModel: ObservableObject {
         synchronizeAvailability()
         guard pendingDisplayInterruption == nil, !running && !modeRestorePending else { return }
         permissions = PermissionState.current()
+        if let error = mapper.stop() {
+            startupRecoveryError = error
+            recordFailure(.failure(error))
+            return
+        }
+        startupRecoveryError = nil
         confirmation.invalidate()
         let recoveryScanStart = interruptionResumePending ? self.uptime() : nil
         let scan = HIDDiscovery.scan()
@@ -300,6 +319,9 @@ final class ProofModel: ObservableObject {
             messageState = .mappingActive
             synchronizeAvailability()
         } catch let error as ProofError {
+            if case .modeRestoreFailed = error, !mapper.modeRestorePending {
+                startupRecoveryError = error
+            }
             handleMappingFailure(error)
         } catch {
             rememberStoppedState()
@@ -591,7 +613,10 @@ final class ProofModel: ObservableObject {
         if pendingDisplayInterruption != nil { rememberStoppedState() }
         terminating = true
         cancelPendingResume()
+        // An inactive predecessor record owns no input in this process.
+        if startupRecoveryBlocked && !mapper.running && !mapper.modeRestorePending { return true }
         let stopped = releaseMapping()
+        if !stopped && !mapper.modeRestorePending { return true }
         if !stopped { terminating = false }
         return stopped
     }
@@ -599,15 +624,19 @@ final class ProofModel: ObservableObject {
     @discardableResult
     func retryRestore() -> Bool {
         // Retrying failed quit cleanup is not an explicit request to pause.
-        return releaseMapping()
+        let restored = releaseMapping()
+        if restored { refresh(attemptResume: false) }
+        return restored
     }
 
     private func releaseMapping() -> Bool {
         if let error = mapper.stop() {
+            if !mapper.modeRestorePending { startupRecoveryError = error }
             confirmation.invalidate()
             recordFailure(.failure(error))
             return false
         }
+        startupRecoveryError = nil
         messageState = .mappingStopped
         return true
     }
@@ -714,10 +743,10 @@ struct ProofSettingsView: View {
                 }
                 HStack {
                     Button(Texts.get("매핑 시작", "Start mapping")) { model.start() }.disabled(!model.canStart)
-                    Button(model.modeRestorePending && !model.running ? Texts.get("복구 재시도", "Retry restore") : Texts.get("중지", "Stop")) {
-                        if model.modeRestorePending && !model.running { model.retryRestore() } else { model.stop() }
+                    Button((model.modeRestorePending || model.startupRecoveryBlocked) && !model.running ? Texts.get("복구 재시도", "Retry restore") : Texts.get("중지", "Stop")) {
+                        if (model.modeRestorePending || model.startupRecoveryBlocked) && !model.running { model.retryRestore() } else { model.stop() }
                     }
-                        .disabled(!model.running && !model.modeRestorePending && !model.resumePending).keyboardShortcut(".", modifiers: .command)
+                        .disabled(!model.running && !model.modeRestorePending && !model.startupRecoveryBlocked && !model.resumePending).keyboardShortcut(".", modifiers: .command)
                     Text(model.running ? Texts.get("실행 중", "Running") : model.resumePending ? Texts.get("재개 대기", "Waiting to resume") : Texts.get("중지됨", "Stopped"))
                     Spacer()
                 }

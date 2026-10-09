@@ -10,7 +10,9 @@ Touch Me is a macOS menu bar app built to help you use ZEUSLAP touch-enabled mon
 
 It maps touch input to the display you select, enabling taps, double-clicks, one-finger dragging and two-finger scrolling. Choose and confirm the target display in the app, then start mapping. Use the menu bar to stop mapping or change settings.
 
-The current beta, `0.8.0-beta.4`, requires the **USB/HID profile verified on the P16KT**. Mapping won't start if the device identifiers or HID (Human Interface Device) input layout differ. Support for other ZEUSLAP models isn't guaranteed, so check the setup below first.
+Beta `0.8.0-beta.5` requires the **USB/HID profile verified on the P16KT**. Mapping won't start if the device identifiers or HID (Human Interface Device) input layout differ. Support for other ZEUSLAP models isn't guaranteed, so check the setup below first.
+
+Use this beta.5 guide after publication and public-asset verification. The 2026-10-09 prepublication record is **READY_FOR_RELEASE_REVIEW / NOT_PUBLISHED**: build 23 passed local checks and one controlled SIGKILL recovery; normal use and relaunch behavior are `PASS_USER_REPORTED`. QA01 public Homebrew upgrade is `NOT_RUN`. The historical public baseline is [beta.4, build 21](https://github.com/soom-kang/touch-me/releases/tag/v0.8.0-beta.4). See the [release notes](docs/releases/v0.8.0-beta.5.md) and [acceptance record](docs/qa/beta5-native-acceptance.md).
 
 ## Check your setup first
 
@@ -29,7 +31,7 @@ Other panels, Intel Macs and older macOS versions have no recorded validation. S
 
 ## Install and start your first mapping session
 
-Install through Homebrew or copy the app from its DMG. Both routes use the same permission and target-display setup below.
+After the beta.5 asset and Tap update are published and verified, install through Homebrew or copy the app from its DMG. Both routes use the same permission and target-display setup below.
 
 ### Install with Homebrew
 
@@ -43,7 +45,7 @@ brew install --cask soom-kang/touch-me/touch-me
 
 ### Install from the DMG
 
-Download the arm64 DMG and its `.sha256` file from the [v0.8.0-beta.4 release](https://github.com/soom-kang/touch-me/releases/tag/v0.8.0-beta.4). Verify the source and checksum, then open the disk image and drag **Touch Me.app** to **Applications**. Eject the image after copying.
+After publication, download `touch-me-0.8.0-beta.5-arm64.dmg` and its `.sha256` file from [GitHub Releases](https://github.com/soom-kang/touch-me/releases). Confirm version/build `0.8.0-beta.5`/23 and the checksum in the [release notes](docs/releases/v0.8.0-beta.5.md), then open the disk image and drag **Touch Me.app** to **Applications**. Eject the image after copying.
 
 The beta has an ad hoc signature and isn't notarized. If macOS blocks the downloaded app's first launch, verify its source and checksum before following [Apple's manual approval guidance](https://support.apple.com/en-us/102445). An available approval option doesn't guarantee the app can run.
 
@@ -92,15 +94,15 @@ Mapping temporarily changes the verified P16KT device mode. Stop or normal Quit 
 | Situation | Next action |
 | --- | --- |
 | A permission is missing | Allow Touch Me in both privacy settings, then select **Refresh** |
-| The panel or display changed | Reconnect the saved panel to the same USB port; select and confirm the display again |
+| The panel or display changed | Check the saved panel and confirm the display again; a pending recovery record requires the same continuous attachment |
 | Device access fails | Stop other mappers and check the USB connection |
-| Device-mode restoration fails | Reconnect the P16KT to the same USB port and select **Retry restore** in settings |
+| Device-mode restoration fails | Keep the current connection and select **Retry restore**; changed attachment blocks recovery |
 
-Force Quit, a crash or power loss can't run normal cleanup. The app stores the original device mode only in the current process's memory; it doesn't recover the previous process's mode after a crash. Whether the panel retains the changed mode after that interruption hasn't been validated.
+Force Quit, a crash or power loss can't run normal cleanup. Public beta.4 and the historical beta.5 build 22 keep the original mode only in process memory. Build 22 retained mode 2 after one `SIGKILL` and relaunch → Stop → normal Quit; a separate diagnostic restored captured `(0,0)`. The new candidate records the original pair before changing mode and permits recovery only for the same boot and continuously attached verified device after the previous owner is proven dead. Changed attachment or uncertain records block mapping; reconnecting to the same port does not authorize recovery. Build 23 passed one controlled original-0 SIGKILL/relaunch recovery on the same boot and continuous P16KT attachment; other interruption conditions remain unverified.
 
 Don't treat reopening the app or a later successful Stop as proof that the pre-crash mode was restored. If device behavior is unexpected, stop mapping, put upgrades and removal on hold, and keep the error details. Don't force an assumed mode value onto the device. See the [abnormal-exit verification notes](docs/qa/abnormal-exit-recovery.md) for the verification scope.
 
-Before updating or removing the app, follow **Stop mapping → confirm device-mode restoration → normal Quit**. If restoration fails, reconnect the panel to the same USB port and finish recovery before proceeding. After an ad hoc update, check both privacy permissions again.
+Before updating or removing the app, follow **Stop mapping → confirm device-mode restoration → normal Quit**. If restoration fails, keep the current connection and use Retry restore before proceeding. A changed attachment blocks recovery; preserve the record and error. After an ad hoc update, check both privacy permissions again.
 
 Turn off **Open Touch Me at login** before removal. After restoration and Quit, move a manually installed app to Trash. For a Homebrew installation, follow the [update and removal guide](docs/Homebrew.md#install-update-and-remove-after-publication). These steps preserve saved preferences.
 
@@ -115,9 +117,10 @@ For local builds or distribution details, read these documents:
 - [Build workflow](Workflow.md): module responsibilities, local builds, packaging and checks for each change
 - [Homebrew distribution](docs/Homebrew.md): Tap and release procedure, installation conflicts, updates and removal
 - [Beta.4 release notes](docs/releases/v0.8.0-beta.4.md): changes and validation limits for this version
+- [Beta.5 release notes](docs/releases/v0.8.0-beta.5.md): changes, verified scope and public-upgrade status
 - [Editable architecture diagram](docs/assets/architecture.html)
 
-A local build produces `dist/touch-me-0.8.0-beta.4-arm64.dmg`.
+A local candidate build produces `dist/touch-me-0.8.0-beta.5-arm64.dmg`; this path is not a public download.
 
 ## Recorded validation
 
@@ -135,7 +138,7 @@ On 2026-10-08, the user confirmed that touch worked immediately after login foll
 
 The beta.3 release app was not installed or exercised on the device. Homebrew installation, Gatekeeper, sleep/wake and full logout/login checks were `NOT_RUN` for that release.
 
-On 2026-10-09, all 14 existing Swift tests passed after the gesture change. The user reported normal staggered two-finger scrolling without additional downs, taps, double-clicks, dragging and first-finger tracking in build 20 (`PASS_USER_REPORTED`). This was not a directly observed event trace. The beta.4 build 21 artifact has not been installed or exercised on the panel; its native/device, Homebrew installation and Gatekeeper checks are `NOT_RUN`. See the [build workflow's validation records](Workflow.md#choose-the-minimum-checks) and [beta.4 release notes](docs/releases/v0.8.0-beta.4.md).
+On 2026-10-09, all 14 existing Swift tests passed after the gesture change. The user reported normal staggered two-finger scrolling without additional downs, taps, double-clicks, dragging and first-finger tracking in build 20 (`PASS_USER_REPORTED`). This was not a directly observed event trace. At beta.4 release preparation, build 21 had not been installed or exercised on the panel; its native/device, Homebrew installation and Gatekeeper checks were `NOT_RUN`. See the [build workflow's validation records](Workflow.md#choose-the-minimum-checks) and [beta.4 release notes](docs/releases/v0.8.0-beta.4.md).
 
 ## License
 

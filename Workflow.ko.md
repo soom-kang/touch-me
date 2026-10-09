@@ -16,9 +16,9 @@ Apple Silicon Mac, macOS 26 이상, 패키지의 Swift 6.0 manifest와 호환되
 | --------------------- | ------------------------------------ |
 | 앱과 실행 파일        | `Touch Me.app` / `TouchMe`           |
 | Bundle Identifier     | `io.github.soom-kang.touchme`        |
-| Release 버전          | `VERSION`에서 읽는 `0.8.0-beta.4`    |
+| Release 버전          | `VERSION`에서 읽는 `0.8.0-beta.5`    |
 | 번들 버전             | `0.8.0`과 증가하는 숫자 build 번호   |
-| 전체 release metadata | `TouchMeReleaseVersion=0.8.0-beta.4` |
+| 전체 release metadata | `TouchMeReleaseVersion=0.8.0-beta.5` |
 | 대상 환경             | `arm64`, macOS 26 이상               |
 
 문서나 패키징을 바꿀 때는 식별자와 저장한 환경설정 형식을 유지하세요. 서명 identity나 설치 경로를 바꾸면 설치 앱의 권한 확인이 필요할 수 있습니다.
@@ -39,7 +39,7 @@ Apple Silicon Mac, macOS 26 이상, 패키지의 Swift 6.0 manifest와 호환되
 
 ## 앱 빌드와 번들 확인하기
 
-Release 실행 파일을 빌드하고 아이콘과 프로젝트 라이선스를 번들에 포함하세요. 승인된 beta.4 배포는 별도 release checkout에서 로컬 build 20 앱과 `/Applications/Touch Me.app`을 보존합니다. Build 번호 기준으로 build 20을 해당 checkout의 `dist/Touch Me.app`에 복사한 뒤, 아래 빌드를 한 번 실행해 build 21을 생성합니다:
+Release 실행 파일을 빌드하고 아이콘과 프로젝트 라이선스를 번들에 포함하세요. 최초 beta.5 준비는 설치된 build 21을 번호의 기준으로 build 22를 한 번 생성했습니다. Journal 도입 전인 이 산출물은 과거 기록으로 보존합니다. 합의한 recovery journal의 build 23을 생성했고 strict 서명, arm64, metadata, 라이선스·아이콘과 frozen inputs 28개 검사가 통과했습니다. 패키징도 통과했습니다. Build 23 정상 사용·재실행 확인은 `PASS_USER_REPORTED`입니다. 조건부 SIGKILL·재실행 한 번에서 매핑 재개 전 이전 기록을 복구했고 Stop·Quit 뒤 `(0,0)`을 확인했습니다. 이전 산출물을 보존하며 재빌드는 번호를 다시 증가시킵니다:
 
 ```bash
 bash scripts/build-app.sh
@@ -70,14 +70,18 @@ python3 scripts/package-dmg.py
 | 산출물                                        | 용도                    |
 | --------------------------------------------- | ----------------------- |
 | `dist/Touch Me.app`                           | 로컬 서명한 앱 번들     |
-| `dist/touch-me-0.8.0-beta.4-arm64.dmg`        | 로컬 beta 디스크 이미지 |
-| `dist/touch-me-0.8.0-beta.4-arm64.dmg.sha256` | SHA-256 checksum        |
+| `dist/touch-me-0.8.0-beta.5-arm64.dmg`        | 로컬 beta 후보 이미지   |
+| `dist/touch-me-0.8.0-beta.5-arm64.dmg.sha256` | SHA-256 checksum        |
 
 Release checkout의 기존 이미지는 `dist/previous-builds`로 옮깁니다. DMG 무결성과 checksum을 확인하세요:
 
+현재 beta.5 DMG는 build 23을 포함하며 checksum은
+[후보 기록](docs/releases/v0.8.0-beta.5.md)에 있습니다. Build 22 checksum은
+과거 결과이며 build 23의 근거로 사용할 수 없습니다.
+
 ```bash
-hdiutil verify dist/touch-me-0.8.0-beta.4-arm64.dmg
-(cd dist && shasum -a 256 -c touch-me-0.8.0-beta.4-arm64.dmg.sha256)
+hdiutil verify dist/touch-me-0.8.0-beta.5-arm64.dmg
+(cd dist && shasum -a 256 -c touch-me-0.8.0-beta.5-arm64.dmg.sha256)
 ```
 
 ![소스와 라이선스로 로컬 서명 앱을 만들고 개인용 디스크 이미지와 SHA-256 checksum을 생성하는 흐름입니다.](docs/assets/packaging.ko.png)
@@ -98,6 +102,10 @@ hdiutil verify dist/touch-me-0.8.0-beta.4-arm64.dmg
 | 좌표 또는 제스처 로직               | `bash scripts/test.sh` 실행; 대상 패널에서 해당 제스처 확인                      |
 | 장치 열기, 모드 복구 또는 lifecycle | 대상 패널의 독점 점유, 입력 해제와 복구 확인                                     |
 | 서명, 로그인 실행 또는 호환 범위    | 변경한 환경에서 설치 앱 확인                                                     |
+
+최초 beta.5 build 22는 기존 Swift targets와 빌드·패키징 각 한 번의 결과를 사용했습니다. 정상 smoke는 `PASS_USER_REPORTED`이며 승인된 SIGKILL 한 번과 재실행·Stop·Quit 후 원래 모드 복구는 `FAIL`이었습니다. 진단 복구로 `(0,0)`을 확인했습니다. 이후 합의한 journal을 source에 구현했고 모든 targets 컴파일, 집중 DeviceMode 검사 3개·journal 검사 6개, 후보 build 23과 패키징이 통과했습니다. Build 23 정상 사용, Stop·Quit 후 재실행 때 중지 유지와 매핑 중 Quit 후 재실행 때 재개는 `PASS_USER_REPORTED`입니다. 별도 정상 Quit 경로 뒤 16:20:05 KST의 조회에서 `(0,0)`을 확인했지만 직전 매핑은 직접 관찰하지 못했습니다. 추가 승인된 SIGKILL 한 번 뒤 `(2,0)`과 같은 기록이 남았고 재실행 후보가 재개 전 복구·기록 삭제를 확인한 다음 Stop·Quit 후 `(0,0)`을 직접 읽었습니다. TMQA003은 이 원래 모드 0·같은 부팅·계속 연결된 장치 조건에서 PASS입니다. 충돌 후 재개·두 위치 탭·오류 없음·Stop·Quit은 `PASS_USER_REPORTED`입니다. 신규 설치, 권한 off/on, 잠금·절전, 실제 로그아웃·로그인과 제거는 계속 제외합니다. [beta.5 acceptance 기록](docs/qa/beta5-native-acceptance.md)을 확인하세요. 공개 검토를 기다리며 공개 Homebrew 업그레이드 acceptance는 공개·다운로드 검증 뒤 수행합니다.
+
+2026-10-09 beta.5 준비에서는 계획 단계의 `bash scripts/test.sh` PASS 24개(Platform 11개, Core 13개)를 재실행 없이 사용했습니다. `bash scripts/build-app.sh`와 `python3 scripts/package-dmg.py`를 각각 한 번 실행해 build 22와 419,445-byte DMG를 생성했습니다. 컴파일, strict ad hoc 서명, bundle metadata, 라이선스·아이콘, arm64, 입력 manifest 27개 일치, `hdiutil verify`와 SHA-256 sidecar 검사를 통과했습니다. 이는 로컬 결과이며 실기기 매핑이나 공개를 증명하지 않습니다. Checksum과 남은 검사는 [후보 기록](docs/releases/v0.8.0-beta.5.md)을 확인하세요.
 
 기존 core tests는 순수 로직을 검증합니다. HID 접근, 장치 모드 복구, 권한이나 실기기 동작은 검증하지 않습니다. 제스처 수정 후 기존 Swift tests 14개가 모두 통과했고 build 20의 제스처 확인은 `PASS_USER_REPORTED`입니다. 이 결과는 build 21의 직접 실기기 검증이 아닙니다. 승인된 beta.4 배포는 제스처 코드가 유지되는 동안 이 결과를 재사용합니다. 새 tests나 검증 인프라를 추가하거나 전체 suite를 반복하지 않습니다. 빌드·패키징 각 한 번, strict 서명, metadata, 라이선스·아이콘, arm64, DMG 무결성·checksum, Cask style, 공개 다운로드와 online audit를 확인합니다. Build 21 실기기, Gatekeeper와 Homebrew 설치 검사는 `NOT_RUN`입니다. 관련 source 변경이 있을 때만 성공한 빌드를 다시 실행하세요. 재빌드는 build 번호, 서명과 DMG bytes를 바꿀 수 있습니다. Beta.4 산출물·게시 결과는 [release notes](docs/releases/v0.8.0-beta.4.md)에 기록합니다.
 
@@ -139,11 +147,15 @@ Release build 한 번으로 build 12를 생성했습니다. 숫자 번들 버전
 
 빌드나 패키징이 실패하면 새 산출물 전달을 중단합니다. 보고된 로컬 원인을 수정하고 실패한 명령만 다시 실행하세요. 대체 산출물의 검증을 마칠 때까지 이전에 사용할 수 있던 산출물을 유지합니다.
 
-승인받은 장치 시험 중 모드 복구가 실패하면 P16KT를 같은 USB 포트에 다시 연결하고 중지를 재시도하세요. 실패를 숨기거나, 다른 장치로 바꾸거나, 저장한 재개 의도를 덮어써서 복구했다고 판정하지 마세요.
+승인받은 장치 시험 중 모드 복구가 실패하면 현재 연결을 유지하고 복구 재시도를 누르세요. 연결이 바뀌면 복구를 차단하므로 기록과 오류를 보존하세요. 실패를 숨기거나, 다른 장치로 바꾸거나, 저장한 재개 의도를 덮어써서 복구했다고 판정하지 마세요.
 
 정리를 마친 폴더에는 `.build`와 `dist/previous-builds`가 없을 수 있습니다. 다음 빌드에서 다시 생성합니다. 삭제 전 정확한 생성 경로와 마운트 상태를 확인하고 외부 폴더를 가리키는 링크는 따라가지 마세요.
 
 ## 검토한 릴리즈 공개하기
+
+2026-10-09 공개 전 기록은 `READY_FOR_RELEASE_REVIEW / NOT_PUBLISHED`입니다. Build 23은 제한된 TMQA003 acceptance를 통과했고 QA01 공개 업그레이드는 `NOT_RUN`입니다. 당시 release commit·push, tag, 공개와 Tap 갱신은 수행하지 않았습니다. 승인 뒤 frozen source/package 입력과 release commit을 비교하고 검토한 asset을 공개·다운로드 검증한 다음 Tap을 갱신합니다. 이전 asset과 환경설정을 보존하며 공개 업그레이드 acceptance는 이후 수행합니다. [Release notes](docs/releases/v0.8.0-beta.5.md)와 [Homebrew 준비](docs/Homebrew.ko.md#beta5-준비)를 확인하세요.
+
+### 과거 beta.4 배포 범위
 
 승인된 `0.8.0-beta.4` prerelease는 기존 개인 Tap `soom-kang/homebrew-touch-me`의 ad hoc beta Cask를 갱신합니다. Source repository는 [soom-kang/touch-me](https://github.com/soom-kang/touch-me)입니다. 2026-10-09 시작 기준은 source `main`의 `91142b7bb1137452ae6618b09cea5488e1c8849e`와 미커밋 제스처 관련 6개 파일입니다. Beta.1–beta.3가 공개돼 있고 Tap 원격 `main`은 `55d661ae2d5a4409db7d720d4988556592769970`입니다. 기존 tag와 asset을 보존합니다. 이번 승인은 검토한 source·release 문서 갱신, source·Tap의 commit·push, 새 tag·prerelease와 기존 Tap 갱신, online audit까지 포함합니다. Tag 생성 전 확정한 release checkout의 컴파일·패키징 입력을 최종 source commit과 비교합니다. 각 단계의 검사가 통과하면 다음으로 진행하고, 새로운 중요한 결정이 필요하거나 검사에 실패하면 해당 단계를 중단합니다.
 

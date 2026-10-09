@@ -1,79 +1,215 @@
 # Abnormal exit recovery boundary
 
-Ticket: TMQA-003. Status: hardware premise UNTESTED; investigation and documentation
-provided, runtime recovery remains open. This change does not write new feature
-values or add a recovery journal based on an unverified device assumption.
+Ticket: TMQA-003. Status: **PASS for the approved build 23 controlled SIGKILL
+on this same-boot, continuously attached P16KT, original `(0,0)`.** Historical
+build 22 failed. Product recovery is now verified for the approved scope;
+publication awaits the final candidate review. QA01 still awaits public upgrade
+acceptance after publication.
 
-## What the source establishes
+## Implemented recovery contract
 
-`P16KTDeviceMode` retains originalMode, originalIdentifier and needsRestore in
-memory. For a verified original mode 0, enable marks recovery pending before
-writing mode 2. An initial mode 2 is accepted and left unchanged. Normal Stop or
-Quit restores only when the current process owns a pending change.
+`DeviceModeTransaction` keeps the original mode/identifier pair in memory.
+`DeviceModeRecoveryJournal` adds a separate record before a verified `(0,0)` to
+`(2,0)` change. The saved-mapping format and public API signatures/cases are
+unchanged. Initial `(2,0)` without a record is accepted without a guessed reset.
 
-A crash, SIGKILL, or power loss can skip that cleanup. If the panel remains at
-mode 2, a new process cannot distinguish its predecessor's change from a device
-that legitimately started in mode 2. A later Stop does not establish restoration
-of a value known only to the previous process. Whether that premise occurs on
-actual P16KT hardware has not been established by cloud QA.
+The journal uses a private directory, atomic no-overwrite installation, file and
+directory sync, a nonblocking lease and an owner PID/start-time identity. A
+record binds to the boot session, exact HID and USB registry IDs, USB location
+and descriptor SHA-256. Only that continuously attached device and a proven
+absent predecessor may authorize cross-process recovery.
 
-## Current user guidance
+Startup recovery runs before mapping or automatic resume. Matching `(2,0)` may
+be restored to the recorded `(0,0)`; matching `(0,0)` needs no mode write.
+Readback and cleanup of the same nonce must succeed before a new mapping starts.
+Malformed or stale records, changed attachment, live/reused/unknown owner and
+unsafe journal paths preserve the record and block mapping. Same-port reconnect
+cannot bypass these checks. Current-owner recovery and cleanup failures remain
+pending until resolved.
 
-Use Stop and normal Quit. Preserve restoration errors. Do not continue an upgrade
-or removal while a known recovery failure is unresolved. Same-port reconnect and
-Retry are for a recovery state the running process still holds; they are not a
-promised cross-crash restoration mechanism. Do not force mode 0 on an arbitrary
-panel or treat process disappearance as successful restoration.
+The existing bilingual status and Retry restore control expose failures. An
+inactive startup record that this process cannot recover allows normal Quit
+while preserving the record. This owner's unresolved restoration still blocks
+normal Quit. No dependency, UI layout, gesture contract or saved-mapping schema
+was changed.
 
-## Verification plan before a runtime change
+## User guidance and acceptance boundary
 
-First use an injected feature-I/O backend, not a physical-device crash:
+Use Stop and normal Quit. If restoration fails, keep the current connection and
+use Retry restore. Do not continue an upgrade or removal with this process's
+pending restoration. Do not reconnect as an automatic remedy or force mode 0 on
+an arbitrary panel. Process disappearance and diagnostic fallback success do
+not establish product recovery.
 
-| Case | Required result |
-| --- | --- |
-| Original 0 -> enable -> normal restore | Write 2 then restore 0 with matching readback |
-| Original 2 -> enable -> normal restore | No unnecessary mode write |
-| Write error after partial change | Pending recovery retained until verified |
-| Readback mismatch | Start fails; restoration failure remains visible |
-| Process state lost, device mock remains 2 | Demonstrate lost predecessor state without pretending it was recovered |
-| Different location/descriptor/device | No recovery write to unverified replacement |
-| Stale or malformed recovery record | No guessed mode write |
+The accepted native scope is one continuously attached P16KT on this Mac, with
+all held input released before one additional path/PID-verified SIGKILL. Read
+mode before relaunch, then after relaunch/Stop/Quit. Preserve the exact build,
+identity, pair and termination evidence. Power loss, reboot, re-enumeration,
+original-mode-2 hardware behavior and other panels remain unverified.
 
-Then, only on an approved controlled native setup, measure owner exit and device
-reconnect behavior. Record the before/after mode, identifier, connection, build,
-termination condition, and successful recovery method. Do not run forced-crash
-hardware tests as part of the ordinary packaging or Swift test command.
+## Earlier cloud disposition (2026-10-09)
 
-## Decision gate
+Cloud QA had no macOS/P16KT access. It established the in-memory process-loss
+limit through injected I/O and left TMQA-003 blocked. No journal was introduced
+by that cloud change. The authorized local observation below supplied the
+retained-mode evidence; the operator subsequently agreed the strict continuous-
+attachment policy. Backend tests alone cannot close this ticket.
 
-If hardware reliably resets, document the exact verified conditions and residual
-limits. If it can retain mode changes, design a minimal journal only after those
-results are known. A journal must be written before a change, survive partial
-writes, bind to a verified physical device, and be removed only after readback
-proves recovery. A stale journal or reused USB port must not authorize writes to
-a different unit. Do not choose mode 0 merely because it is common.
+## 2026-10-09 local beta.5 preparation
 
-Acceptance requires approved backend fault tests and native evidence for the
-selected policy. Documentation alone does not close the runtime risk. Track the
-native checks in [the release checklist](build-11-release-checklist.md).
+The user authorized the current Apple Silicon/macOS 26+ setup, one conditional
+`SIGKILL` observation after a verified fallback, and a temporary diagnostic tool.
+The app's metadata-only scan found one eligible P16KT (`0x0457:0x0819`). The
+earlier USB-registry query found no match and was not sufficient evidence of
+disconnection.
 
-## 2026-10-09 disposition (TMQA-003)
+At 13:26:26 (`Asia/Seoul`), the diagnostic helper captured `(mode=0,
+identifier=0)` on the continuously attached verified HID/USB services. At
+13:26:41, its explicit `0 -> 2 -> captured 0` roundtrip and readback passed with
+the same registry identity, USB ancestor, location and descriptor. The helper
+keeps this original pair only in its long-lived process memory, closes HID
+between commands, and rejects a different or re-enumerated attachment. It is
+not bundled or available as a product recovery feature.
 
-**BLOCKED — not resolved by the macOS QA fix branch.** This cloud executor has no
-macOS/P16KT device access, and the user's Mac is outside the authorized scope.
-`DeviceModeTransaction` now exposes the existing mode ownership logic to injected
-I/O (TMQA-005). Its process-loss case explicitly preserves the limit: a new owner
-observing mode 2 does not know whether a predecessor changed it from 0. Adding a
-journal without a verified identity/reset policy would turn that uncertainty
-into potentially incorrect writes to a replacement panel on a reused USB port.
-No journal, guessed reset, or cross-process feature write is introduced.
+The beta.5 build 22 candidate was launched from its recorded local path. Native
+UI observation repeatedly failed with `Sky Computer Use native pipe closed
+before response`, including after resetting the UI session. Candidate gesture,
+Stop/Quit and abnormal-exit observations are not established by that launch.
+At that stage, no `SIGKILL` had been performed. The operator subsequently reported normal
+candidate permissions, confirmation-cancellation/Refresh behavior, basic
+gestures and Stop/normal Quit (`PASS_USER_REPORTED`).
 
-To unblock: use a separately authorized controlled Apple Silicon/macOS 26+
-setup and one identified P16KT on a recorded USB-C connection. Record original
-mode/identifier, normal restoration, then (only with explicit fault-test
-approval) whether a process crash and a panel power cycle retain or reset the
-mode. Record both original-0 and original-2 cases, device identity across
-re-enumeration, and whether swapping a unit on the same port is distinguishable.
-Choose the reset procedure or identity-bound journal only from those results.
-The existing runtime risk remains open until that policy and native acceptance
-are verified. Passing an injected-I/O test cannot close this ticket.
+At 13:54:07, after one path-verified `SIGTERM` routed through the candidate's
+normal Quit handling, the retained diagnostic process read `(0,0)` on the
+original continuous attachment, with `identityRejected=false` and
+`unresolved=false`. Mapping activity immediately before that signal was not
+directly observed. Stop/relaunch and Quit-while-mapping/resume results remain
+unreported separately.
+
+The operator then confirmed active mapping with all fingers and mouse buttons
+released. At 14:04:47, exactly one `SIGKILL` was sent to candidate PID `12088`
+after rechecking the sole process, full executable path, beta.5/build 22 and
+executable checksum. Process disappearance was confirmed. Before relaunch, the
+original diagnostic session read `(2,0)` at 14:04:53 on the same attachment,
+with `identityRejected=false` and `unresolved=true`. The original `(0,0)` was
+not restored by process exit in this observed condition.
+
+The full-path relaunch attempted by the UI tool returned a native pipe failure
+after a long wait. At 14:18:49, PID `21237` was verified at the candidate path;
+the helper still retained its original snapshot without identity rejection.
+The operator then reported Stop and normal Quit completed. At 14:30:35, with
+the app-stopped guard satisfied, the original diagnostic session read `(2,0)`
+again on the same attachment, with `identityRejected=false` and
+`unresolved=true`. The product did not restore the captured original `(0,0)`
+through the observed relaunch/Stop/Quit flow. Automatic resume and absence of
+UI errors were not separately reported.
+
+At 14:30:43, an explicit diagnostic restore wrote only the captured `(0,0)` and
+verified readback, reporting `RESTORE_VERIFIED` and `unresolved=false`. Another
+read at 14:31:01 confirmed `(0,0)` without identity rejection. The diagnostic
+exited at 14:31:03 with no write on exit. This fallback success does not resolve
+the product failure. The app is stopped and publication remains held.
+
+A verified diagnostic fallback did not establish product recovery after app
+exit. At that point the ticket remained open until a recovery policy was agreed,
+implemented and verified. That build 22 SIGKILL result does not establish power-loss, reconnection,
+original-mode-2 or other-panel behavior. See the
+[beta.5 acceptance record](beta5-native-acceptance.md) for artifact identity,
+observations and remaining checks.
+
+## Approved strict recovery policy — implemented and locally verified
+
+Persist a separate, narrowly scoped recovery record before this process changes
+verified `(0,0)` to `(2,0)`. Keep the saved-mapping schema, public API, visual
+layout and dependencies unchanged.
+
+- Bind the record to the boot session, exact HID/USB registry identities, USB
+  location and descriptor. Restore before mapping resumes only when that
+  continuous attachment is verified and no other owner is active.
+- Claim the record atomically without overwriting an unresolved predecessor;
+  uncertain owner identity or liveness blocks writes. Clear only the same
+  record nonce. Complete predecessor recovery and record cleanup before a new
+  mode change or automatic resume.
+- Write and confirm the record before changing mode; if persistence fails,
+  do not change mode. Preserve it through partial writes and failed readbacks.
+- For a matching record, accept already-restored `(0,0)` without a mode write;
+  restore captured `(0,0)` only from verified `(2,0)`. Delete the record only
+  after successful original-pair readback. With no record, do not infer that
+  an initial mode 2 previously belonged to this app.
+- A malformed record, reboot, re-enumeration, replacement or identity mismatch
+  must preserve the record and block mapping/automatic resume without a guessed
+  write. Show the reason through the existing bilingual status/error UI.
+  Same-port reconnect is not an automatic remedy under this strict policy.
+  Existing same-port Retry must not bypass the record's attachment identity.
+- A startup record rejected before this process owns active input must not
+  trap the user in the app: allow normal Quit while preserving the record.
+  Keep the current Quit-block behavior for this owner's unresolved restoration.
+
+The operator approved this policy and one additional controlled SIGKILL retest.
+The implementation is in the build 23 candidate. Build 22 remains a historical
+failed candidate; neither candidate is published. This policy does not claim
+power-loss or reconnection recovery. The additional native retest passed for the approved continuous-attachment scope.
+
+Validation stayed in the existing test target: three existing device-mode checks
+passed, and six journal checks passed. They cover surviving records, readback,
+initial mode 2, nonce/overwrite protection, identity/owner rejection, malformed
+and symlink records, competing leases and retry after removal sync failure.
+The first six-check run rejected a fixture path normalized to the macOS `/var`
+symlink. The fixture alone was changed to literal `/private/tmp`; production
+path guards were retained and the failed six checks were rerun successfully.
+These backend results do not establish native product recovery.
+
+## Build 23 normal-flow observation
+
+The operator reported all requested build 23 checks normal: displayed version
+and permissions, cancelled confirmation surviving Refresh, two-position taps,
+double tap, drag, horizontal/vertical scrolling and counters, Stop/Quit/relaunch
+staying stopped, and normal Quit while mapping followed by allowed resume.
+These results are `PASS_USER_REPORTED`.
+
+At 16:19:16 KST a candidate process still existed. The recovery directory was
+private (`0700`) and the record was absent. A diagnostic read at 16:19:18 was
+rejected by the app-running guard before any HID open. After verifying sole PID
+`4443`, the full build 23 executable path and its checksum, the existing normal
+Quit route received one SIGTERM at 16:19:54.669911. Process absence was confirmed.
+At 16:20:05 the retained diagnostic session read `(0,0)` on the same attachment,
+with `identityRejected=false` and `unresolved=false`; the record remained absent
+at 16:20:06. This establishes normal-flow original-pair readback and cleanup.
+Mapping immediately before the signal was not directly observed.
+
+The operator was then asked to start mapping again and explicitly confirm all
+fingers/buttons released before the exact-PID/record checks and one additional
+signal. Publication remains held.
+
+## Build 23 additional SIGKILL — product recovery verified
+
+After the operator explicitly confirmed build 23 mapping active with no held
+input, the retained helper still reported no identity rejection at 16:21:56 KST.
+The sole PID `5661`, exact candidate path, build 23 and executable SHA-256 were
+verified. The private `0600` record contained original `(0,0)`, the same boot,
+HID/USB IDs, location and descriptor, owner PID/start time and nonce
+`EC54D2E2-27F1-4552-9258-61E21C364D1F`.
+
+Exactly one additional SIGKILL was sent at 16:21:59.933172 KST, followed by a
+confirmed absent app process. Before any relaunch, the same diagnostic session
+read `(2,0)` at 16:22:04 with `identityRejected=false` and `unresolved=true`.
+The exact original journal record survived. The helper has performed no mode
+write during this build 23 session. Retained mode after SIGKILL is an observation; the relaunch recovery result
+follows below.
+
+The operator was asked to relaunch the full-path candidate, report automatic
+resume and any recovery error, then test two-position taps and Stop/normal Quit.
+The operator explicitly reported automatic resume, two-position taps, no error
+and Stop/normal Quit completed (`PASS_USER_REPORTED`). Exact candidate-path
+logs from relaunched PID `7323` at 16:22:50.076056 report predecessor mode
+recovery verified and record cleared before mapping resume. At 16:24:39 the
+app was absent and the record was removed. At 16:24:41, the same diagnostic
+session read `(0,0)` with no identity rejection and no unresolved state.
+It exited at 16:24:53 with code 0 and no exit write.
+
+The complete measured sequence was original 0 → post-SIGKILL 2 →
+post-relaunch/Stop/Quit 0. The helper performed no feature mode write during
+this session, so its fallback did not produce this product recovery result.
+This native scope is `PASS`. Reboot, reconnection, power loss, original-mode-2
+hardware behavior and other panels remain `NOT_RUN`/unverified. Final release
+review and the later public Homebrew upgrade are still pending.

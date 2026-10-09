@@ -16,9 +16,9 @@ The app keeps these identifiers and versions:
 | --------------------- | ------------------------------------------------- |
 | App and executable    | `Touch Me.app` / `TouchMe`                        |
 | Bundle identifier     | `io.github.soom-kang.touchme`                     |
-| Release version       | `0.8.0-beta.4`, read from `VERSION`               |
+| Release version       | `0.8.0-beta.5`, read from `VERSION`               |
 | Bundle version        | `0.8.0` plus an incrementing numeric build number |
-| Full release metadata | `TouchMeReleaseVersion=0.8.0-beta.4`              |
+| Full release metadata | `TouchMeReleaseVersion=0.8.0-beta.5`              |
 | Target                | `arm64`, macOS 26 or later                        |
 
 Keep the identifier and saved-preference format stable when changing documentation or packaging. Changing the signing identity or installation path can require permission checks in the installed app.
@@ -39,7 +39,7 @@ No app networking code or raw-input logging is implemented in the current source
 
 ## Build and inspect the app
 
-Build the release executable and bundle it with icons and the project license. For the approved beta.4 release, use a separate release checkout to preserve the local build 20 app and `/Applications/Touch Me.app`. Copy build 20 into that checkout's `dist/Touch Me.app` as the build-number baseline, then run the build once to produce build 21:
+Build the release executable and bundle it with icons and the project license. Initial beta.5 preparation used installed build 21 as the local build-number baseline; one build produced verified build 22. That pre-journal artifact remains historical. The agreed recovery journal now has verified build 23, with strict signature, arm64, metadata, license/icon and 28 frozen inputs passed. Packaging also passed. Build 23 normal-use/relaunch checks are `PASS_USER_REPORTED`; one controlled SIGKILL/relaunch recovered the previous record before mapping resumed and verified `(0,0)` after Stop/Quit. Preserve earlier artifacts; another build increments the counter again:
 
 ```bash
 bash scripts/build-app.sh
@@ -70,14 +70,18 @@ The script verifies the app's identifier, release metadata against `VERSION`, li
 | Output                                        | Purpose                   |
 | --------------------------------------------- | ------------------------- |
 | `dist/Touch Me.app`                           | Locally signed app bundle |
-| `dist/touch-me-0.8.0-beta.4-arm64.dmg`        | Local beta disk image     |
-| `dist/touch-me-0.8.0-beta.4-arm64.dmg.sha256` | SHA-256 checksum          |
+| `dist/touch-me-0.8.0-beta.5-arm64.dmg`        | Local beta candidate image |
+| `dist/touch-me-0.8.0-beta.5-arm64.dmg.sha256` | SHA-256 checksum          |
 
 An existing image moves to `dist/previous-builds` in the release checkout. Verify DMG integrity and its checksum:
 
+The current beta.5 DMG contains build 23; its checksum is recorded in the
+[candidate notes](docs/releases/v0.8.0-beta.5.md). Build 22's checksum is historical
+and cannot validate build 23.
+
 ```bash
-hdiutil verify dist/touch-me-0.8.0-beta.4-arm64.dmg
-(cd dist && shasum -a 256 -c touch-me-0.8.0-beta.4-arm64.dmg.sha256)
+hdiutil verify dist/touch-me-0.8.0-beta.5-arm64.dmg
+(cd dist && shasum -a 256 -c touch-me-0.8.0-beta.5-arm64.dmg.sha256)
 ```
 
 ![Local packaging flow from source and license files to a signed app, personal disk image and SHA-256 checksum.](docs/assets/packaging.png)
@@ -98,6 +102,10 @@ Match verification to the behavior you changed. Add checks only when a defect or
 | Coordinate or gesture logic                   | Run `bash scripts/test.sh`; check the affected gesture on the target panel                                  |
 | Device opening, mode restoration or lifecycle | Check exclusive ownership, input release and restoration on the target panel                                |
 | Signing, login launch or compatibility        | Check the installed app in the changed environment                                                          |
+
+Initial beta.5 build 22 reused the existing Swift targets, one build and one packaging run. Normal smoke is `PASS_USER_REPORTED`; captured original mode recovery after its one approved SIGKILL/relaunch/Stop/Quit was `FAIL`. Diagnostic recovery verified `(0,0)`. The agreed journal is now implemented in source; all targets compiled and focused DeviceMode checks (3), journal checks (6), candidate build 23 and packaging passed. Build 23 normal-use checks, Stop/Quit/relaunch staying stopped and active-Quit/relaunch resuming are `PASS_USER_REPORTED`. A separate normal-Quit-route readback at 16:20:05 KST verified `(0,0)`; immediately preceding mapping was not directly observed. One additional approved SIGKILL retained `(2,0)` and the exact record; the relaunched candidate verified prior recovery/record clearing before resume, followed by Stop/Quit and direct `(0,0)` readback. TMQA003 is PASS for this original-0/same-boot/continuous-attachment case. Post-crash resume, two taps, no error and Stop/Quit are `PASS_USER_REPORTED`. Fresh installation, permission off/on, lock/sleep, full logout/login and removal remain excluded. See the [beta.5 acceptance record](docs/qa/beta5-native-acceptance.md); publication awaits review; public Homebrew upgrade acceptance follows verified publication.
+
+On 2026-10-09, beta.5 reused the planning-phase `bash scripts/test.sh` PASS for 24 existing tests (11 Platform, 13 Core) without repeating it. One `bash scripts/build-app.sh` and one `python3 scripts/package-dmg.py` produced build 22 and a 419,445-byte DMG. Compilation, strict ad hoc signature, bundle metadata, license/icon, arm64, the 27-input manifest comparison, `hdiutil verify` and the SHA-256 sidecar check passed. These local results do not establish native mapping or publication; the checksum and remaining checks are in the [candidate notes](docs/releases/v0.8.0-beta.5.md).
 
 The existing core tests cover pure logic. They do not prove HID access, device-mode restoration, permissions or behavior on a physical panel. The gesture fix already passed all 14 existing Swift tests, and build 20 gesture behavior is `PASS_USER_REPORTED`; neither result is a direct device check of build 21. The approved beta.4 release reuses these results while gesture code stays unchanged. It adds no tests or validation infrastructure and does not repeat the full suites. Its release checks are one build and packaging run, strict signature, metadata, license/icon, arm64, DMG integrity/checksum, Cask style, public downloads and online audit. Build 21 device, Gatekeeper and Homebrew installation checks are `NOT_RUN`. Repeat a successful build only after a relevant source change: another build can change its number, signature and DMG bytes. Record beta.4 artifact and publication results in the [release notes](docs/releases/v0.8.0-beta.4.md).
 
@@ -139,11 +147,15 @@ These are local artifact and style results. Public download and online audit res
 
 A build or packaging failure is a stop condition for delivering a new artifact. Fix the reported local cause and repeat only the failed command. Retain the previous usable artifact until the replacement passes its checks.
 
-If device restoration fails during an approved device check, reconnect the P16KT to the same USB port and retry Stop. Do not hide the failure, silently switch devices or overwrite the stored resume intent to claim recovery.
+If device restoration fails during an approved device check, keep the current connection and choose Retry restore. A changed attachment blocks recovery; preserve its record and error. Do not hide the failure, silently switch devices or overwrite the stored resume intent to claim recovery.
 
 After a completed cleanup, `.build` and `dist/previous-builds` may be absent. Subsequent builds recreate them. Inspect the exact generated paths and active mounts before removing them; do not follow symlinks into external folders.
 
 ## Publish the reviewed release
+
+The 2026-10-09 prepublication record is `READY_FOR_RELEASE_REVIEW / NOT_PUBLISHED`. Build 23 passed bounded TMQA003 acceptance; QA01 public upgrade remains `NOT_RUN`. At that checkpoint release commit/push, tag, publication and Tap update were not performed. After approval, compare frozen source/package inputs with the release commit, publish the reviewed asset and verify its public bytes before updating the Tap. Keep prior assets and preferences. Run public-upgrade acceptance afterward. See the [release notes](docs/releases/v0.8.0-beta.5.md) and [Homebrew preparation](docs/Homebrew.md#beta5-preparation).
+
+### Historical beta.4 release scope
 
 The approved `0.8.0-beta.4` prerelease updates the ad hoc beta Cask in the existing personal Tap `soom-kang/homebrew-touch-me`. The source repository is [soom-kang/touch-me](https://github.com/soom-kang/touch-me). The 2026-10-09 baseline is source `main` at `91142b7bb1137452ae6618b09cea5488e1c8849e`, with six uncommitted gesture-related files, public beta.1–beta.3 releases and Tap remote `main` at `55d661ae2d5a4409db7d720d4988556592769970`. Preserve existing tags and assets. The release authorization covers the reviewed source and release-documentation updates, source/Tap commits and pushes, the new tag/prerelease and the existing Tap update through online audit. Before tagging, compare compilation and packaging inputs in the frozen release checkout with the final source commit. Each phase advances when its checks pass; a new consequential decision or failed check stops the affected phase.
 

@@ -2,9 +2,45 @@
 
 # Publish the Touch Me Homebrew beta
 
-The 2026-10-09 release task authorizes publishing `0.8.0-beta.4` as a GitHub prerelease, source/Tap commits and pushes, and updating the existing personal Tap through online audit. Advance when each phase passes; stop the affected phase for a failed check or a new consequential decision. Build and package in a separate release checkout to preserve the local build 20 app and the existing Applications app. Installing or upgrading the Cask, changing trust, GUI checks and device checks are outside this release run.
+This guide targets beta.5 after approved publication and public-asset
+verification. The historical public baseline was beta.4 build 21; its release
+record and commands remain below.
 
-## Release contract
+## Beta.5 preparation
+
+Prepublication record on 2026-10-09: **READY_FOR_RELEASE_REVIEW / NOT_PUBLISHED**.
+Candidate `0.8.0-beta.5`, build 23 passed source compilation, nine focused backend
+checks, signature/metadata/license/icon, 28 input comparisons, DMG integrity and
+local Cask/Tap review. One controlled original-0/same-boot/continuous-P16KT
+SIGKILL/relaunch recovered and cleared the previous record before mapping
+resumed; final Stop/Quit readback was `(0,0)`, with no diagnostic feature write.
+Normal-use/relaunch and post-crash gestures are `PASS_USER_REPORTED`. Historical
+build 22's failure is retained in the [acceptance record](qa/beta5-native-acceptance.md).
+
+The planned tag is `v0.8.0-beta.5`; the asset is
+`touch-me-0.8.0-beta.5-arm64.dmg` and its `.sha256` file. Build 23's artifact
+identity and strict recovery policy are in the [release notes](releases/v0.8.0-beta.5.md).
+A local Cask draft does not establish a published Tap or available download.
+
+After review and approval:
+
+1. Compare the frozen compilation/package inputs with the release commit.
+   Preserve the existing app, preferences, tags and assets.
+2. Publish the reviewed DMG and sidecar, then verify the public download against
+   build 23's recorded digest and inner app. Update the existing Tap only with
+   that verified version and checksum; never replace an older asset or use
+   `:no_check` to bypass a mismatch.
+3. Use the installation/upgrade instructions below after the beta.5 asset and
+   Tap update are verified. Record beta.4 → beta.5 public-upgrade acceptance
+   separately; QA01 remains open and that check is `NOT_RUN` in this record.
+
+At this checkpoint release commit/push, tag, publication and Tap update had not
+been performed. Fresh installation/Gatekeeper, permission off/on, lock/sleep,
+full logout/login, removal and broader crash/device recovery remain `NOT_RUN`.
+Retain privacy permissions and renew only if necessary. Keep the same attachment
+for Retry; reconnecting to the same port does not authorize journal recovery.
+
+## Historical published beta.4 baseline
 
 | Item | Value |
 | --- | --- |
@@ -19,7 +55,7 @@ The 2026-10-09 release task authorizes publishing `0.8.0-beta.4` as a GitHub pre
 | Signing | Ad hoc; no Developer ID signature or notarization |
 | Local draft / Tap file | `packaging/homebrew/touch-me.rb.in` / `Casks/touch-me.rb` |
 
-`VERSION` is the release-version source. The bundle uses numeric `CFBundleShortVersionString=0.8.0`, an incrementing numeric `CFBundleVersion` and `TouchMeReleaseVersion=0.8.0-beta.4`. About and settings display the full release version. [Apple version format](https://developer.apple.com/help/glossary/version-number/)
+`VERSION` is the release-version source for new builds. The published beta.4 bundle uses numeric `CFBundleShortVersionString=0.8.0`, `CFBundleVersion=21` and `TouchMeReleaseVersion=0.8.0-beta.4`. About and settings display the full release version. [Apple version format](https://developer.apple.com/help/glossary/version-number/)
 
 One app contains English and Korean. It starts in English without a saved language and preserves the language selected in settings. The Cask has no language-specific downloads.
 
@@ -31,7 +67,9 @@ https://github.com/soom-kang/touch-me/releases/download/v0.8.0-beta.4/touch-me-0
 
 The Cask SHA-256 must match the exact uploaded DMG. GitHub permits asset replacement, so maintain the published version as immutable: a later source, signature or DMG change needs a new version and checksum. Never resolve a mismatch with `:no_check` or replace an existing release asset.
 
-## Execute each phase
+## Historical beta.4 release procedure
+
+These phases preserve the beta.4 release record and its previous approval scope. Do not run their version-specific commands against the beta.5 source or use that past approval as the candidate's acceptance result.
 
 ### Phase 0 — Confirm the source and preserve the starting state
 
@@ -168,7 +206,7 @@ For removal, turn off **Launch at login**, perform the same Stop/Quit sequence a
 brew uninstall --cask soom-kang/touch-me/touch-me
 ```
 
-Removal preserves app preferences. There is no `zap` routine, automatic process kill or device-recovery hook. A failed restoration blocks upgrade/removal until the panel is reconnected to the same USB port and Stop succeeds.
+Removal preserves app preferences. There is no `zap` routine, automatic process kill or device-recovery hook. A failed restoration blocks upgrade/removal. Keep the current connection and use Retry restore; a changed attachment blocks recovery, so preserve its record and error.
 
 ## Record results and future signing work
 
