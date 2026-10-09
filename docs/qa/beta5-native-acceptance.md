@@ -2,8 +2,10 @@
 
 ## Postpublication record — 2026-10-09
 
-Status: **PUBLISHED; public upgrade phase and installed artifact PASS; QA01
-post-upgrade native batch PENDING**. TMQA003 retains its bounded build 23 PASS
+Status: **PUBLISHED; QA01 PASS for the approved public-upgrade/native scope**.
+Installed-app use and Stop/normal Quit are `PASS_USER_REPORTED`; artifact,
+process/record cleanup and final current-pair observations are direct `PASS`.
+TMQA003 retains its bounded build 23 PASS
 from the prepublication run. No additional crash test was performed after the
 public upgrade.
 
@@ -17,10 +19,12 @@ public upgrade.
 | Tap main / installed Tap | `31cdb32c1e1415401c26fd338842bf811471b531`; clean; Cask equals reviewed contents | PASS |
 | Public Homebrew upgrade phase | Beta.4 → beta.5 reported successful upgrade before later cleanup interruption | PASS (upgrade phase only) |
 | Installed Applications app | Beta.5/build 23; executable `8a7d98412594ef164b9c3b73bc73d4f240c2978f42cc4a0e185e7f62ffda748e`; signature/license/icon match; build 21 backup retained | PASS (artifact only) |
-| Overall upgrade command | Verified Homebrew PID `21614` interrupted during unexpected core clone at 17:48:57 KST; exited 130 after upgrade success | INTERRUPTED (post-upgrade cleanup) |
+| Overall upgrade command | Verified Homebrew PID `21614` interrupted during unexpected core clone at 16:48:57 KST; exited 130 after upgrade success | INTERRUPTED (post-upgrade cleanup) |
 | Core clone cleanup | Exact core path and clone processes absent after automatic interrupt cleanup; no reset or untap performed | PASS (cleanup observation) |
-| Installed GUI / native batch | Build 23 and permissions, target/Start, two-position taps, Stop and normal Quit requested; response pending | PENDING |
-| QA01 | Public upgrade artifact completed; installed GUI/native acceptance still pending | PENDING / OPEN |
+| Installed GUI / native batch | User confirmed installed build 23, both permissions, target/Start and two-position taps normal, then explicitly confirmed Stop and normal Quit | PASS_USER_REPORTED |
+| Installed normal-Quit cleanup | At 18:03:47 KST, no TouchMe process or recovery record; installed build 23 executable SHA still matches the candidate | PASS |
+| Installed final current pair | At 18:04:26 KST, fresh read-only session on the same boot/HID/USB/location/descriptor returned `(0,0)`; feature writes 0, exit 0 | PASS (current-pair observation) |
+| QA01 | Public upgrade artifact, reported installed-app use/Stop/Quit, direct cleanup and original-pair match in the approved scope | PASS (bounded scope) |
 
 The unexpected clone was not an app install failure. The local Homebrew code
 supports task-scoped `HOMEBREW_NO_INSTALL_FROM_API` plus post-upgrade cleanup as
@@ -33,11 +37,36 @@ parent. After the interrupt, read-only checks found no
 No additional Homebrew command, reset, untap or deletion was needed. The whole
 command's exit 130 is retained separately from the successful upgrade phase.
 
-At 17:50:46 KST, new retained diagnostic session
+At 16:50:46 KST, new retained diagnostic session
 `289E4FD5-302D-4298-8FC2-21A7A11B8130` captured `(0,0)` on the same recorded
 HID/USB identities, location and descriptor. This read-only baseline is not
-post-upgrade GUI or product-restoration proof. The installed-app manual batch
-remains pending; the candidate's earlier native result does not replace it.
+post-upgrade GUI or product-restoration proof. That session was no longer
+available for the final read; no restoration result is attributed to it.
+
+The operator reported the installed-app batch normal and subsequently
+explicitly confirmed Stop and normal Quit completed. These requested GUI,
+permission and two-position tap results are `PASS_USER_REPORTED`. While the
+installed app was running, PID `46898` was verified at
+`/Applications/Touch Me.app/Contents/MacOS/TouchMe`; its recovery record
+contained original `(0,0)` and the same boot and attachment identity.
+
+At 18:03:47 KST (09:03:47 UTC), no TouchMe process or recovery record remained.
+The installed build 23 executable SHA still matched the verified candidate.
+At 18:04:26 KST (09:04:26 UTC), a separate read-only diagnostic session
+`C077A6CB-F8D0-4267-B0E2-67CFE4F2EB5A` returned current `(0,0)` on boot
+`0C2C07DC-5879-4061-8E01-D8675DB6DDAE`, HID registry `4295075832`, USB registry
+`4295075820`, location `34799616` and descriptor SHA-256
+`09c2703f6c8a73b14dab47f0ec7efafeb83b29705a96d7a2b56b6c855bfd858e`.
+Only `arm` (read) and `exit` were run: feature writes 0, no identity rejection,
+`unresolved=false` for this fresh session and exit code 0. The directly observed
+current pair matches the earlier baseline and installed app's recorded original
+pair; this is not recovery verification using the earlier helper's memory.
+
+QA01 is `PASS` for the approved upgrade and installed-app flow on this Mac and
+P16KT. Fresh installation, permission off/on, lock/sleep, full logout/login and
+removal remain `NOT_RUN`. TMQA003's separate prepublication result remains
+limited to one controlled original-0, same-boot, continuously attached P16KT
+SIGKILL; reboot, reconnection, power loss and other panels remain unverified.
 
 The shipped release notes remain unchanged as their dated prepublication
 snapshot. No source/package rebuild or further crash test was performed for

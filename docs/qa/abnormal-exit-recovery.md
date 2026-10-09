@@ -5,8 +5,21 @@ on this same-boot, continuously attached P16KT, original `(0,0)`.** Historical
 build 22 failed. Product recovery is verified for the approved scope. Build 23
 is now [published as beta.5](https://github.com/soom-kang/touch-me/releases/tag/v0.8.0-beta.5);
 the public download and Homebrew app replacement match the verified candidate.
-QA01 still awaits the installed-app permission/tap/Stop/Quit report and final
-same-device readback. See the [postpublication record](beta5-native-acceptance.md).
+QA01 is **PASS for the approved public upgrade and installed-app flow**:
+permissions/taps/Stop/normal Quit are `PASS_USER_REPORTED`; process/record
+cleanup and the same-identity current `(0,0)` pair are directly observed.
+See the [postpublication record](beta5-native-acceptance.md).
+
+After the installed-app Stop and normal Quit report, process and record absence
+were confirmed at 18:03:47 KST. At 18:04:26 KST, a fresh read-only diagnostic
+session returned `(0,0)` on the same boot, HID/USB registry IDs, location and
+descriptor, matching the earlier baseline and app's recorded original pair.
+The earlier helper session was no longer available; its in-memory snapshot was
+not used for this final observation. The fresh helper performed zero feature
+writes and exited normally. This upgrade check adds no crash-recovery claim.
+Fresh installation, permission off/on, lock/sleep, full logout/login and removal
+remain `NOT_RUN`; reboot, reconnection, power loss and other panels remain
+outside the verified recovery scope.
 
 ## Implemented recovery contract
 

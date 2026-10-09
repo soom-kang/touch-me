@@ -12,7 +12,7 @@ It maps touch input to the display you select, enabling taps, double-clicks, one
 
 Beta `0.8.0-beta.5` requires the **USB/HID profile verified on the P16KT**. Mapping won't start if the device identifiers or HID (Human Interface Device) input layout differ. Support for other ZEUSLAP models isn't guaranteed, so check the setup below first.
 
-[Beta.5 build 23](https://github.com/soom-kang/touch-me/releases/tag/v0.8.0-beta.5) is published; public DMG/checksum verification passed. The public beta.4 → beta.5 Homebrew upgrade phase completed and the installed artifact matched build 23. Post-upgrade GUI/permission/gesture checks are pending, so QA01 remains `PENDING`. See the [acceptance record](docs/qa/beta5-native-acceptance.md).
+[Beta.5 build 23](https://github.com/soom-kang/touch-me/releases/tag/v0.8.0-beta.5) is published; public DMG/checksum verification passed. The public beta.4 → beta.5 Homebrew upgrade phase completed and the installed artifact matched build 23. QA01 is `PASS` for the agreed public-upgrade scope: installed build 23, both permissions, two-position taps and Stop/normal Quit are `PASS_USER_REPORTED`; post-Quit process/record absence and the same panel's current `(0,0)` were directly observed. See the [acceptance record](docs/qa/beta5-native-acceptance.md).
 
 ## Check your setup first
 

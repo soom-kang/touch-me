@@ -103,7 +103,7 @@ hdiutil verify dist/touch-me-0.8.0-beta.5-arm64.dmg
 | 장치 열기, 모드 복구 또는 lifecycle | 대상 패널의 독점 점유, 입력 해제와 복구 확인                                     |
 | 서명, 로그인 실행 또는 호환 범위    | 변경한 환경에서 설치 앱 확인                                                     |
 
-최초 beta.5 build 22는 기존 Swift targets와 빌드·패키징 각 한 번의 결과를 사용했습니다. 정상 smoke는 `PASS_USER_REPORTED`이며 승인된 SIGKILL 한 번과 재실행·Stop·Quit 후 원래 모드 복구는 `FAIL`이었습니다. 진단 복구로 `(0,0)`을 확인했습니다. 이후 합의한 journal을 source에 구현했고 모든 targets 컴파일, 집중 DeviceMode 검사 3개·journal 검사 6개, 후보 build 23과 패키징이 통과했습니다. Build 23 정상 사용, Stop·Quit 후 재실행 때 중지 유지와 매핑 중 Quit 후 재실행 때 재개는 `PASS_USER_REPORTED`입니다. 별도 정상 Quit 경로 뒤 16:20:05 KST의 조회에서 `(0,0)`을 확인했지만 직전 매핑은 직접 관찰하지 못했습니다. 추가 승인된 SIGKILL 한 번 뒤 `(2,0)`과 같은 기록이 남았고 재실행 후보가 재개 전 복구·기록 삭제를 확인한 다음 Stop·Quit 후 `(0,0)`을 직접 읽었습니다. TMQA003은 이 원래 모드 0·같은 부팅·계속 연결된 장치 조건에서 PASS입니다. 충돌 후 재개·두 위치 탭·오류 없음·Stop·Quit은 `PASS_USER_REPORTED`입니다. 신규 설치, 권한 off/on, 잠금·절전, 실제 로그아웃·로그인과 제거는 계속 제외합니다. [beta.5 acceptance 기록](docs/qa/beta5-native-acceptance.md)을 확인하세요. 공개 검토를 기다리며 공개 Homebrew 업그레이드 acceptance는 공개·다운로드 검증 뒤 수행합니다.
+최초 beta.5 build 22는 기존 Swift targets와 빌드·패키징 각 한 번의 결과를 사용했습니다. 정상 smoke는 `PASS_USER_REPORTED`이며 승인된 SIGKILL 한 번과 재실행·Stop·Quit 후 원래 모드 복구는 `FAIL`이었습니다. 진단 복구로 `(0,0)`을 확인했습니다. 이후 합의한 journal을 source에 구현했고 모든 targets 컴파일, 집중 DeviceMode 검사 3개·journal 검사 6개, 후보 build 23과 패키징이 통과했습니다. Build 23 정상 사용, Stop·Quit 후 재실행 때 중지 유지와 매핑 중 Quit 후 재실행 때 재개는 `PASS_USER_REPORTED`입니다. 별도 정상 Quit 경로 뒤 16:20:05 KST의 조회에서 `(0,0)`을 확인했지만 직전 매핑은 직접 관찰하지 못했습니다. 추가 승인된 SIGKILL 한 번 뒤 `(2,0)`과 같은 기록이 남았고 재실행 후보가 재개 전 복구·기록 삭제를 확인한 다음 Stop·Quit 후 `(0,0)`을 직접 읽었습니다. TMQA003은 이 원래 모드 0·같은 부팅·계속 연결된 장치 조건에서 PASS입니다. 충돌 후 재개·두 위치 탭·오류 없음·Stop·Quit은 `PASS_USER_REPORTED`입니다. 신규 설치, 권한 off/on, 잠금·절전, 실제 로그아웃·로그인과 제거는 계속 제외합니다. 공개 전 checkpoint에서는 공개 검토를 기다렸고 공개 Homebrew 업그레이드 acceptance는 `NOT_RUN`이었습니다. [beta.5 acceptance 기록](docs/qa/beta5-native-acceptance.md)에 완료한 공개 업그레이드 범위를 추가했습니다.
 
 2026-10-09 beta.5 준비에서는 계획 단계의 `bash scripts/test.sh` PASS 24개(Platform 11개, Core 13개)를 재실행 없이 사용했습니다. `bash scripts/build-app.sh`와 `python3 scripts/package-dmg.py`를 각각 한 번 실행해 build 22와 419,445-byte DMG를 생성했습니다. 컴파일, strict ad hoc 서명, bundle metadata, 라이선스·아이콘, arm64, 입력 manifest 27개 일치, `hdiutil verify`와 SHA-256 sidecar 검사를 통과했습니다. 이는 로컬 결과이며 실기기 매핑이나 공개를 증명하지 않습니다. Checksum과 남은 검사는 [후보 기록](docs/releases/v0.8.0-beta.5.md)을 확인하세요.
 
@@ -153,7 +153,9 @@ Release build 한 번으로 build 12를 생성했습니다. 숫자 번들 버전
 
 ## 검토한 릴리즈 공개하기
 
-2026-10-09 공개 후 기록: source·tag `4ead3d1acec3beb43a1f09261b308ef9fdef0e81`과 [beta.5 prerelease](https://github.com/soom-kang/touch-me/releases/tag/v0.8.0-beta.5)를 공개했습니다. 익명 DMG·sidecar 다운로드는 확정한 build 23과 일치했고 이전 beta.4 asset은 보존했습니다. Tap과 설치된 Tap은 `31cdb32c1e1415401c26fd338842bf811471b531`입니다. 공개 Homebrew 업그레이드 단계와 설치 산출물 검사는 통과했습니다. 이후 자동 core clone을 중단했고 자동 정리를 확인했으며 전체 command는 exit 130이었습니다. 업그레이드 후 GUI·실기기 확인은 대기 중이므로 QA01은 `PENDING`입니다. [Acceptance 기록](docs/qa/beta5-native-acceptance.md)을 확인하세요.
+2026-10-09 공개 후 기록: source·tag `4ead3d1acec3beb43a1f09261b308ef9fdef0e81`과 [beta.5 prerelease](https://github.com/soom-kang/touch-me/releases/tag/v0.8.0-beta.5)를 공개했습니다. 익명 DMG·sidecar 다운로드는 확정한 build 23과 일치했고 이전 beta.4 asset은 보존했습니다. Tap과 설치된 Tap은 `31cdb32c1e1415401c26fd338842bf811471b531`입니다. 공개 Homebrew 업그레이드 단계와 설치 산출물 검사는 통과했습니다. 이후 자동 core clone을 16:48:57 KST에 중단했고 자동 정리를 확인했으며 전체 command는 exit 130이었습니다.
+
+QA01은 합의한 공개 업그레이드 범위에서 `PASS`입니다. 설치 build 23·두 권한·두 위치 탭·Stop/정상 Quit는 `PASS_USER_REPORTED`입니다. 18:03:47 KST에 TouchMe process·recovery record가 없었으며 18:04:26 KST의 새 읽기 전용 세션에서 같은 boot·HID/USB registry identity·location·descriptor의 현재 `(0,0)`이 사전 original/journal pair와 일치함을 관측했습니다. 이 세션은 arm→exit만 수행했고 feature writes 0, exit 0입니다. [Acceptance 기록](docs/qa/beta5-native-acceptance.md)을 확인하세요.
 
 ### 과거 공개 전 checkpoint — 16:24 KST
 

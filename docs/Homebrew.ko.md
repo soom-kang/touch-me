@@ -9,7 +9,9 @@ Beta.5를 공개했고 public asset을 확인했습니다. 이 안내는 해당 
 
 Source·tag `4ead3d1acec3beb43a1f09261b308ef9fdef0e81`의 [beta.5 prerelease](https://github.com/soom-kang/touch-me/releases/tag/v0.8.0-beta.5)를 공개했습니다. 익명 다운로드로 455,408-byte DMG·sidecar가 [build 23 digest](releases/v0.8.0-beta.5.md)와 일치한 것을 확인했습니다. Tap main과 설치된 Tap `31cdb32c1e1415401c26fd338842bf811471b531`은 clean이며 검토한 Cask와 일치합니다. Beta.4 asset은 보존했습니다.
 
-공개 beta.4 → beta.5 업그레이드 단계는 성공했다고 출력됐고 Applications build 23의 실행 파일·서명·라이선스·아이콘이 일치했습니다. 이후 cleanup에서 작업 한정 `HOMEBREW_NO_INSTALL_FROM_API`로 예상 밖의 core clone이 시작됐습니다. 확인한 Homebrew PID를 17:48:57 KST에 중단했으며 업그레이드 성공 뒤 전체 command는 exit 130이었습니다. 자동 정리 후 core path·clone process가 없음을 확인했고 reset·untap은 필요하지 않았습니다. 업그레이드 후 GUI 확인은 대기 중이므로 QA01은 `PENDING`입니다. [Acceptance 기록](qa/beta5-native-acceptance.md)을 확인하세요.
+공개 beta.4 → beta.5 업그레이드 단계는 성공했다고 출력됐고 Applications build 23의 실행 파일·서명·라이선스·아이콘이 일치했습니다. 이후 cleanup에서 작업 한정 `HOMEBREW_NO_INSTALL_FROM_API`로 예상 밖의 core clone이 시작됐습니다. 확인한 Homebrew PID를 16:48:57 KST에 중단했으며 업그레이드 성공 뒤 전체 command는 exit 130이었습니다. 자동 정리 후 core path·clone process가 없음을 확인했고 reset·untap은 필요하지 않았습니다.
+
+QA01은 합의한 공개 업그레이드 범위에서 `PASS`입니다. 설치 build 23·두 권한·두 위치 탭·Stop/정상 Quit는 `PASS_USER_REPORTED`입니다. 18:03:47 KST에 TouchMe process·recovery record가 없었으며 18:04:26 KST의 새 읽기 전용 세션에서 같은 boot·HID/USB registry identity·location·descriptor의 현재 `(0,0)`이 사전 original/journal pair와 일치함을 관측했습니다. 이 세션은 arm→exit만 수행했고 feature writes 0, exit 0입니다. [Acceptance 기록](qa/beta5-native-acceptance.md)을 확인하세요.
 
 ## Beta.5 준비
 

@@ -12,7 +12,7 @@ Touch Me는 ZEUSLAP 터치 모니터를 Mac에서 활용할 수 있도록 만든
 
 Beta `0.8.0-beta.5`는 **P16KT에서 확인한 USB/HID profile**을 요구합니다. 장치 식별자와 HID(Human Interface Device) 입력 구조가 다르면 매핑을 시작하지 않습니다. 다른 ZEUSLAP 모델까지 지원한다고 보장하지 않으므로 아래 환경을 먼저 확인해 주세요.
 
-[Beta.5 build 23](https://github.com/soom-kang/touch-me/releases/tag/v0.8.0-beta.5)을 공개했고 public DMG·checksum 확인은 통과했습니다. 공개 beta.4 → beta.5 Homebrew 업그레이드 단계가 완료됐으며 설치 산출물도 build 23과 일치했습니다. 업그레이드 후 GUI·권한·제스처 확인은 대기 중이므로 QA01은 `PENDING`입니다. [Acceptance 기록](docs/qa/beta5-native-acceptance.md)을 확인하세요.
+[Beta.5 build 23](https://github.com/soom-kang/touch-me/releases/tag/v0.8.0-beta.5)을 공개했고 public DMG·checksum 확인은 통과했습니다. 공개 beta.4 → beta.5 Homebrew 업그레이드 단계가 완료됐으며 설치 산출물도 build 23과 일치했습니다. QA01은 합의한 공개 업그레이드 범위에서 `PASS`입니다. 설치 build 23·두 권한·두 위치 탭·Stop/정상 Quit는 `PASS_USER_REPORTED`이며 종료 후 process·record 부재와 같은 패널의 현재 `(0,0)`은 직접 관측했습니다. [Acceptance 기록](docs/qa/beta5-native-acceptance.md)을 확인하세요.
 
 ## 먼저 사용 환경을 확인하세요
 

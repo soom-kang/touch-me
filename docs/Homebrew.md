@@ -10,7 +10,9 @@ record and commands remain below.
 
 The [beta.5 prerelease](https://github.com/soom-kang/touch-me/releases/tag/v0.8.0-beta.5) is public at source/tag `4ead3d1acec3beb43a1f09261b308ef9fdef0e81`. Anonymous download verified the 455,408-byte DMG and sidecar against the [recorded build 23 digest](releases/v0.8.0-beta.5.md). Tap main and installed Tap `31cdb32c1e1415401c26fd338842bf811471b531` are clean and match the reviewed Cask; beta.4 assets are retained.
 
-The public beta.4 → beta.5 upgrade phase reported success; installed Applications build 23 matched executable/signature/license/icon. Post-upgrade cleanup unexpectedly cloned core under the task-scoped `HOMEBREW_NO_INSTALL_FROM_API` flag. The verified Homebrew PID was interrupted at 17:48:57 KST; the overall command exited 130 after upgrade success. Its core path and clone processes were absent after automatic cleanup, with no reset/untap needed. Post-upgrade GUI checks are pending, so QA01 remains `PENDING`. See the [acceptance record](qa/beta5-native-acceptance.md).
+The public beta.4 → beta.5 upgrade phase reported success; installed Applications build 23 matched executable/signature/license/icon. Post-upgrade cleanup unexpectedly cloned core under the task-scoped `HOMEBREW_NO_INSTALL_FROM_API` flag. The verified Homebrew PID was interrupted at 16:48:57 KST; the overall command exited 130 after upgrade success. Its core path and clone processes were absent after automatic cleanup, with no reset/untap needed.
+
+QA01 is `PASS` for the agreed public-upgrade scope. Installed build 23, both permissions, two-position taps and Stop/normal Quit are `PASS_USER_REPORTED`. Direct checks found no TouchMe process or recovery record at 18:03:47 KST; a new read-only session observed current `(0,0)` at 18:04:26 KST, matching the prior original/journal pair on the same boot, HID/USB registry identities, location and descriptor. That session only performed arm→exit, with zero feature writes and exit 0. See the [acceptance record](qa/beta5-native-acceptance.md).
 
 ## Beta.5 preparation
 
