@@ -153,6 +153,10 @@ Release build 한 번으로 build 12를 생성했습니다. 숫자 번들 버전
 
 ## 검토한 릴리즈 공개하기
 
+2026-10-09 공개 후 기록: source·tag `4ead3d1acec3beb43a1f09261b308ef9fdef0e81`과 [beta.5 prerelease](https://github.com/soom-kang/touch-me/releases/tag/v0.8.0-beta.5)를 공개했습니다. 익명 DMG·sidecar 다운로드는 확정한 build 23과 일치했고 이전 beta.4 asset은 보존했습니다. Tap과 설치된 Tap은 `31cdb32c1e1415401c26fd338842bf811471b531`입니다. 공개 Homebrew 업그레이드 단계와 설치 산출물 검사는 통과했습니다. 이후 자동 core clone을 중단했고 자동 정리를 확인했으며 전체 command는 exit 130이었습니다. 업그레이드 후 GUI·실기기 확인은 대기 중이므로 QA01은 `PENDING`입니다. [Acceptance 기록](docs/qa/beta5-native-acceptance.md)을 확인하세요.
+
+### 과거 공개 전 checkpoint — 16:24 KST
+
 2026-10-09 공개 전 기록은 `READY_FOR_RELEASE_REVIEW / NOT_PUBLISHED`입니다. Build 23은 제한된 TMQA003 acceptance를 통과했고 QA01 공개 업그레이드는 `NOT_RUN`입니다. 당시 release commit·push, tag, 공개와 Tap 갱신은 수행하지 않았습니다. 승인 뒤 frozen source/package 입력과 release commit을 비교하고 검토한 asset을 공개·다운로드 검증한 다음 Tap을 갱신합니다. 이전 asset과 환경설정을 보존하며 공개 업그레이드 acceptance는 이후 수행합니다. [Release notes](docs/releases/v0.8.0-beta.5.md)와 [Homebrew 준비](docs/Homebrew.ko.md#beta5-준비)를 확인하세요.
 
 ### 과거 beta.4 배포 범위

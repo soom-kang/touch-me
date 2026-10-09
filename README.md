@@ -12,7 +12,7 @@ It maps touch input to the display you select, enabling taps, double-clicks, one
 
 Beta `0.8.0-beta.5` requires the **USB/HID profile verified on the P16KT**. Mapping won't start if the device identifiers or HID (Human Interface Device) input layout differ. Support for other ZEUSLAP models isn't guaranteed, so check the setup below first.
 
-Use this beta.5 guide after publication and public-asset verification. The 2026-10-09 prepublication record is **READY_FOR_RELEASE_REVIEW / NOT_PUBLISHED**: build 23 passed local checks and one controlled SIGKILL recovery; normal use and relaunch behavior are `PASS_USER_REPORTED`. QA01 public Homebrew upgrade is `NOT_RUN`. The historical public baseline is [beta.4, build 21](https://github.com/soom-kang/touch-me/releases/tag/v0.8.0-beta.4). See the [release notes](docs/releases/v0.8.0-beta.5.md) and [acceptance record](docs/qa/beta5-native-acceptance.md).
+[Beta.5 build 23](https://github.com/soom-kang/touch-me/releases/tag/v0.8.0-beta.5) is published; public DMG/checksum verification passed. The public beta.4 → beta.5 Homebrew upgrade phase completed and the installed artifact matched build 23. Post-upgrade GUI/permission/gesture checks are pending, so QA01 remains `PENDING`. See the [acceptance record](docs/qa/beta5-native-acceptance.md).
 
 ## Check your setup first
 
@@ -31,7 +31,7 @@ Other panels, Intel Macs and older macOS versions have no recorded validation. S
 
 ## Install and start your first mapping session
 
-After the beta.5 asset and Tap update are published and verified, install through Homebrew or copy the app from its DMG. Both routes use the same permission and target-display setup below.
+Install through Homebrew or copy the published beta.5 app from its DMG. Both routes use the same permission and target-display setup below.
 
 ### Install with Homebrew
 
@@ -45,7 +45,7 @@ brew install --cask soom-kang/touch-me/touch-me
 
 ### Install from the DMG
 
-After publication, download `touch-me-0.8.0-beta.5-arm64.dmg` and its `.sha256` file from [GitHub Releases](https://github.com/soom-kang/touch-me/releases). Confirm version/build `0.8.0-beta.5`/23 and the checksum in the [release notes](docs/releases/v0.8.0-beta.5.md), then open the disk image and drag **Touch Me.app** to **Applications**. Eject the image after copying.
+Download `touch-me-0.8.0-beta.5-arm64.dmg` and its `.sha256` file from the [beta.5 release](https://github.com/soom-kang/touch-me/releases/tag/v0.8.0-beta.5). Confirm version/build `0.8.0-beta.5`/23 and the checksum in the [release notes](docs/releases/v0.8.0-beta.5.md), then open the disk image and drag **Touch Me.app** to **Applications**. Eject the image after copying.
 
 The beta has an ad hoc signature and isn't notarized. If macOS blocks the downloaded app's first launch, verify its source and checksum before following [Apple's manual approval guidance](https://support.apple.com/en-us/102445). An available approval option doesn't guarantee the app can run.
 

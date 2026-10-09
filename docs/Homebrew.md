@@ -2,11 +2,19 @@
 
 # Publish the Touch Me Homebrew beta
 
-This guide targets beta.5 after approved publication and public-asset
-verification. The historical public baseline was beta.4 build 21; its release
+Beta.5 is published and its public assets have been verified. This guide
+targets that release. The historical public baseline was beta.4 build 21; its release
 record and commands remain below.
 
+## Published beta.5 — 2026-10-09
+
+The [beta.5 prerelease](https://github.com/soom-kang/touch-me/releases/tag/v0.8.0-beta.5) is public at source/tag `4ead3d1acec3beb43a1f09261b308ef9fdef0e81`. Anonymous download verified the 455,408-byte DMG and sidecar against the [recorded build 23 digest](releases/v0.8.0-beta.5.md). Tap main and installed Tap `31cdb32c1e1415401c26fd338842bf811471b531` are clean and match the reviewed Cask; beta.4 assets are retained.
+
+The public beta.4 → beta.5 upgrade phase reported success; installed Applications build 23 matched executable/signature/license/icon. Post-upgrade cleanup unexpectedly cloned core under the task-scoped `HOMEBREW_NO_INSTALL_FROM_API` flag. The verified Homebrew PID was interrupted at 17:48:57 KST; the overall command exited 130 after upgrade success. Its core path and clone processes were absent after automatic cleanup, with no reset/untap needed. Post-upgrade GUI checks are pending, so QA01 remains `PENDING`. See the [acceptance record](qa/beta5-native-acceptance.md).
+
 ## Beta.5 preparation
+
+### Historical prepublication checkpoint — 16:24 KST
 
 Prepublication record on 2026-10-09: **READY_FOR_RELEASE_REVIEW / NOT_PUBLISHED**.
 Candidate `0.8.0-beta.5`, build 23 passed source compilation, nine focused backend

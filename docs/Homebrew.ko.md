@@ -2,10 +2,18 @@
 
 # Touch Me Homebrew beta 배포
 
-이 안내는 승인된 beta.5 공개와 public asset 확인 뒤 사용합니다. 과거 공개
+Beta.5를 공개했고 public asset을 확인했습니다. 이 안내는 해당 release를 대상으로 합니다. 과거 공개
 기준은 beta.4 build 21이며 당시 배포 기록과 명령은 아래에 보존합니다.
 
+## 공개한 beta.5 — 2026-10-09
+
+Source·tag `4ead3d1acec3beb43a1f09261b308ef9fdef0e81`의 [beta.5 prerelease](https://github.com/soom-kang/touch-me/releases/tag/v0.8.0-beta.5)를 공개했습니다. 익명 다운로드로 455,408-byte DMG·sidecar가 [build 23 digest](releases/v0.8.0-beta.5.md)와 일치한 것을 확인했습니다. Tap main과 설치된 Tap `31cdb32c1e1415401c26fd338842bf811471b531`은 clean이며 검토한 Cask와 일치합니다. Beta.4 asset은 보존했습니다.
+
+공개 beta.4 → beta.5 업그레이드 단계는 성공했다고 출력됐고 Applications build 23의 실행 파일·서명·라이선스·아이콘이 일치했습니다. 이후 cleanup에서 작업 한정 `HOMEBREW_NO_INSTALL_FROM_API`로 예상 밖의 core clone이 시작됐습니다. 확인한 Homebrew PID를 17:48:57 KST에 중단했으며 업그레이드 성공 뒤 전체 command는 exit 130이었습니다. 자동 정리 후 core path·clone process가 없음을 확인했고 reset·untap은 필요하지 않았습니다. 업그레이드 후 GUI 확인은 대기 중이므로 QA01은 `PENDING`입니다. [Acceptance 기록](qa/beta5-native-acceptance.md)을 확인하세요.
+
 ## Beta.5 준비
+
+### 과거 공개 전 checkpoint — 16:24 KST
 
 2026-10-09 공개 전 기록은 **READY_FOR_RELEASE_REVIEW / NOT_PUBLISHED**입니다.
 후보 `0.8.0-beta.5`, build 23의 source 컴파일, 집중 backend 검사 9개,

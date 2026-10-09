@@ -153,6 +153,10 @@ After a completed cleanup, `.build` and `dist/previous-builds` may be absent. Su
 
 ## Publish the reviewed release
 
+Postpublication record, 2026-10-09: source/tag `4ead3d1acec3beb43a1f09261b308ef9fdef0e81` and the [beta.5 prerelease](https://github.com/soom-kang/touch-me/releases/tag/v0.8.0-beta.5) are public. Anonymous DMG/sidecar download matched the frozen build 23; prior beta.4 assets were preserved. Tap and installed Tap are `31cdb32c1e1415401c26fd338842bf811471b531`. The public Homebrew upgrade phase and installed artifact checks passed. Its later automatic core clone was interrupted and cleaned up; the complete command exited 130. Post-upgrade GUI/native checks remain pending and QA01 is `PENDING`. See the [acceptance record](docs/qa/beta5-native-acceptance.md).
+
+### Historical prepublication checkpoint — 16:24 KST
+
 The 2026-10-09 prepublication record is `READY_FOR_RELEASE_REVIEW / NOT_PUBLISHED`. Build 23 passed bounded TMQA003 acceptance; QA01 public upgrade remains `NOT_RUN`. At that checkpoint release commit/push, tag, publication and Tap update were not performed. After approval, compare frozen source/package inputs with the release commit, publish the reviewed asset and verify its public bytes before updating the Tap. Keep prior assets and preferences. Run public-upgrade acceptance afterward. See the [release notes](docs/releases/v0.8.0-beta.5.md) and [Homebrew preparation](docs/Homebrew.md#beta5-preparation).
 
 ### Historical beta.4 release scope

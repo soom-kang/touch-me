@@ -2,9 +2,11 @@
 
 Ticket: TMQA-003. Status: **PASS for the approved build 23 controlled SIGKILL
 on this same-boot, continuously attached P16KT, original `(0,0)`.** Historical
-build 22 failed. Product recovery is now verified for the approved scope;
-publication awaits the final candidate review. QA01 still awaits public upgrade
-acceptance after publication.
+build 22 failed. Product recovery is verified for the approved scope. Build 23
+is now [published as beta.5](https://github.com/soom-kang/touch-me/releases/tag/v0.8.0-beta.5);
+the public download and Homebrew app replacement match the verified candidate.
+QA01 still awaits the installed-app permission/tap/Stop/Quit report and final
+same-device readback. See the [postpublication record](beta5-native-acceptance.md).
 
 ## Implemented recovery contract
 
@@ -108,7 +110,8 @@ At 14:30:43, an explicit diagnostic restore wrote only the captured `(0,0)` and
 verified readback, reporting `RESTORE_VERIFIED` and `unresolved=false`. Another
 read at 14:31:01 confirmed `(0,0)` without identity rejection. The diagnostic
 exited at 14:31:03 with no write on exit. This fallback success does not resolve
-the product failure. The app is stopped and publication remains held.
+the product failure. At that historical build 22 checkpoint, the app was
+stopped and publication remained held.
 
 A verified diagnostic fallback did not establish product recovery after app
 exit. At that point the ticket remained open until a recovery policy was agreed,
@@ -146,9 +149,11 @@ layout and dependencies unchanged.
   Keep the current Quit-block behavior for this owner's unresolved restoration.
 
 The operator approved this policy and one additional controlled SIGKILL retest.
-The implementation is in the build 23 candidate. Build 22 remains a historical
-failed candidate; neither candidate is published. This policy does not claim
-power-loss or reconnection recovery. The additional native retest passed for the approved continuous-attachment scope.
+The implementation is in build 23, subsequently published as beta.5 after
+approval and the successful native retest. Build 22 remains a historical failed
+candidate and was not published. This policy does not claim power-loss or
+reconnection recovery. The additional native retest passed for the approved
+continuous-attachment scope.
 
 Validation stayed in the existing test target: three existing device-mode checks
 passed, and six journal checks passed. They cover surviving records, readback,
@@ -179,7 +184,7 @@ Mapping immediately before the signal was not directly observed.
 
 The operator was then asked to start mapping again and explicitly confirm all
 fingers/buttons released before the exact-PID/record checks and one additional
-signal. Publication remains held.
+signal. Publication was held at that pre-retest checkpoint.
 
 ## Build 23 additional SIGKILL — product recovery verified
 
@@ -212,4 +217,7 @@ post-relaunch/Stop/Quit 0. The helper performed no feature mode write during
 this session, so its fallback did not produce this product recovery result.
 This native scope is `PASS`. Reboot, reconnection, power loss, original-mode-2
 hardware behavior and other panels remain `NOT_RUN`/unverified. Final release
-review and the later public Homebrew upgrade are still pending.
+review, publication, public checksum verification and the Homebrew app
+replacement subsequently completed. The installed-app native acceptance is
+tracked separately in the postpublication record; no further crash test was
+performed for that upgrade.

@@ -1,5 +1,50 @@
 # Beta.5 native acceptance — QA01 / TMQA003
 
+## Postpublication record — 2026-10-09
+
+Status: **PUBLISHED; public upgrade phase and installed artifact PASS; QA01
+post-upgrade native batch PENDING**. TMQA003 retains its bounded build 23 PASS
+from the prepublication run. No additional crash test was performed after the
+public upgrade.
+
+| Field / check | Public or installed evidence | Result |
+| --- | --- | --- |
+| Release source / peeled tag | `4ead3d1acec3beb43a1f09261b308ef9fdef0e81` | PASS |
+| Annotated tag object | `fbea25d379fc533c040c53d0c4b8e8b31bd0c0ed` | PASS |
+| Release | [v0.8.0-beta.5](https://github.com/soom-kang/touch-me/releases/tag/v0.8.0-beta.5), draft=false, prerelease=true; published 2026-10-09 07:43:52 UTC (16:43:52 KST) | PASS |
+| Anonymous public assets | DMG 455,408 bytes, SHA-256 `919defb41f5700bc57bac6c680d1c4765e2b090cb7d82aabebbe06d1480e9321`; sidecar matches frozen candidate | PASS |
+| Historical assets | Beta.4 asset-preservation audit | PASS |
+| Tap main / installed Tap | `31cdb32c1e1415401c26fd338842bf811471b531`; clean; Cask equals reviewed contents | PASS |
+| Public Homebrew upgrade phase | Beta.4 → beta.5 reported successful upgrade before later cleanup interruption | PASS (upgrade phase only) |
+| Installed Applications app | Beta.5/build 23; executable `8a7d98412594ef164b9c3b73bc73d4f240c2978f42cc4a0e185e7f62ffda748e`; signature/license/icon match; build 21 backup retained | PASS (artifact only) |
+| Overall upgrade command | Verified Homebrew PID `21614` interrupted during unexpected core clone at 17:48:57 KST; exited 130 after upgrade success | INTERRUPTED (post-upgrade cleanup) |
+| Core clone cleanup | Exact core path and clone processes absent after automatic interrupt cleanup; no reset or untap performed | PASS (cleanup observation) |
+| Installed GUI / native batch | Build 23 and permissions, target/Start, two-position taps, Stop and normal Quit requested; response pending | PENDING |
+| QA01 | Public upgrade artifact completed; installed GUI/native acceptance still pending | PENDING / OPEN |
+
+The unexpected clone was not an app install failure. The local Homebrew code
+supports task-scoped `HOMEBREW_NO_INSTALL_FROM_API` plus post-upgrade cleanup as
+the cause: finish-installation can run periodic cleanup, loading installed
+formula definitions; explicit non-API mode makes CoreTap ensure its checkout.
+Tap installation handles Interrupt by removing its exact path and an empty
+parent. After the interrupt, read-only checks found no
+`/opt/homebrew/Library/Taps/homebrew/homebrew-core`, its `.git` or empty
+`.../Taps/homebrew` parent, and no PID `21614`, `git` or `git-remote-https` process.
+No additional Homebrew command, reset, untap or deletion was needed. The whole
+command's exit 130 is retained separately from the successful upgrade phase.
+
+At 17:50:46 KST, new retained diagnostic session
+`289E4FD5-302D-4298-8FC2-21A7A11B8130` captured `(0,0)` on the same recorded
+HID/USB identities, location and descriptor. This read-only baseline is not
+post-upgrade GUI or product-restoration proof. The installed-app manual batch
+remains pending; the candidate's earlier native result does not replace it.
+
+The shipped release notes remain unchanged as their dated prepublication
+snapshot. No source/package rebuild or further crash test was performed for
+this documentation update.
+
+## Historical prepublication checkpoint — 16:24 KST
+
 Prepublication acceptance record, 2026-10-09 16:24 KST (`Asia/Seoul`). Status at
 this checkpoint: **READY_FOR_RELEASE_REVIEW / NOT_PUBLISHED**. Build 23's local
 checks and one controlled original-0/same-boot/continuous-P16KT SIGKILL recovery
@@ -8,7 +53,7 @@ QA01 public upgrade remains NOT_RUN; historical build 22 recovery remains FAIL.
 This record concerns the new candidate and its later public upgrade; historical
 [beta.4 build 21 evidence](build-21-native-checklist.md) remains separate.
 
-## Current journal candidate
+## Historical prepublication journal candidate
 
 | Field | Current evidence |
 | --- | --- |
