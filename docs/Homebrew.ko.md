@@ -2,15 +2,15 @@
 
 # Touch Me Homebrew beta 배포
 
-Beta.6는 재배포 후보이며 공개와 public asset 확인 뒤 설치 안내를 사용합니다.
-현재 공개 기준과 설치 앱은 beta.5 build 23을 유지합니다. 과거 배포 기록은
-아래에 보존합니다.
+Beta.6를 공개했고 public asset과 Tap을 확인했습니다. 이 안내는 해당 release를
+대상으로 하며 설치 앱은 beta.5 build 23을 유지합니다. 과거 배포 기록은 아래에
+보존합니다.
 
-## Beta.6 준비
+## 공개한 beta.6 — 2026-10-09
 
-2026-10-09 상태는 **CANDIDATE / NOT_PUBLISHED**입니다. Beta.5 이후 실행 코드 변경 없이 QA 완료 기록을 포함해 재배포합니다. Build 24의 로컬 빌드·패키징 검사를 통과했습니다. 455,405-byte DMG와 실행 파일 digest는 [beta.6 release notes](releases/v0.8.0-beta.6.md)에 기록합니다. Source baseline은 `4582b02`이고 예정 tag는 `v0.8.0-beta.6`, asset은 `touch-me-0.8.0-beta.6-arm64.dmg`와 `.sha256` sidecar입니다. 실제 Tap Cask의 Ruby syntax와 Homebrew style은 통과했으며 파일 한 개에서 offenses는 없었습니다.
+Release source·tag `7a663f5bd70fcfc73d8b44ea78abeeb69ac4b40e`의 [beta.6 prerelease](https://github.com/soom-kang/touch-me/releases/tag/v0.8.0-beta.6)를 18:38:18 KST에 공개했습니다. Beta.5 이후 실행 코드 변경 없이 QA 완료 기록을 포함해 재배포합니다. 18:38:33 KST 익명 DMG·sidecar 확인에서 build 24의 455,405-byte 산출물과 [기록한 digest](releases/v0.8.0-beta.6.md)가 일치했습니다. Public·설치된 Tap revision은 `3c3ab9e95c3ad6991d7397fa6b436c2f46e5aa7f`이며 설치된 Tap은 clean하게 fast-forward했습니다. 실제 Cask Ruby syntax와 Homebrew style은 파일 한 개에서 offenses 없이 통과했습니다.
 
-승인 범위는 prerelease 공개와 공개 Tap 갱신까지입니다. Compilation/package 입력을 최종 commit과 비교하고 공개 bytes를 검증한 뒤 Cask를 갱신합니다. 기존 tag·asset과 설치된 beta.5 앱을 보존하며 beta.5 checksum을 재사용하지 않습니다. Beta.5 build 23 acceptance는 회귀 근거로만 인용합니다. Beta.6 설치·GUI·Gatekeeper·실기기 사용·Homebrew upgrade는 `NOT_RUN`입니다.
+일반 `brew audit --cask --online soom-kang/touch-me/touch-me`는 `--new`나 검사 제외 없이 18:39:35 KST에 exit 0으로 통과했습니다. 기존 선택 Cask trust는 유지했으며 Tap 전체는 trusted 상태가 아닙니다. 설치된 beta.5 앱은 보존합니다. Beta.5 build 23 acceptance는 회귀 근거로만 인용합니다. Beta.6 설치·GUI·Gatekeeper·실기기 사용·Homebrew upgrade는 `NOT_RUN`입니다.
 
 ## 공개한 beta.5 — 2026-10-09
 
@@ -196,7 +196,7 @@ Audit에는 설치된 Cask 이름을 사용합니다. Homebrew 7.0.9는 `.rb` �
 
 ## 공개 후 설치·업데이트·제거
 
-다음은 beta.6 공개와 Tap 확인 뒤 사용할 설치 안내이며 승인된 공개·audit 작업과 별개입니다. 이번 작업에서는 설치된 beta.5 앱을 유지합니다. 전체 이름으로 설치하면 Tap 전체 대신 선택한 Cask에 trust가 적용됩니다. [Tap Trust](https://docs.brew.sh/Tap-Trust)
+다음은 공개된 beta.6 설치 안내이며 공개·audit 기록과 별개입니다. 해당 작업에서는 설치된 beta.5 앱을 유지했습니다. 전체 이름으로 설치하면 Tap 전체 대신 선택한 Cask에 trust가 적용됩니다. [Tap Trust](https://docs.brew.sh/Tap-Trust)
 
 ```bash
 brew install --cask soom-kang/touch-me/touch-me

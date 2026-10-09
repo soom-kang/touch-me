@@ -2,15 +2,15 @@
 
 # Publish the Touch Me Homebrew beta
 
-Beta.6 is a redistribution candidate; use its installation guidance after
-publication and public-asset verification. The current public baseline and
-installed app remain beta.5 build 23. Earlier release records remain below.
+Beta.6 is published and its public assets and Tap have been verified. This guide
+targets that release; the installed app remains beta.5 build 23. Earlier release
+records remain below.
 
-## Beta.6 preparation
+## Published beta.6 — 2026-10-09
 
-Status on 2026-10-09: **CANDIDATE / NOT_PUBLISHED**. There are no runtime-code changes since beta.5; this release includes completed QA records. Build 24's local build/package checks passed. The 455,405-byte DMG and executable digests are recorded in the [beta.6 release notes](releases/v0.8.0-beta.6.md). Source baseline is `4582b02`; the planned tag is `v0.8.0-beta.6`, with `touch-me-0.8.0-beta.6-arm64.dmg` and its `.sha256` sidecar. The actual Tap Cask passed Ruby syntax and Homebrew style: one file inspected, no offenses.
+The [beta.6 prerelease](https://github.com/soom-kang/touch-me/releases/tag/v0.8.0-beta.6) was published at 18:38:18 KST from release source/tag `7a663f5bd70fcfc73d8b44ea78abeeb69ac4b40e`. There are no runtime-code changes since beta.5; it includes completed QA records. Anonymous DMG/sidecar verification at 18:38:33 KST matched the 455,405-byte build 24 artifact and [recorded digest](releases/v0.8.0-beta.6.md). Public and installed Tap revision is `3c3ab9e95c3ad6991d7397fa6b436c2f46e5aa7f`; the installed Tap fast-forwarded cleanly. Actual Cask Ruby syntax and Homebrew style passed, with one file inspected and no offenses.
 
-Approval covers prerelease publication and the public Tap update only. Freeze compilation/package inputs against the final commit, verify public bytes before updating the Cask, and retain existing tags/assets and the installed beta.5 app. Do not reuse beta.5's checksum. Beta.5 build 23 acceptance is regression evidence only. Beta.6 installation, GUI, Gatekeeper, real-device use and Homebrew upgrade are `NOT_RUN`.
+Ordinary `brew audit --cask --online soom-kang/touch-me/touch-me` passed with exit 0 at 18:39:35 KST, without `--new` or exclusions. Existing selected-Cask trust is unchanged; the whole Tap is not trusted. The installed beta.5 app is retained. Beta.5 build 23 acceptance is regression evidence only. Beta.6 installation, GUI, Gatekeeper, real-device use and Homebrew upgrade are `NOT_RUN`.
 
 ## Published beta.5 — 2026-10-09
 
@@ -197,7 +197,7 @@ Homebrew 7.0.8 was inspected on 2026-10-07 and its relevant contracts were reche
 
 ## Install, update and remove after publication
 
-These are user installation instructions for after beta.6 publication and Tap verification; they are separate from the approved publication/audit run. This run retains the installed beta.5 app. Fully qualified installation scopes trust to the selected Cask rather than the whole Tap. [Tap Trust](https://docs.brew.sh/Tap-Trust)
+These user installation instructions target published beta.6 and are separate from the publication/audit record. That run retained the installed beta.5 app. Fully qualified installation scopes trust to the selected Cask rather than the whole Tap. [Tap Trust](https://docs.brew.sh/Tap-Trust)
 
 ```bash
 brew install --cask soom-kang/touch-me/touch-me

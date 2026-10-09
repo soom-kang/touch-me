@@ -156,7 +156,7 @@ Release build 한 번으로 build 12를 생성했습니다. 숫자 번들 버전
 
 ## 검토한 릴리즈 공개하기
 
-2026-10-09 beta.6 준비 상태는 **CANDIDATE / NOT_PUBLISHED**입니다. 승인 범위는 `v0.8.0-beta.6` prerelease와 공개 Tap 갱신까지입니다. Source baseline은 `4582b02`이며 build 24와 산출물 식별을 확인했습니다. 실제 Tap Cask의 Ruby syntax와 Homebrew style은 통과했으며 파일 한 개에서 offenses는 없었습니다. Frozen 입력과 최종 tag source를 비교하고 공개 DMG·sidecar를 검증한 뒤 정확한 digest로 Tap을 갱신합니다. 공개 검사는 아직 대기 중입니다. 기존 tag·asset·QA 기록과 설치된 beta.5 앱을 보존합니다. Beta.6 설치·GUI·Gatekeeper·실기기 사용·Homebrew upgrade는 `NOT_RUN`이며 beta.5 build 23 결과는 회귀 근거로만 인용합니다. [Beta.6 release notes](docs/releases/v0.8.0-beta.6.md)를 확인하세요.
+2026-10-09 beta.6 공개 후 기록: release source·tag `7a663f5bd70fcfc73d8b44ea78abeeb69ac4b40e`의 [prerelease](https://github.com/soom-kang/touch-me/releases/tag/v0.8.0-beta.6)를 18:38:18 KST에 공개했습니다. 18:38:33 KST 익명 DMG·sidecar 확인에서 build 24의 455,405-byte 산출물과 일치했습니다. Public Tap `3c3ab9e95c3ad6991d7397fa6b436c2f46e5aa7f`를 push했고 설치된 Tap도 clean하게 fast-forward했습니다. 실제 Cask의 Ruby syntax·style과 일반 `brew audit --cask --online soom-kang/touch-me/touch-me`가 통과했습니다. Audit은 `--new`나 검사 제외 없이 18:39:35 KST에 exit 0으로 완료됐고 선택한 Cask trust는 유지했습니다. 설치된 beta.5 앱은 보존합니다. Beta.6 설치·GUI·Gatekeeper·실기기 사용·Homebrew upgrade는 `NOT_RUN`이며 beta.5 build 23 결과는 회귀 근거로만 인용합니다. [Beta.6 release notes](docs/releases/v0.8.0-beta.6.md)를 확인하세요.
 
 ### 과거 beta.5 공개와 acceptance
 

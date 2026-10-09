@@ -12,7 +12,7 @@ It maps touch input to the display you select, enabling taps, double-clicks, one
 
 Beta `0.8.0-beta.6` requires the **USB/HID profile verified on the P16KT**. Mapping won't start if the device identifiers or HID (Human Interface Device) input layout differ. Support for other ZEUSLAP models isn't guaranteed, so check the setup below first.
 
-Beta.6 is a redistribution candidate with completed QA records and no runtime-code changes since beta.5. Build 24 passed local artifact checks; publication is pending. Its verified identities are in the [beta.6 release notes](docs/releases/v0.8.0-beta.6.md). The [beta.5 build 23 acceptance](docs/qa/beta5-native-acceptance.md) is regression evidence only. Beta.6 installation, GUI, Gatekeeper, real-device use and Homebrew upgrade are `NOT_RUN`; the installed beta.5 app is retained.
+[Beta.6 build 24](https://github.com/soom-kang/touch-me/releases/tag/v0.8.0-beta.6) is published with completed QA records and no runtime-code changes since beta.5. Public DMG/checksum, Tap and online audit checks passed; artifact identities are in the [release notes](docs/releases/v0.8.0-beta.6.md). The [beta.5 build 23 acceptance](docs/qa/beta5-native-acceptance.md) is regression evidence only. Beta.6 installation, GUI, Gatekeeper, real-device use and Homebrew upgrade are `NOT_RUN`; the installed beta.5 app is retained.
 
 ## Check your setup first
 
@@ -31,7 +31,7 @@ Other panels, Intel Macs and older macOS versions have no recorded validation. S
 
 ## Install and start your first mapping session
 
-After beta.6 publication and public-asset verification, install through Homebrew or copy the app from its DMG. Both routes use the same permission and target-display setup below.
+Install through Homebrew or copy the published beta.6 app from its DMG. Both routes use the same permission and target-display setup below.
 
 ### Install with Homebrew
 
@@ -45,7 +45,7 @@ brew install --cask soom-kang/touch-me/touch-me
 
 ### Install from the DMG
 
-After publication, download `touch-me-0.8.0-beta.6-arm64.dmg` and its `.sha256` file from the [beta.6 release](https://github.com/soom-kang/touch-me/releases/tag/v0.8.0-beta.6). Confirm the actual version/build and checksum in the [release notes](docs/releases/v0.8.0-beta.6.md), then open the disk image and drag **Touch Me.app** to **Applications**. Eject the image after copying.
+Download `touch-me-0.8.0-beta.6-arm64.dmg` and its `.sha256` file from the [beta.6 release](https://github.com/soom-kang/touch-me/releases/tag/v0.8.0-beta.6). Confirm version/build `0.8.0-beta.6`/24 and the checksum in the [release notes](docs/releases/v0.8.0-beta.6.md), then open the disk image and drag **Touch Me.app** to **Applications**. Eject the image after copying.
 
 The beta has an ad hoc signature and isn't notarized. If macOS blocks the downloaded app's first launch, verify its source and checksum before following [Apple's manual approval guidance](https://support.apple.com/en-us/102445). An available approval option doesn't guarantee the app can run.
 
@@ -118,7 +118,7 @@ For local builds or distribution details, read these documents:
 - [Homebrew distribution](docs/Homebrew.md): Tap and release procedure, installation conflicts, updates and removal
 - [Beta.4 release notes](docs/releases/v0.8.0-beta.4.md): historical changes and validation limits
 - [Beta.5 release notes](docs/releases/v0.8.0-beta.5.md): historical release snapshot
-- [Beta.6 release notes](docs/releases/v0.8.0-beta.6.md): redistribution candidate and validation limits
+- [Beta.6 release notes](docs/releases/v0.8.0-beta.6.md): redistribution, artifact identities and validation limits
 - [Editable architecture diagram](docs/assets/architecture.html)
 
 A local candidate build produces `dist/touch-me-0.8.0-beta.6-arm64.dmg`; this path is not a public download.
