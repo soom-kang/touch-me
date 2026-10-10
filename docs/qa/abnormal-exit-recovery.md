@@ -21,6 +21,19 @@ Fresh installation, permission off/on, lock/sleep, full logout/login and removal
 remain `NOT_RUN`; reboot, reconnection, power loss and other panels remain
 outside the verified recovery scope.
 
+## Beta.7 release boundary — 2026-10-10
+
+Publication is **PENDING**. Local build 25 and packaging passed; reuse the source's 37
+Swift tests and one development build 24 USB-C cycle (`PASS_USER_REPORTED`),
+bound to executable SHA-256
+`06306a6ed873d314ab565066b42d5a022618ea067a53cd76abceb7333f2e41f7`.
+The snapshot below retains its exact scope; new build 25 GUI/device, installation,
+upgrade and Gatekeeper are `NOT_RUN`. No direct mode-pair readback, independent
+device-write count or broader recovery acceptance is added. Online audit is
+`BLOCKED` by the approved trust-preserving deferral, separate from beta.6's
+historical PASS. See [beta.7 release notes](../releases/v0.8.0-beta.7.md) for new
+artifact and publication results. Earlier release/QA observations stay historical.
+
 ## Ended-connection record handling — development candidate, 2026-10-10
 
 The user reported that unplugging and reconnecting USB-C while Touch Me was open

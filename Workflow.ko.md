@@ -16,9 +16,9 @@ Apple Silicon Mac, macOS 26 이상, 패키지의 Swift 6.0 manifest와 호환되
 | --------------------- | ------------------------------------ |
 | 앱과 실행 파일        | `Touch Me.app` / `TouchMe`           |
 | Bundle Identifier     | `io.github.soom-kang.touchme`        |
-| Release 버전          | `VERSION`에서 읽는 `0.8.0-beta.6`    |
+| Release 버전          | `VERSION`에서 읽는 `0.8.0-beta.7`    |
 | 번들 버전             | `0.8.0`과 증가하는 숫자 build 번호   |
-| 전체 release metadata | `TouchMeReleaseVersion=0.8.0-beta.6` |
+| 전체 release metadata | `TouchMeReleaseVersion=0.8.0-beta.7` |
 | 대상 환경             | `arm64`, macOS 26 이상               |
 
 문서나 패키징을 바꿀 때는 식별자와 저장한 환경설정 형식을 유지하세요. 서명 identity나 설치 경로를 바꾸면 설치 앱의 권한 확인이 필요할 수 있습니다.
@@ -33,13 +33,55 @@ Apple Silicon Mac, macOS 26 이상, 패키지의 Swift 6.0 manifest와 호환되
 | `TouchMePlatform`  | USB Human Interface Device(HID) 탐색, 화면 선택, P16KT 모드 복구와 macOS 이벤트 |
 | `TouchMeApp`       | 메뉴 막대, 설정·시험 창, 환경설정, 로그인 실행과 재개 판단                      |
 
-앱은 확인한 패널 한 대와 조건에 맞는 외부 화면을 사용합니다. 매핑은 장치를 독점 점유하고 필요한 경우 확인한 모드를 켭니다. 중지하거나 정상 종료하면 확인한 연속 연결에서 원래 모드로 복구합니다. 후보가 연결 종료를 확인한 경우에는 [journal 계약](docs/qa/abnormal-exit-recovery.md)에 따라 복구를 확인하지 못한 archive를 보존합니다. 복구나 archive 오류는 화면에 남고 종료를 차단할 수 있습니다.
+앱은 확인한 패널 한 대와 조건에 맞는 외부 화면을 사용합니다. 매핑은 장치를 독점 점유하고 필요한 경우 확인한 모드를 켭니다. 중지하거나 정상 종료하면 확인한 연속 연결에서 원래 모드로 복구합니다. 연결 종료를 확인한 경우에는 [journal 계약](docs/qa/abnormal-exit-recovery.md)에 따라 복구를 확인하지 못한 archive를 보존합니다. 복구나 archive 오류는 화면에 남고 종료를 차단할 수 있습니다.
 
 현재 소스에는 앱의 네트워크 통신이나 원시 입력 로그 기능이 없습니다. 환경설정에는 선택한 장치·화면 정보, 재개할 의도와 앱 언어 선택을 저장하며, 터치 이력은 저장하지 않습니다. 기본 언어는 영어입니다. 언어를 바꾸면 앱이 만든 UI를 즉시 갱신하며 세션을 재시작하거나 macOS 언어 설정을 바꾸지 않습니다.
 
+## Beta.7 release 준비 — 2026-10-10
+
+상태는 **PENDING**입니다. Release checkout에서 prerelease `v0.8.0-beta.7`,
+숫자 번들 버전 `0.8.0`과 확인한 로컬 build 25를 준비합니다. 개발 build 24와 설치 앱은
+보존하며 로컬 앱 설치나 upgrade는 포함하지 않습니다.
+
+아래 Swift tests 37개와 USB-C cycle 한 번을 개발 실행 파일 SHA-256
+`06306a6ed873d314ab565066b42d5a022618ea067a53cd76abceb7333f2e41f7`에 연결해
+재사용합니다. 매핑 코드를 유지하며 build 25의 새 GUI·실기기 acceptance는 없습니다.
+
+| Release 검사 | 현재 상태 |
+| --- | --- |
+| 재사용한 source tests / build 24 USB-C cycle | `PASS`(37개) / `PASS_USER_REPORTED`(1회) |
+| 새 build 25, 패키징과 기존 Python packaging tests 18개 | `PASS`; 빌드·패키징 각 1회, tests 18개 통과 |
+| Source·tag·prerelease, public DMG·sidecar와 실제 Tap Cask syntax·style | 공개·public asset `PENDING`; 실제 Cask syntax·style `PASS`(파일 1개, offenses 없음) |
+| `brew audit --cask --online soom-kang/touch-me/touch-me` | `BLOCKED`; 승인한 보류에 따라 trust 설정과 우회 변수를 변경하지 않음 |
+| Build 25 GUI·실기기, 설치·upgrade·Gatekeeper | `NOT_RUN`; release 범위 밖 |
+
+`scripts/package-dmg.py`의 양언어 `Install.txt` 안내를 포함한 release 입력을
+확정한 뒤 빌드·패키징을 각각 한 번 수행합니다. 입력을 release commit과 비교해
+동결하고 새 번들·DMG를 검증합니다. Public 다운로드 bytes와 sidecar를 확인한
+뒤 기존 Tap을 갱신합니다. Audit 보류와 별개로 Cask syntax·style과 public asset
+식별은 필수입니다. 실제 revision·hash·결과는
+[beta.7 release notes](docs/releases/v0.8.0-beta.7.md)에 기록합니다.
+Beta.6 당시 online audit PASS는 과거 근거로만 보존합니다.
+
+로컬 build 25의 컴파일·strict 서명·metadata·라이선스·아이콘·arm64 검사는
+통과했습니다. 패키징은 한 번 통과했고 기존 packaging tests 18개도 통과했습니다.
+Frozen inputs 28개가 일치했습니다. DMG 무결성·sidecar, 읽기 전용 mount 내부
+identity(정확한 파일 5개), 양언어 설치 안내, Applications symlink와 정상 detach도
+통과했습니다.
+
+| 로컬 산출물 | 확인한 식별 |
+| --- | --- |
+| Build 25 실행 파일 SHA-256 | `b0ea3a8daecbb45cb75fb680941401e4ab679e9da7a8fe44c742975d38e309d4` |
+| DMG 크기 / SHA-256 | 524,843 bytes / `74bf81ff7e7d1a0a1966146022b7e60841451897fee25a2dbe1449b31113da90` |
+
+기존 Command Line Tools linker search-path 경고는 검사를 막지 않았습니다.
+첫 상대 경로의 `hdiutil verify`는 경로 오류로 실패했고 정확한 절대 경로로
+재시도해 통과했습니다. 산출물 변경이나 추가 패키징은 없었습니다.
+이는 로컬 산출물 결과이며 public 다운로드 확인은 `PENDING`입니다.
+
 ## USB-C 재연결 후보 — 2026-10-10
 
-현재 개발 변경은 `VERSION`, 기존 active record schema와 `SavedMapping`을 유지하면서 안전한 재연결 처리를 추가합니다. 아래 공개 beta.6와 이전 acceptance 기록은 당시 확인 범위를 보존합니다. 이번 작업에는 commit, push, 설치, release, Tap 갱신과 DMG 패키징을 포함하지 않습니다.
+이 개발 검증 snapshot은 beta.7 release 준비 전 재연결 변경의 결과입니다. 당시 `VERSION`, 기존 active record schema와 `SavedMapping`을 유지했습니다. 공개 beta.6와 이전 acceptance 기록도 당시 확인 범위를 보존합니다. 완료한 개발 작업에는 commit·push·release·Tap 갱신·DMG 패키징을 포함하지 않았으며 beta.7 release 범위는 위에 구분했습니다.
 
 모드를 변경한 active record가 있으면 독점 lease, 같은 부팅, 정확한 nonce와 현재 소유자 또는 종료가 확인된 이전 소유자를 확인합니다. 정확한 이전 HID와 USB 서비스가 모두 종료됐음을 확인해야 하며 조회 오류는 연결 해제로 보지 않습니다. `disconnected-<nonce>.json` → `reconnect-required.json` → active record 제거 순서로 저장하고 sync합니다. Archive는 복구를 확인하지 못한 기록이며 이전 모드 값을 새 연결에 쓰지 않습니다.
 
@@ -61,9 +103,11 @@ Active record 없이 당시 읽은 `(0,0)`이나 `(2,0)`이 유지된 경우에�
 | 승인한 USB-C cycle과 두 위치 탭 | 2026-10-10 `PASS_USER_REPORTED`: 시작 → 같은 USB-C 분리·재연결 → 자동 재개 → 두 위치 탭 → 중지 1회; 승인한 acceptance 범위 충족 |
 | 새 release, Homebrew 설치나 upgrade | 수행하지 않음; 범위 밖 |
 
-로컬 후보는 `dist/Touch Me.app`이며 release `0.8.0-beta.6`, 숫자 번들 버전
-`0.8.0`, build 24입니다(이전 로컬 build 23 → 24). 설치 앱도 beta.6/build 24이므로
-버전·build만으로 후보를 구분할 수 없습니다:
+개발 checkpoint 당시 source checkout의 후보는 `dist/Touch Me.app`이며
+release `0.8.0-beta.6`, 숫자 번들 버전 `0.8.0`, build 24였습니다(이전 로컬
+build 23 → 24). 설치 앱도 beta.6/build 24로 표시돼 아래 경로와 hash로
+구분했습니다. 별도 beta.7 release checkout에는 현재 build 25가 있으며
+아래 표는 개발 checkpoint의 식별입니다:
 
 | 실행 파일 | SHA-256 |
 | --- | --- |
@@ -102,7 +146,7 @@ Gatekeeper는 이번 범위에서 실행하지 않았습니다. 실기기 결과
 
 ## 앱 빌드와 번들 확인하기
 
-Beta.6는 QA 완료 기록을 재배포하며 beta.5 이후 실행 코드 변경은 없습니다. 빌드·패키징 각 한 번으로 build 24를 생성했고 frozen inputs 28개 일치, numeric version `0.8.0`, macOS 26+/arm64, strict 서명과 라이선스·아이콘 검사를 통과했습니다. 로컬과 설치된 beta.5 build 23의 hash는 보존했습니다. Build 23 실기기 PASS는 beta.6 acceptance가 아닌 회귀 근거입니다. [Beta.6 release notes](docs/releases/v0.8.0-beta.6.md)를 확인하세요.
+과거 beta.6는 QA 완료 기록을 재배포했으며 beta.5 이후 실행 코드 변경은 없었습니다. 빌드·패키징 각 한 번으로 build 24를 생성했고 frozen inputs 28개 일치, numeric version `0.8.0`, macOS 26+/arm64, strict 서명과 라이선스·아이콘 검사를 통과했습니다. 로컬과 설치된 beta.5 build 23의 hash는 보존했습니다. Build 23 실기기 PASS는 beta.6 acceptance가 아닌 회귀 근거입니다. [Beta.6 release notes](docs/releases/v0.8.0-beta.6.md)를 확인하세요.
 
 Release 실행 파일을 빌드하고 아이콘과 프로젝트 라이선스를 번들에 포함하세요. 최초 beta.5 준비는 설치된 build 21을 번호의 기준으로 build 22를 한 번 생성했습니다. Journal 도입 전인 이 산출물은 과거 기록으로 보존합니다. 합의한 recovery journal의 build 23을 생성했고 strict 서명, arm64, metadata, 라이선스·아이콘과 frozen inputs 28개 검사가 통과했습니다. 패키징도 통과했습니다. Build 23 정상 사용·재실행 확인은 `PASS_USER_REPORTED`입니다. 조건부 SIGKILL·재실행 한 번에서 매핑 재개 전 이전 기록을 복구했고 Stop·Quit 뒤 `(0,0)`을 확인했습니다. 이전 산출물을 보존하며 재빌드는 번호를 다시 증가시킵니다:
 
@@ -135,19 +179,19 @@ python3 scripts/package-dmg.py
 | 산출물                                        | 용도                    |
 | --------------------------------------------- | ----------------------- |
 | `dist/Touch Me.app`                           | 로컬 서명한 앱 번들     |
-| `dist/touch-me-0.8.0-beta.6-arm64.dmg`        | 로컬 beta 후보 이미지   |
-| `dist/touch-me-0.8.0-beta.6-arm64.dmg.sha256` | SHA-256 checksum        |
+| `dist/touch-me-0.8.0-beta.7-arm64.dmg`        | 로컬 beta 후보 이미지   |
+| `dist/touch-me-0.8.0-beta.7-arm64.dmg.sha256` | SHA-256 checksum        |
 
 Release checkout의 기존 이미지는 `dist/previous-builds`로 옮깁니다. DMG 무결성과 checksum을 확인하세요:
 
-확인한 beta.6 DMG는 build 24를 포함하며 455,405 bytes입니다. Digest는
+과거 확인한 beta.6 DMG는 build 24를 포함하며 455,405 bytes입니다. Digest는
 [후보 기록](docs/releases/v0.8.0-beta.6.md)에 있습니다. DMG 무결성·sidecar,
 읽기 전용 mount 내부 identity와 정상 detach 검사를 통과했습니다. Beta.5 build
 23과 과거 build 22의 checksum은 새 산출물을 검증하는 근거로 사용할 수 없습니다.
 
 ```bash
-hdiutil verify dist/touch-me-0.8.0-beta.6-arm64.dmg
-(cd dist && shasum -a 256 -c touch-me-0.8.0-beta.6-arm64.dmg.sha256)
+hdiutil verify dist/touch-me-0.8.0-beta.7-arm64.dmg
+(cd dist && shasum -a 256 -c touch-me-0.8.0-beta.7-arm64.dmg.sha256)
 ```
 
 ![소스와 라이선스로 로컬 서명 앱을 만들고 개인용 디스크 이미지와 SHA-256 checksum을 생성하는 흐름입니다.](docs/assets/packaging.ko.png)

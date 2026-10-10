@@ -2,13 +2,45 @@
 
 # Touch Me Homebrew beta 배포
 
-Beta.6를 공개했고 public asset과 Tap을 확인했습니다. 이 안내는 해당 release를
-대상으로 하며 2026-10-09 공개 작업에서는 설치된 beta.5 build 23을 보존했습니다.
-과거 배포 기록은 아래에 보존합니다.
+이 안내는 beta.7 공개와 기존 Tap 갱신을 준비합니다. 현재 상태는 `PENDING`이며
+로컬 앱 설치와 upgrade는 범위 밖입니다. Beta.6와 이전 배포 기록은 아래에
+보존합니다.
+
+## Beta.7 release 준비 — 2026-10-10
+
+상태는 **PENDING**입니다. Prerelease `v0.8.0-beta.7`, 확인한 로컬 build 25와
+`touch-me-0.8.0-beta.7-arm64.dmg`·`.sha256` 파일을 준비합니다. 이번 작업은
+public release와 기존 Tap만 갱신하며 설치 앱과 환경설정은 보존합니다.
+
+Source의 Swift tests 37개와 개발 build 24 USB-C cycle
+(`PASS_USER_REPORTED`)을 재사용합니다. 실행 파일 hash는
+[Workflow](../Workflow.ko.md#usb-c-재연결-후보--2026-10-10)에 보존합니다.
+새 build 25 GUI·실기기, 설치·upgrade·Gatekeeper는 `NOT_RUN`입니다.
+
+1. 생성할 `Install.txt`를 포함해 beta.7 metadata와 양언어 문서를 확정합니다.
+   빌드·패키징을 각각 한 번 수행하고 기존 packaging tests 18개를 실행합니다.
+   Release 입력을 동결하고 번들 metadata·서명·라이선스·아이콘, arm64,
+   DMG 무결성·sidecar와 읽기 전용 mount 내부 identity를 확인합니다.
+2. 검토한 source·tag·prerelease를 공개하며 이전 asset을 대치하지 않습니다.
+   익명 public DMG·sidecar의 bytes·hash·내부 metadata를 동결한 후보와
+   비교한 뒤 Tap을 변경합니다.
+3. 실제 `Casks/touch-me.rb`, beta.7 정확한 버전의 prerelease allowlist와
+   Tap 양언어 안내를 갱신합니다. Cask Ruby syntax·style을 통과해야 하며
+   공개한 Tap revision과 asset 식별 일치를 확인합니다.
+
+Online audit는 승인한 보류에 따라 **BLOCKED**입니다. 기존 trust를 유지하고
+trust 설정이나 우회 환경변수를 바꾸지 않습니다. 이번 범위에서
+`brew audit --cask --online soom-kang/touch-me/touch-me`를 실행하거나 beta.6의
+과거 audit PASS를 beta.7 결과로 사용하지 않습니다. 필수 asset·Cask 검사 통과
+후 이 예외를 기록한 상태로 공개 작업을 마칠 수 있습니다. 로컬 빌드·패키징과
+packaging tests 18개, 실제 Cask syntax·style은 통과했습니다(파일 1개, offenses 없음).
+Public release·asset과 Tap 공개는 `PENDING`입니다. 실제 결과는
+[beta.7 release notes](releases/v0.8.0-beta.7.md)에 기록합니다.
+아래 beta.4 명령은 과거 예시로 보존합니다.
 
 ## 로컬 USB-C 재연결 후보 — 2026-10-10
 
-재연결 source 변경은 공개 beta.6 DMG나 Cask에 포함되지 않습니다. 이번 작업에서는 `VERSION`, release asset, Tap과 설치 앱을 변경하지 않습니다. 로컬 test·build 결과는 공개나 Homebrew acceptance와 구분해 [Workflow](../Workflow.ko.md#usb-c-재연결-후보--2026-10-10)에 기록합니다. 2026-10-10에 후보의 시작 → USB-C 분리·재연결 → 자동 재개 → 두 위치 탭 → 중지 1회가 `PASS_USER_REPORTED`로 승인한 로컬 acceptance 범위를 충족했습니다. 새 Homebrew 검증 결과는 아닙니다.
+이 개발 snapshot은 beta.7 release 준비 전의 기록입니다. 재연결 source 변경은 공개 beta.6에 포함되지 않습니다. 완료한 개발 작업에서는 `VERSION`, release asset, Tap과 설치 앱 번들을 변경하지 않았습니다. 로컬 test·build 결과는 공개나 Homebrew acceptance와 구분해 [Workflow](../Workflow.ko.md#usb-c-재연결-후보--2026-10-10)에 기록합니다. 2026-10-10에 후보의 시작 → USB-C 분리·재연결 → 자동 재개 → 두 위치 탭 → 중지 1회가 `PASS_USER_REPORTED`로 승인한 로컬 acceptance 범위를 충족했습니다. 새 Homebrew 검증 결과는 아닙니다.
 
 후보는 같은 부팅에서 정확히 기록된 HID와 USB 서비스가 모두 종료됐고 소유자 조건을 통과한 경우에만 이전 기록을 `disconnected-<nonce>.json`으로 보존합니다. Sync한 `reconnect-required.json`으로 재실행 후에도 새 모드 확인 조건을 유지합니다. 원래 `(2,0)`이라 모드 변경 기록이 없던 세션에도 이 조건을 적용합니다. 이는 원래 모드 복구를 확인하지 못한 기록이며 이전 모드 값을 새 연결에 쓰지 않습니다. `(0,0)`이면 안전 조건을 확인한 자동 시작을 허용하고 `(2,0)`이면 안내 후 직접 시작해야 합니다. 직접 시작 후 중지해도 현재 모드를 유지합니다.
 
@@ -204,32 +236,32 @@ Audit에는 설치된 Cask 이름을 사용합니다. Homebrew 7.0.9는 `.rb` �
 
 ## 공개 후 설치·업데이트·제거
 
-다음은 공개된 beta.6 설치 안내이며 공개·audit 기록과 별개입니다. 해당 작업에서는 설치된 beta.5 앱을 유지했습니다. 전체 이름으로 설치하면 Tap 전체 대신 선택한 Cask에 trust가 적용됩니다. [Tap Trust](https://docs.brew.sh/Tap-Trust)
+다음은 공개와 Tap 확인 후 사용할 beta.7 설치 안내입니다. 현재 공개 상태는 `PENDING`이며 이번 release 작업에서는 로컬 설치나 upgrade를 실행하지 않습니다. Beta.6 작업에서는 당시 설치된 beta.5 앱을 유지했습니다. 전체 이름으로 설치하면 Tap 전체 대신 선택한 Cask에 trust가 적용됩니다. [Tap Trust](https://docs.brew.sh/Tap-Trust)
 
 ```bash
 brew install --cask soom-kang/touch-me/touch-me
 ```
 
-`/Applications/Touch Me.app`을 수동 설치했다면 **로그인 시 시작**을 끄고 **매핑 중지 → 정상 종료**를 수행합니다. 장치 모드 복구 완료를 확인하세요. 기존 앱을 Applications 밖으로 옮겨 보존한 뒤 Homebrew로 설치합니다. 강제 덮어쓰기는 사용하지 않고 환경설정은 유지합니다. 복구에 실패하면 중단합니다.
+`/Applications/Touch Me.app`을 수동 설치했다면 **로그인 시 시작**을 끄고 **매핑 중지 → 정상 종료**를 수행합니다. 연속 연결의 모드 복구나 종료가 확인된 연결의 기록 보존을 확인하세요. 기존 앱을 Applications 밖으로 옮겨 보존한 뒤 Homebrew로 설치합니다. 강제 덮어쓰기는 사용하지 않고 환경설정은 유지합니다. 복구에 실패하면 중단합니다.
 
 Ad hoc beta는 공증하지 않았습니다. 출처와 checksum을 확인한 뒤 첫 실행을 시도하세요. macOS가 공식 승인 경로를 제공하면 **시스템 설정 → 개인정보 보호 및 보안 → 확인 없이 열기**에서 사용자가 직접 승인합니다. 관리 환경이나 손상·악성 경고로 진행할 수 없으면 중단하고 원인을 확인합니다. 이 절차는 Gatekeeper 승인을 보장하지 않습니다. [Apple 첫 실행 안내](https://support.apple.com/en-us/102445)
 
 시스템 설정에서 **입력 모니터링**과 **손쉬운 사용**을 허용한 뒤 앱을 새로 조회합니다. Ad hoc 앱을 업데이트하면 권한 승인을 다시 해야 할 수 있으므로 매핑 전에 두 항목을 확인합니다. Cask의 `unsigned_accessibility`는 손쉬운 사용 재승인을 안내하며 권한을 부여하거나 quarantine을 변경하지 않습니다.
 
-업데이트 전 **매핑 중지 → 정상 종료**와 모드 복구를 확인한 뒤 실행합니다:
+업데이트 전 **매핑 중지 → 정상 종료**와 연결이나 종료가 확인된 기록의 안전한 정리를 확인한 뒤 실행합니다:
 
 ```bash
 brew update
 brew upgrade --cask soom-kang/touch-me/touch-me
 ```
 
-제거 전 **로그인 시 시작**을 끄고 같은 중지·종료 절차와 모드 복구를 확인한 뒤 실행합니다:
+제거 전 **로그인 시 시작**을 끄고 같은 중지·종료 절차와 안전한 정리를 확인한 뒤 실행합니다:
 
 ```bash
 brew uninstall --cask soom-kang/touch-me/touch-me
 ```
 
-제거 후에도 앱 환경설정은 남습니다. `zap`, 자동 process kill과 장치 복구 hook은 없습니다. 복구에 실패하면 업데이트·제거를 중단하고 현재 연결을 유지한 채 복구 재시도를 수행합니다. 연결이 바뀌면 복구를 차단하므로 기록과 오류를 보존합니다.
+제거 후에도 앱 환경설정은 남습니다. `zap`, 자동 process kill과 장치 복구 hook은 없습니다. 복구나 기록 처리에 실패하면 업데이트·제거를 중단하고 현재 연결을 유지한 채 복구 재시도를 수행합니다. 불확실한 기록과 오류를 보존하세요. 연결 종료가 확인되면 기록 보존을 허용하지만 이전 모드를 새 연결에 쓰지는 않습니다.
 
 ## 결과 기록과 향후 서명 작업
 

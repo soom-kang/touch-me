@@ -1,8 +1,8 @@
 # Pre-publication draft. Copy to the approved Tap's Casks/touch-me.rb only after
 # the versioned release asset and this exact checksum are publicly verified.
 cask "touch-me" do
-  version "0.8.0-beta.6"
-  sha256 "4d42fb5384040a4e0046a13813a30bc1ce25318c52a09e14fbea5e1fc836f1ce"
+  version "0.8.0-beta.7"
+  sha256 "74bf81ff7e7d1a0a1966146022b7e60841451897fee25a2dbe1449b31113da90"
 
   url "https://github.com/soom-kang/touch-me/releases/download/v#{version}/touch-me-#{version}-arm64.dmg"
   name "Touch Me"
@@ -27,9 +27,13 @@ cask "touch-me" do
         https://support.apple.com/en-us/102445
       Allow Input Monitoring and Accessibility in System Settings.
       Before upgrading or removing the app, select Stop mapping, then normal Quit.
-      If device-mode restoration fails, stop the upgrade or removal, keep the
-      current connection and use Retry restore. Reconnecting to the same USB
-      port does not authorize restoration of a changed attachment.
+      If restoration or record handling fails, stop the operation and use Retry restore.
+      Keep recovery records; do not delete them to complete an upgrade.
+      After both recorded HID/USB services are proven ended and ownership is verified,
+      the old record can be archived without confirming restoration or writing its mode to a new connection.
+      During the same app run, mapping can resume on a fresh (0,0) connection
+      at the saved USB location and display after safety checks.
+      A connection already in (2,0) requires informed manual Start and keeps that mode on Stop.
     EOS
   end
 end

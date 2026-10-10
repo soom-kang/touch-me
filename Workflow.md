@@ -16,9 +16,9 @@ The app keeps these identifiers and versions:
 | --------------------- | ------------------------------------------------- |
 | App and executable    | `Touch Me.app` / `TouchMe`                        |
 | Bundle identifier     | `io.github.soom-kang.touchme`                     |
-| Release version       | `0.8.0-beta.6`, read from `VERSION`               |
+| Release version       | `0.8.0-beta.7`, read from `VERSION`               |
 | Bundle version        | `0.8.0` plus an incrementing numeric build number |
-| Full release metadata | `TouchMeReleaseVersion=0.8.0-beta.6`              |
+| Full release metadata | `TouchMeReleaseVersion=0.8.0-beta.7`              |
 | Target                | `arm64`, macOS 26 or later                        |
 
 Keep the identifier and saved-preference format stable when changing documentation or packaging. Changing the signing identity or installation path can require permission checks in the installed app.
@@ -33,13 +33,55 @@ The package separates session logic from macOS device access and app controls:
 | `TouchMePlatform`  | USB Human Interface Device (HID) discovery, display selection, P16KT mode restoration and macOS events |
 | `TouchMeApp`       | Menu bar, settings and test windows, preferences, login launch and resume decisions                    |
 
-The app accepts one verified panel and an eligible external display. Mapping opens the device exclusively and enables the verified mode when needed. Stop or normal Quit restores the original mode on the verified continuous attachment. The candidate's proven ended-connection cleanup instead preserves an unconfirmed-restoration archive, as described in the [journal contract](docs/qa/abnormal-exit-recovery.md). Restoration or archive failures stay visible and can block Quit.
+The app accepts one verified panel and an eligible external display. Mapping opens the device exclusively and enables the verified mode when needed. Stop or normal Quit restores the original mode on the verified continuous attachment. Proven ended-connection cleanup preserves an unconfirmed-restoration archive, as described in the [journal contract](docs/qa/abnormal-exit-recovery.md). Restoration or archive failures stay visible and can block Quit.
 
 No app networking code or raw-input logging is implemented in the current source. Preferences store the selected device/display identity, the intent to resume and the app's language selection; they do not store a touch history. English is the default, and changing language updates app-owned UI without restarting the session or changing macOS language settings.
 
+## Beta.7 release preparation — 2026-10-10
+
+Status: **PENDING**. Prepare prerelease `v0.8.0-beta.7`, numeric bundle version
+`0.8.0` and verified local build 25 in the release checkout. Preserve the development
+build 24 and installed app. No local app installation or upgrade is included.
+
+Reuse the 37 Swift tests and one USB-C cycle below, tied to development
+executable SHA-256 `06306a6ed873d314ab565066b42d5a022618ea067a53cd76abceb7333f2e41f7`.
+Keep mapping code unchanged. Build 25 has no new GUI or device acceptance.
+
+| Release check | Current status |
+| --- | --- |
+| Reused source tests / build 24 USB-C cycle | `PASS` (37 tests) / `PASS_USER_REPORTED` (one cycle) |
+| New build 25, packaging and 18 existing Python packaging tests | `PASS`; one build and one package run; 18 tests passed |
+| Source/tag/prerelease, public DMG/sidecar and actual Tap Cask syntax/style | Publication/public assets `PENDING`; actual Cask syntax/style `PASS` (one file, no offenses) |
+| `brew audit --cask --online soom-kang/touch-me/touch-me` | `BLOCKED`; approved deferral preserves trust settings and uses no bypass variables |
+| Build 25 GUI/device, installation, upgrade and Gatekeeper | `NOT_RUN`; outside this release scope |
+
+Build and package once after release inputs, including the bilingual `Install.txt`
+copy in `scripts/package-dmg.py`, are final. Freeze those inputs against the
+release commit; verify the new bundle and DMG, then public download bytes and
+sidecar before updating the existing Tap. Cask syntax/style and public asset
+identity remain required despite the audit deferral. Record actual revisions,
+hashes and results in [beta.7 release notes](docs/releases/v0.8.0-beta.7.md).
+Beta.6's earlier online-audit PASS is historical evidence only.
+
+Local build 25 passed compilation, strict signature, metadata, license/icon and
+arm64 checks. Packaging passed once; the 18 existing packaging tests passed.
+All 28 frozen inputs matched. DMG integrity/sidecar, read-only mounted inner
+identity (five exact files), bilingual installation guide, Applications symlink
+and normal detach passed.
+
+| Local artifact | Verified identity |
+| --- | --- |
+| Build 25 executable SHA-256 | `b0ea3a8daecbb45cb75fb680941401e4ab679e9da7a8fe44c742975d38e309d4` |
+| DMG size / SHA-256 | 524,843 bytes / `74bf81ff7e7d1a0a1966146022b7e60841451897fee25a2dbe1449b31113da90` |
+
+Existing Command Line Tools linker search-path warnings were non-blocking.
+The first relative-path `hdiutil verify` failed on its path; the corrected
+absolute-path retry passed without artifact changes or another packaging run.
+These are local artifact results; public download verification remains `PENDING`.
+
 ## USB-C reconnection candidate — 2026-10-10
 
-The current development change adds safe reconnection handling without changing `VERSION`, the existing active-record schema or `SavedMapping`. Published beta.6 and earlier acceptance records below retain their original scope. No commit, push, installation, release, Tap update or DMG packaging is part of this change.
+This development verification snapshot records the reconnection change before beta.7 release preparation. It kept `VERSION`, the active-record schema and `SavedMapping` unchanged. Published beta.6 and earlier acceptance records retain their original scope. Commit, push, release, Tap update and DMG packaging were outside this completed development scope; the beta.7 release scope is described above.
 
 For a changed-mode active record, require the exclusive lease, same boot, exact nonce and current or proven-dead owner. Prove both exact old HID and USB services ended; query failure is not absence. Persist and sync `disconnected-<nonce>.json` → `reconnect-required.json` → active-record removal. This preserves an unconfirmed restoration and never writes the old mode onto a new attachment.
 
@@ -61,9 +103,12 @@ Use the existing targets and `bash scripts/test.sh` for focused validation, and 
 | Approved USB-C cycle and two-position taps | `PASS_USER_REPORTED` on 2026-10-10: one Start → same USB-C disconnect/reconnect → automatic resume → two-position taps → Stop cycle; approved acceptance scope met |
 | New release, Homebrew install or upgrade | Not performed; outside scope |
 
-The local candidate is `dist/Touch Me.app`, release `0.8.0-beta.6`, numeric
-bundle version `0.8.0`, build 24 (previous local build 23 → 24). The installed
-app is also beta.6/build 24, so version/build alone cannot identify the candidate:
+At the development checkpoint, the source checkout candidate was
+`dist/Touch Me.app`, release `0.8.0-beta.6`, numeric bundle version `0.8.0`,
+build 24 (previous local build 23 → 24). The installed app also showed
+beta.6/build 24, so the recorded paths and hashes distinguished them.
+The separate beta.7 release checkout now contains build 25. The table records
+the development checkpoint:
 
 | Executable | SHA-256 |
 | --- | --- |
@@ -104,7 +149,7 @@ The [lifecycle policy](docs/qa/lifecycle-policy.md), [journal contract](docs/qa/
 
 ## Build and inspect the app
 
-Beta.6 redistributes the completed QA records with no runtime-code changes since beta.5. One build and one packaging run produced verified build 24 with 28 frozen inputs matching; numeric version `0.8.0`, macOS 26+/arm64, strict signature and license/icon checks passed. The local and installed beta.5 build 23 hashes are preserved. Build 23's native PASS is regression evidence, not beta.6 acceptance. See the [beta.6 release notes](docs/releases/v0.8.0-beta.6.md).
+Historical beta.6 redistributed the completed QA records with no runtime-code changes since beta.5. One build and one packaging run produced verified build 24 with 28 frozen inputs matching; numeric version `0.8.0`, macOS 26+/arm64, strict signature and license/icon checks passed. The local and installed beta.5 build 23 hashes are preserved. Build 23's native PASS is regression evidence, not beta.6 acceptance. See the [beta.6 release notes](docs/releases/v0.8.0-beta.6.md).
 
 Build the release executable and bundle it with icons and the project license. Initial beta.5 preparation used installed build 21 as the local build-number baseline; one build produced verified build 22. That pre-journal artifact remains historical. The agreed recovery journal now has verified build 23, with strict signature, arm64, metadata, license/icon and 28 frozen inputs passed. Packaging also passed. Build 23 normal-use/relaunch checks are `PASS_USER_REPORTED`; one controlled SIGKILL/relaunch recovered the previous record before mapping resumed and verified `(0,0)` after Stop/Quit. Preserve earlier artifacts; another build increments the counter again:
 
@@ -137,19 +182,19 @@ The script verifies the app's identifier, release metadata against `VERSION`, li
 | Output                                        | Purpose                   |
 | --------------------------------------------- | ------------------------- |
 | `dist/Touch Me.app`                           | Locally signed app bundle |
-| `dist/touch-me-0.8.0-beta.6-arm64.dmg`        | Local beta candidate image |
-| `dist/touch-me-0.8.0-beta.6-arm64.dmg.sha256` | SHA-256 checksum          |
+| `dist/touch-me-0.8.0-beta.7-arm64.dmg`        | Local beta candidate image |
+| `dist/touch-me-0.8.0-beta.7-arm64.dmg.sha256` | SHA-256 checksum          |
 
 An existing image moves to `dist/previous-builds` in the release checkout. Verify DMG integrity and its checksum:
 
-Beta.6's verified DMG contains build 24 and is 455,405 bytes; its digest is in
+Historical beta.6's verified DMG contains build 24 and is 455,405 bytes; its digest is in
 the [candidate notes](docs/releases/v0.8.0-beta.6.md). DMG integrity, sidecar,
 read-only mounted inner identity and normal detach passed. Beta.5 build 23 and
 historical build 22 checksums cannot validate the new artifact.
 
 ```bash
-hdiutil verify dist/touch-me-0.8.0-beta.6-arm64.dmg
-(cd dist && shasum -a 256 -c touch-me-0.8.0-beta.6-arm64.dmg.sha256)
+hdiutil verify dist/touch-me-0.8.0-beta.7-arm64.dmg
+(cd dist && shasum -a 256 -c touch-me-0.8.0-beta.7-arm64.dmg.sha256)
 ```
 
 ![Local packaging flow from source and license files to a signed app, personal disk image and SHA-256 checksum.](docs/assets/packaging.png)

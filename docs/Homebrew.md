@@ -2,13 +2,45 @@
 
 # Publish the Touch Me Homebrew beta
 
-Beta.6 is published and its public assets and Tap have been verified. This guide
-targets that release; its 2026-10-09 publication run retained installed beta.5
-build 23. Earlier release records remain below.
+This guide prepares beta.7 publication and the existing Tap update. Current
+status is `PENDING`; local app installation and upgrade are outside scope.
+Beta.6 and earlier publication records remain below.
+
+## Beta.7 release preparation — 2026-10-10
+
+Status: **PENDING**. Prepare prerelease `v0.8.0-beta.7`, verified local build 25 and
+`touch-me-0.8.0-beta.7-arm64.dmg` plus its `.sha256` file. This run updates the
+public release and existing Tap only; retain the installed app and preferences.
+
+Reuse the source's 37 Swift tests and development build 24 USB-C cycle
+(`PASS_USER_REPORTED`), tied to the executable hash in
+[Workflow](../Workflow.md#usb-c-reconnection-candidate--2026-10-10).
+New build 25 GUI/device, installation, upgrade and Gatekeeper are `NOT_RUN`.
+
+1. Finalize beta.7 metadata and bilingual documentation, including generated
+   `Install.txt`. Build and package once; run the existing 18 packaging tests.
+   Freeze release inputs and verify bundle metadata/signature/license/icon,
+   arm64, DMG integrity/sidecar and read-only mounted inner identity.
+2. Publish the reviewed source, tag and prerelease without replacing older
+   assets. Verify anonymous public DMG/sidecar bytes, hash and inner metadata
+   against the frozen candidate before changing the Tap.
+3. Update the actual `Casks/touch-me.rb`, beta.7's exact-version prerelease
+   allowlist and the Tap's two-language guidance. Cask Ruby syntax and style
+   must pass; confirm the published Tap revision and matching asset identity.
+
+Online audit is **BLOCKED**, an approved deferral: preserve existing trust and
+do not change trust settings or bypass environment variables. Do not run
+`brew audit --cask --online soom-kang/touch-me/touch-me` in this scope or treat
+beta.6's historical audit PASS as the beta.7 result. Publication may finish
+with this recorded exception after the required asset and Cask checks pass.
+Local build/package, 18 packaging tests and actual Cask syntax/style passed
+(one file, no offenses). Public release/assets and Tap publication remain `PENDING`.
+Record actual results in [beta.7 release notes](releases/v0.8.0-beta.7.md).
+The beta.4 commands below remain historical examples.
 
 ## Local USB-C reconnection candidate — 2026-10-10
 
-The reconnection source change is not included in the public beta.6 DMG or Cask. `VERSION`, release assets, Tap and installed app are not changed by this work. Local test/build results are recorded in [Workflow](../Workflow.md#usb-c-reconnection-candidate--2026-10-10), separately from publication or Homebrew acceptance. On 2026-10-10, one approved candidate Start → USB-C disconnect/reconnect → automatic resume → two-position taps → Stop cycle passed (`PASS_USER_REPORTED`). This meets the approved local acceptance scope; no new Homebrew result is implied.
+This development snapshot preceded beta.7 release preparation. The reconnection source change is not included in public beta.6. The completed development work did not change `VERSION`, release assets, Tap or the installed bundle. Local test/build results are recorded in [Workflow](../Workflow.md#usb-c-reconnection-candidate--2026-10-10), separately from publication or Homebrew acceptance. On 2026-10-10, one approved candidate Start → USB-C disconnect/reconnect → automatic resume → two-position taps → Stop cycle passed (`PASS_USER_REPORTED`). This meets the approved local acceptance scope; no new Homebrew result is implied.
 
 The candidate can preserve an old record as `disconnected-<nonce>.json` only when both exact recorded HID/USB services are proven ended on the same boot and ownership is authorized. A synced `reconnect-required.json` keeps fresh-mode checks in force after relaunch, including sessions whose original `(2,0)` needed no mode-change record. This is unconfirmed restoration, not proof the old mode was restored, and no old mode is copied onto a new connection. `(0,0)` permits guarded automatic Start; `(2,0)` requires informed manual Start and retains its current mode after Stop.
 
@@ -205,32 +237,32 @@ Homebrew 7.0.8 was inspected on 2026-10-07 and its relevant contracts were reche
 
 ## Install, update and remove after publication
 
-These user installation instructions target published beta.6 and are separate from the publication/audit record. That run retained the installed beta.5 app. Fully qualified installation scopes trust to the selected Cask rather than the whole Tap. [Tap Trust](https://docs.brew.sh/Tap-Trust)
+These instructions target beta.7 after publication and Tap verification. Current publication is `PENDING`; this release run performs no local installation or upgrade. The beta.6 run retained the then-installed beta.5 app. Fully qualified installation scopes trust to the selected Cask rather than the whole Tap. [Tap Trust](https://docs.brew.sh/Tap-Trust)
 
 ```bash
 brew install --cask soom-kang/touch-me/touch-me
 ```
 
-If `/Applications/Touch Me.app` was installed manually, first turn off **Launch at login**, select **Stop mapping**, then use normal **Quit**. Confirm device-mode restoration completed. Preserve the old app by moving it outside Applications before installing through Homebrew; do not force Homebrew to overwrite it. Keep saved preferences. Stop if restoration fails.
+If `/Applications/Touch Me.app` was installed manually, first turn off **Launch at login**, select **Stop mapping**, then use normal **Quit**. Confirm restoration on the continuous connection or safe preservation of a proven ended-connection record. Preserve the old app by moving it outside Applications before installing through Homebrew; do not force Homebrew to overwrite it. Keep saved preferences. Stop if restoration fails.
 
 The ad hoc beta is not notarized. Verify the release source and checksum before attempting first launch. When macOS offers the official approval path, use **System Settings → Privacy & Security → Open Anyway** and confirm the prompt yourself. Managed settings or a damage/malware alert may prevent that path; stop and investigate. This procedure does not promise Gatekeeper acceptance. [Apple's first-launch guidance](https://support.apple.com/en-us/102445)
 
 Grant **Input Monitoring** and **Accessibility** in System Settings, then refresh the app. Ad hoc updates can require renewed privacy approval; check both permissions before mapping. The Cask's `unsigned_accessibility` caveat highlights Accessibility reapproval. It neither grants permissions nor changes quarantine.
 
-For an update, first **Stop mapping → normal Quit** and confirm restoration. Then:
+For an update, first **Stop mapping → normal Quit** and confirm safe cleanup of the connection or its proven ended record. Then:
 
 ```bash
 brew update
 brew upgrade --cask soom-kang/touch-me/touch-me
 ```
 
-For removal, turn off **Launch at login**, perform the same Stop/Quit sequence and confirm restoration before:
+For removal, turn off **Launch at login**, perform the same Stop/Quit sequence and confirm safe cleanup before:
 
 ```bash
 brew uninstall --cask soom-kang/touch-me/touch-me
 ```
 
-Removal preserves app preferences. There is no `zap` routine, automatic process kill or device-recovery hook. A failed restoration blocks upgrade/removal. Keep the current connection and use Retry restore; a changed attachment blocks recovery, so preserve its record and error.
+Removal preserves app preferences. There is no `zap` routine, automatic process kill or device-recovery hook. Failed restoration or record handling blocks upgrade/removal. Keep the current connection and use Retry restore; preserve uncertain records and errors. A proven ended connection permits record preservation, never writing its old mode onto the new connection.
 
 ## Record results and future signing work
 
