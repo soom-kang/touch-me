@@ -12,9 +12,13 @@ Touch Me는 ZEUSLAP 터치 모니터를 Mac에서 활용할 수 있도록 만든
 
 Beta `0.8.0-beta.7`은 **P16KT에서 확인한 USB/HID profile**을 요구합니다. 장치 식별자와 HID(Human Interface Device) 입력 구조가 다르면 매핑을 시작하지 않습니다. 다른 ZEUSLAP 모델까지 지원한다고 보장하지 않으므로 아래 환경을 먼저 확인해 주세요.
 
-Beta.7/build 25 준비 상태는 **PENDING**입니다. 개발 build 24에서 확인한 USB-C 재연결 변경을 포함하며 Swift tests 37개와 사용자 확인 cycle 한 번의 결과를 재사용합니다. Build 25 설치·GUI·실기기 사용·Gatekeeper·Homebrew upgrade는 `NOT_RUN`입니다. 사용자가 기존 trust를 유지하고 audit를 보류하기로 선택해 online audit는 `BLOCKED`이며 trust 설정이나 우회 변수를 바꾸지 않습니다. 현재 산출물과 공개 결과는 [beta.7 release notes](docs/releases/v0.8.0-beta.7.md)에 기록합니다.
+[Beta.7/build 25](https://github.com/soom-kang/touch-me/releases/tag/v0.8.0-beta.7)를 2026-10-10 14:25:14 KST(05:25:14 UTC)에 **PUBLISHED**로 공개했습니다. 익명 public DMG·sidecar bytes와 hash는 동결한 release와 일치합니다. 공개 Tap과 로컬에 가져온 Tap의 revision도 검토한 Cask와 일치합니다.
 
-QA 완료 기록을 포함한 [beta.6 build 24](https://github.com/soom-kang/touch-me/releases/tag/v0.8.0-beta.6)를 공개했으며 beta.5 이후 실행 코드 변경은 없습니다. Public DMG·checksum, Tap과 online audit 검사는 통과했고 산출물 식별은 [release notes](docs/releases/v0.8.0-beta.6.md)에 있습니다. [Beta.5 build 23 acceptance](docs/qa/beta5-native-acceptance.md)는 회귀 근거로만 인용합니다. 2026-10-09 공개 checkpoint에서 beta.6 설치·GUI·Gatekeeper·실기기 사용·Homebrew upgrade는 `NOT_RUN`이었으며 당시 설치된 beta.5 앱을 보존했습니다.
+개발 build 24에서 확인한 USB-C 재연결 변경을 포함하며 Swift tests 37개와 사용자 확인 cycle 한 번의 결과를 재사용합니다. Build 25 설치·GUI·실기기 사용·Gatekeeper·Homebrew upgrade는 `NOT_RUN`입니다.
+
+사용자가 기존 trust를 유지하고 audit를 보류하기로 선택해 online audit는 `BLOCKED`이며 trust 설정이나 우회 변수를 바꾸지 않습니다. 산출물 식별과 공개 결과는 [beta.7 release notes](docs/releases/v0.8.0-beta.7.md)에 기록합니다.
+
+2026-10-09 공개 기록: QA 완료 문서를 포함한 [beta.6 build 24](https://github.com/soom-kang/touch-me/releases/tag/v0.8.0-beta.6)를 공개했고 당시 beta.5 이후 실행 코드 변경은 없었습니다. Public DMG·checksum, Tap과 online audit 검사는 통과했고 산출물 식별은 [release notes](docs/releases/v0.8.0-beta.6.md)에 있습니다. [Beta.5 build 23 acceptance](docs/qa/beta5-native-acceptance.md)는 회귀 근거로만 인용합니다. 2026-10-09 공개 checkpoint에서 beta.6 설치·GUI·Gatekeeper·실기기 사용·Homebrew upgrade는 `NOT_RUN`이었으며 당시 설치된 beta.5 앱을 보존했습니다.
 
 ## 먼저 사용 환경을 확인하세요
 
@@ -33,13 +37,13 @@ Apple Silicon Mac에서 P16KT 한 대를 연결하는 환경을 대상으로 합
 
 ## 설치하고 첫 매핑 시작하기
 
-Beta.7 공개와 Tap 확인을 마친 뒤 Homebrew로 설치하거나 beta.7 DMG에서 앱을 복사할 수 있습니다. 현재 공개 상태는 `PENDING`이며 공개 beta.6 다운로드는 유지합니다. 어느 쪽으로 설치하든 다음 권한과 대상 화면 설정은 같습니다.
+Homebrew로 beta.7을 설치하거나 공개한 DMG에서 앱을 복사할 수 있습니다. 어느 쪽으로 설치하든 다음 권한과 대상 화면 설정은 같습니다.
 
 ### Homebrew로 설치하기
 
 수동 설치한 `/Applications/Touch Me.app`이 이미 있다면 **로그인 시 Touch Me 열기**를 끄고 **매핑 중지**를 선택하세요. 연속 연결의 모드 복구나 종료가 확인된 연결의 기록 보존을 확인한 뒤 정상 종료하고 기존 앱을 Applications 밖으로 옮겨 보존하세요. 복구에 실패하면 설치를 멈추세요. 강제 덮어쓰기 없이 기존 앱과 환경설정을 보존하는 방법은 [Homebrew 설치 안내](docs/Homebrew.ko.md#공개-후-설치업데이트제거)에 정리했습니다.
 
-Tap이 확인한 beta.7 asset을 가리킨 뒤 Cask로 설치하세요:
+공개한 beta.7 Cask로 설치하세요:
 
 ```bash
 brew install --cask soom-kang/touch-me/touch-me
@@ -47,7 +51,7 @@ brew install --cask soom-kang/touch-me/touch-me
 
 ### DMG로 설치하기
 
-공개 후 [beta.7 release](https://github.com/soom-kang/touch-me/releases/tag/v0.8.0-beta.7)에서 `touch-me-0.8.0-beta.7-arm64.dmg`와 `.sha256` 파일을 받으세요. 버전·build `0.8.0-beta.7`/25와 [release notes](docs/releases/v0.8.0-beta.7.md)에 기록한 checksum을 확인한 뒤 디스크 이미지를 열어 **Touch Me.app**을 **Applications**로 끌어 복사하세요. 복사를 마치면 이미지를 추출하세요. 현재 release 작업에서는 이 설치 절차를 실행하지 않습니다.
+[beta.7 release](https://github.com/soom-kang/touch-me/releases/tag/v0.8.0-beta.7)에서 `touch-me-0.8.0-beta.7-arm64.dmg`와 `.sha256` 파일을 받으세요. 버전·build `0.8.0-beta.7`/25와 [release notes](docs/releases/v0.8.0-beta.7.md)에 기록한 checksum을 확인한 뒤 디스크 이미지를 열어 **Touch Me.app**을 **Applications**로 끌어 복사하세요. 복사를 마치면 이미지를 추출하세요.
 
 Beta는 ad hoc 서명을 사용하며 공증하지 않았습니다. macOS가 다운로드한 앱의 첫 실행을 차단하면 출처와 checksum을 확인한 뒤 [Apple의 수동 실행 승인 안내](https://support.apple.com/en-us/102445)를 따르세요. 승인 항목이 보이더라도 앱 실행을 보장하지는 않습니다.
 
@@ -91,7 +95,7 @@ Beta는 ad hoc 서명을 사용하며 공증하지 않았습니다. macOS가 다
 
 ## USB-C 재연결 — beta.7
 
-Beta.7은 이 동작의 배포를 준비하며 공개 상태는 `PENDING`입니다. 2026-10-10에 사용자가 개발 build 24의 cycle 한 번을 확인했습니다: 시작 → USB-C 분리 → 재연결 → 자동 재개 → 두 위치 탭 → 중지(`PASS_USER_REPORTED`). 검증한 실행 파일 hash와 별도로 승인한 기존 앱 전환은 [Workflow](Workflow.ko.md#usb-c-재연결-후보--2026-10-10)에 보존합니다. 매핑 코드가 유지되는 동안 이 결과를 재사용하며 release build 25의 직접 실기기 검증은 아닙니다. 해당 cycle에서 모드 직접 읽기나 다른 복구 조건은 검증하지 않았습니다.
+공개한 beta.7에 이 동작을 포함했습니다. 2026-10-10에 사용자가 개발 build 24의 cycle 한 번을 확인했습니다: 시작 → USB-C 분리 → 재연결 → 자동 재개 → 두 위치 탭 → 중지(`PASS_USER_REPORTED`). 검증한 실행 파일 hash와 별도로 승인한 기존 앱 전환은 [Workflow](Workflow.ko.md#usb-c-재연결-후보--2026-10-10)에 보존합니다. 매핑 코드가 유지되는 동안 이 결과를 재사용하며 release build 25의 직접 실기기 검증은 아닙니다. 해당 cycle에서 모드 직접 읽기나 다른 복구 조건은 검증하지 않았습니다.
 
 앱이 열린 상태에서 매핑 중인 패널을 분리하면 입력을 해제하고 **재연결 대기** 상태로 바뀝니다. 지원하는 P16KT 한 대를 저장한 USB 위치와 화면에 다시 연결하세요. 앱은 권한, 세션 상태, descriptor와 현재 화면 좌표를 확인한 뒤 재개합니다. 장치가 처음 다시 나타난 시점부터 10초 동안 1초 간격으로 재시도하며 중복 알림으로 시간을 늘리지 않습니다. **중지**, 대상 선택 변경이나 **정상 종료**는 대기를 취소합니다.
 

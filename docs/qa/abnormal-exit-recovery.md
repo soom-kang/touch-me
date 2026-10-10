@@ -23,7 +23,9 @@ outside the verified recovery scope.
 
 ## Beta.7 release boundary — 2026-10-10
 
-Publication is **PENDING**. Local build 25 and packaging passed; reuse the source's 37
+Beta.7 was **PUBLISHED** on 2026-10-10 at 14:25:14 KST (05:25:14 UTC).
+Public DMG/sidecar verification and public/installed Tap revision checks passed.
+Local build 25 and packaging passed; reuse the source's 37
 Swift tests and one development build 24 USB-C cycle (`PASS_USER_REPORTED`),
 bound to executable SHA-256
 `06306a6ed873d314ab565066b42d5a022618ea067a53cd76abceb7333f2e41f7`.

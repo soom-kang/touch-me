@@ -39,8 +39,8 @@ Apple Silicon Mac, macOS 26 이상, 패키지의 Swift 6.0 manifest와 호환되
 
 ## Beta.7 release 준비 — 2026-10-10
 
-상태는 **PENDING**입니다. Release checkout에서 prerelease `v0.8.0-beta.7`,
-숫자 번들 버전 `0.8.0`과 확인한 로컬 build 25를 준비합니다. 개발 build 24와 설치 앱은
+상태는 **PUBLISHED**입니다. Prerelease `v0.8.0-beta.7`을 2026-10-10
+14:25:14 KST(05:25:14 UTC)에 숫자 번들 버전 `0.8.0`, build 25로 공개했습니다. 개발 build 24와 설치 앱은
 보존하며 로컬 앱 설치나 upgrade는 포함하지 않습니다.
 
 아래 Swift tests 37개와 USB-C cycle 한 번을 개발 실행 파일 SHA-256
@@ -50,8 +50,10 @@ Apple Silicon Mac, macOS 26 이상, 패키지의 Swift 6.0 manifest와 호환되
 | Release 검사 | 현재 상태 |
 | --- | --- |
 | 재사용한 source tests / build 24 USB-C cycle | `PASS`(37개) / `PASS_USER_REPORTED`(1회) |
-| 새 build 25, 패키징과 기존 Python packaging tests 18개 | `PASS`; 빌드·패키징 각 1회, tests 18개 통과 |
-| Source·tag·prerelease, public DMG·sidecar와 실제 Tap Cask syntax·style | 공개·public asset `PENDING`; 실제 Cask syntax·style `PASS`(파일 1개, offenses 없음) |
+| 새 build 25, 패키징·tests와 실제 Cask syntax·style | `PASS`; 빌드·패키징 각 1회, tests 18개, Cask 파일 1개에서 offenses 없음 |
+| Source·tag·prerelease와 익명 public DMG·sidecar | `PUBLISHED` / 정확한 bytes 확인 `PASS` |
+| 공개·별도 clone·설치된 Tap revision | `PASS`; `7c07d49`와 검토한 Cask 일치, 설치된 Tap clean fast-forward 완료 |
+| 이전 beta.1–beta.6 공개 기록 | `PASS`; release 6개·asset 12개·tag/peeled refs 12개의 metadata 보존 |
 | `brew audit --cask --online soom-kang/touch-me/touch-me` | `BLOCKED`; 승인한 보류에 따라 trust 설정과 우회 변수를 변경하지 않음 |
 | Build 25 GUI·실기기, 설치·upgrade·Gatekeeper | `NOT_RUN`; release 범위 밖 |
 
@@ -69,7 +71,7 @@ Frozen inputs 28개가 일치했습니다. DMG 무결성·sidecar, 읽기 전용
 identity(정확한 파일 5개), 양언어 설치 안내, Applications symlink와 정상 detach도
 통과했습니다.
 
-| 로컬 산출물 | 확인한 식별 |
+| 동결한 public 산출물 | 확인한 식별 |
 | --- | --- |
 | Build 25 실행 파일 SHA-256 | `b0ea3a8daecbb45cb75fb680941401e4ab679e9da7a8fe44c742975d38e309d4` |
 | DMG 크기 / SHA-256 | 524,843 bytes / `74bf81ff7e7d1a0a1966146022b7e60841451897fee25a2dbe1449b31113da90` |
@@ -77,7 +79,16 @@ identity(정확한 파일 5개), 양언어 설치 안내, Applications symlink�
 기존 Command Line Tools linker search-path 경고는 검사를 막지 않았습니다.
 첫 상대 경로의 `hdiutil verify`는 경로 오류로 실패했고 정확한 절대 경로로
 재시도해 통과했습니다. 산출물 변경이나 추가 패키징은 없었습니다.
-이는 로컬 산출물 결과이며 public 다운로드 확인은 `PENDING`입니다.
+2026-10-10 익명 public DMG·sidecar 확인은 통과했습니다. Raw bytes·크기·digest와
+checksum 내용이 동결한 release와 일치합니다. Release 입력 28개는 source·tag
+commit `f8210f4318f726c9943db1de7fa82e634d132a10`과 일치합니다.
+Annotated tag object는 `0ea81d53133a218f661160db533e43d84a6e3177`입니다.
+2026-10-10 14:28:27 KST(05:28:27 UTC) checkpoint에서 공개 Tap·별도 clone·설치된
+Tap의 revision은 모두 `7c07d4967e94e0591229410f8952bb49c2b7e102`였습니다.
+`/opt/homebrew/Library/Taps/soom-kang/homebrew-touch-me`는 `3c3ab9e`에서
+`fetch`와 `merge --ff-only`로 fast-forward했고 clean 상태를 유지했습니다.
+파일 4개가 공개 clone과 일치하며 Cask는 source template과 일치합니다.
+Tap checkout만 갱신했으며 앱 설치·upgrade나 trust 변경은 없었습니다.
 
 ## USB-C 재연결 후보 — 2026-10-10
 

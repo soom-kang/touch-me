@@ -2,13 +2,14 @@
 
 # Publish the Touch Me Homebrew beta
 
-This guide prepares beta.7 publication and the existing Tap update. Current
-status is `PENDING`; local app installation and upgrade are outside scope.
+Beta.7 and the existing Tap update are published and verified. Local app
+installation and upgrade remain outside this publication scope.
 Beta.6 and earlier publication records remain below.
 
 ## Beta.7 release preparation — 2026-10-10
 
-Status: **PENDING**. Prepare prerelease `v0.8.0-beta.7`, verified local build 25 and
+Status: **PUBLISHED**. Prerelease `v0.8.0-beta.7` was published on 2026-10-10
+at 14:25:14 KST (05:25:14 UTC), with build 25 and
 `touch-me-0.8.0-beta.7-arm64.dmg` plus its `.sha256` file. This run updates the
 public release and existing Tap only; retain the installed app and preferences.
 
@@ -34,7 +35,16 @@ do not change trust settings or bypass environment variables. Do not run
 beta.6's historical audit PASS as the beta.7 result. Publication may finish
 with this recorded exception after the required asset and Cask checks pass.
 Local build/package, 18 packaging tests and actual Cask syntax/style passed
-(one file, no offenses). Public release/assets and Tap publication remain `PENDING`.
+(one file, no offenses). Source/tag commit
+`f8210f4318f726c9943db1de7fa82e634d132a10` matches all 28 frozen inputs.
+Anonymous public DMG/sidecar raw bytes, size, digest and checksum text match the
+frozen release. The DMG is 524,843 bytes with SHA-256
+`74bf81ff7e7d1a0a1966146022b7e60841451897fee25a2dbe1449b31113da90`.
+At the 2026-10-10 14:28:27 KST (05:28:27 UTC) checkpoint, the public Tap,
+independent clone and installed Tap all matched
+`7c07d4967e94e0591229410f8952bb49c2b7e102`. The installed Tap fast-forwarded
+cleanly from `3c3ab9e`; its four files match the public clone, and the Cask
+matches the source template. No app installation, upgrade or trust change occurred.
 Record actual results in [beta.7 release notes](releases/v0.8.0-beta.7.md).
 The beta.4 commands below remain historical examples.
 
@@ -237,7 +247,7 @@ Homebrew 7.0.8 was inspected on 2026-10-07 and its relevant contracts were reche
 
 ## Install, update and remove after publication
 
-These instructions target beta.7 after publication and Tap verification. Current publication is `PENDING`; this release run performs no local installation or upgrade. The beta.6 run retained the then-installed beta.5 app. Fully qualified installation scopes trust to the selected Cask rather than the whole Tap. [Tap Trust](https://docs.brew.sh/Tap-Trust)
+These instructions target published beta.7 and its verified Tap Cask. This release run performed no local app installation or upgrade. The beta.6 run retained the then-installed beta.5 app. Fully qualified installation scopes trust to the selected Cask rather than the whole Tap. [Tap Trust](https://docs.brew.sh/Tap-Trust)
 
 ```bash
 brew install --cask soom-kang/touch-me/touch-me

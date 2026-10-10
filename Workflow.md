@@ -39,8 +39,8 @@ No app networking code or raw-input logging is implemented in the current source
 
 ## Beta.7 release preparation — 2026-10-10
 
-Status: **PENDING**. Prepare prerelease `v0.8.0-beta.7`, numeric bundle version
-`0.8.0` and verified local build 25 in the release checkout. Preserve the development
+Status: **PUBLISHED**. Prerelease `v0.8.0-beta.7` was published on 2026-10-10
+at 14:25:14 KST (05:25:14 UTC), with numeric bundle version `0.8.0` and build 25. Preserve the development
 build 24 and installed app. No local app installation or upgrade is included.
 
 Reuse the 37 Swift tests and one USB-C cycle below, tied to development
@@ -50,8 +50,10 @@ Keep mapping code unchanged. Build 25 has no new GUI or device acceptance.
 | Release check | Current status |
 | --- | --- |
 | Reused source tests / build 24 USB-C cycle | `PASS` (37 tests) / `PASS_USER_REPORTED` (one cycle) |
-| New build 25, packaging and 18 existing Python packaging tests | `PASS`; one build and one package run; 18 tests passed |
-| Source/tag/prerelease, public DMG/sidecar and actual Tap Cask syntax/style | Publication/public assets `PENDING`; actual Cask syntax/style `PASS` (one file, no offenses) |
+| New build 25, packaging/tests and actual Cask syntax/style | `PASS`; one build/package run, 18 tests, one Cask file with no offenses |
+| Source/tag/prerelease and anonymous public DMG/sidecar | `PUBLISHED` / exact-byte verification `PASS` |
+| Public, independently cloned and installed Tap revisions | `PASS`; `7c07d49` matches the verified Cask; installed Tap fast-forwarded cleanly |
+| Previous beta.1–beta.6 publications | `PASS`; six releases, twelve assets and twelve tag/peeled refs retain their metadata |
 | `brew audit --cask --online soom-kang/touch-me/touch-me` | `BLOCKED`; approved deferral preserves trust settings and uses no bypass variables |
 | Build 25 GUI/device, installation, upgrade and Gatekeeper | `NOT_RUN`; outside this release scope |
 
@@ -69,7 +71,7 @@ All 28 frozen inputs matched. DMG integrity/sidecar, read-only mounted inner
 identity (five exact files), bilingual installation guide, Applications symlink
 and normal detach passed.
 
-| Local artifact | Verified identity |
+| Frozen/public artifact | Verified identity |
 | --- | --- |
 | Build 25 executable SHA-256 | `b0ea3a8daecbb45cb75fb680941401e4ab679e9da7a8fe44c742975d38e309d4` |
 | DMG size / SHA-256 | 524,843 bytes / `74bf81ff7e7d1a0a1966146022b7e60841451897fee25a2dbe1449b31113da90` |
@@ -77,7 +79,17 @@ and normal detach passed.
 Existing Command Line Tools linker search-path warnings were non-blocking.
 The first relative-path `hdiutil verify` failed on its path; the corrected
 absolute-path retry passed without artifact changes or another packaging run.
-These are local artifact results; public download verification remains `PENDING`.
+Anonymous public DMG and sidecar verification passed on 2026-10-10: raw bytes,
+size, digest and checksum text match the frozen release. All 28 release inputs
+match source/tag commit `f8210f4318f726c9943db1de7fa82e634d132a10`.
+The annotated tag object is `0ea81d53133a218f661160db533e43d84a6e3177`.
+At the 2026-10-10 14:28:27 KST (05:28:27 UTC) checkpoint, the public Tap,
+independent clone and installed Tap all resolved to
+`7c07d4967e94e0591229410f8952bb49c2b7e102`. The installed Tap at
+`/opt/homebrew/Library/Taps/soom-kang/homebrew-touch-me` fast-forwarded from
+`3c3ab9e` with `fetch` and `merge --ff-only`, remaining clean. Its four files
+match the public clone, and the Cask matches the source template. This updates
+the Tap checkout only; no app installation, upgrade or trust change occurred.
 
 ## USB-C reconnection candidate — 2026-10-10
 

@@ -2,14 +2,15 @@
 
 # Touch Me Homebrew beta 배포
 
-이 안내는 beta.7 공개와 기존 Tap 갱신을 준비합니다. 현재 상태는 `PENDING`이며
-로컬 앱 설치와 upgrade는 범위 밖입니다. Beta.6와 이전 배포 기록은 아래에
+Beta.7과 기존 Tap 갱신을 공개하고 확인했습니다. 로컬 앱 설치와 upgrade는
+이번 공개 범위 밖입니다. Beta.6와 이전 배포 기록은 아래에
 보존합니다.
 
 ## Beta.7 release 준비 — 2026-10-10
 
-상태는 **PENDING**입니다. Prerelease `v0.8.0-beta.7`, 확인한 로컬 build 25와
-`touch-me-0.8.0-beta.7-arm64.dmg`·`.sha256` 파일을 준비합니다. 이번 작업은
+상태는 **PUBLISHED**입니다. Prerelease `v0.8.0-beta.7`을 2026-10-10
+14:25:14 KST(05:25:14 UTC)에 build 25와
+`touch-me-0.8.0-beta.7-arm64.dmg`·`.sha256` 파일로 공개했습니다. 이번 작업은
 public release와 기존 Tap만 갱신하며 설치 앱과 환경설정은 보존합니다.
 
 Source의 Swift tests 37개와 개발 build 24 USB-C cycle
@@ -34,7 +35,15 @@ trust 설정이나 우회 환경변수를 바꾸지 않습니다. 이번 범위�
 과거 audit PASS를 beta.7 결과로 사용하지 않습니다. 필수 asset·Cask 검사 통과
 후 이 예외를 기록한 상태로 공개 작업을 마칠 수 있습니다. 로컬 빌드·패키징과
 packaging tests 18개, 실제 Cask syntax·style은 통과했습니다(파일 1개, offenses 없음).
-Public release·asset과 Tap 공개는 `PENDING`입니다. 실제 결과는
+Source·tag commit `f8210f4318f726c9943db1de7fa82e634d132a10`과 frozen inputs
+28개가 일치합니다. 익명 public DMG·sidecar raw bytes·크기·digest와 checksum
+내용이 동결한 release와 일치합니다. DMG는 524,843 bytes이며 SHA-256은
+`74bf81ff7e7d1a0a1966146022b7e60841451897fee25a2dbe1449b31113da90`입니다.
+2026-10-10 14:28:27 KST(05:28:27 UTC) checkpoint에서 공개 Tap·별도 clone·설치된
+Tap은 모두 `7c07d4967e94e0591229410f8952bb49c2b7e102`와 일치했습니다. 설치된
+Tap은 `3c3ab9e`에서 clean fast-forward를 마쳤습니다. 파일 4개가 공개 clone과
+일치하며 Cask는 source template과 일치합니다. 앱 설치·upgrade나 trust 변경은
+없었습니다. 실제 결과는
 [beta.7 release notes](releases/v0.8.0-beta.7.md)에 기록합니다.
 아래 beta.4 명령은 과거 예시로 보존합니다.
 
@@ -236,7 +245,7 @@ Audit에는 설치된 Cask 이름을 사용합니다. Homebrew 7.0.9는 `.rb` �
 
 ## 공개 후 설치·업데이트·제거
 
-다음은 공개와 Tap 확인 후 사용할 beta.7 설치 안내입니다. 현재 공개 상태는 `PENDING`이며 이번 release 작업에서는 로컬 설치나 upgrade를 실행하지 않습니다. Beta.6 작업에서는 당시 설치된 beta.5 앱을 유지했습니다. 전체 이름으로 설치하면 Tap 전체 대신 선택한 Cask에 trust가 적용됩니다. [Tap Trust](https://docs.brew.sh/Tap-Trust)
+다음은 공개한 beta.7과 확인한 Tap Cask의 설치 안내입니다. 이번 release 작업에서는 로컬 앱 설치나 upgrade를 실행하지 않았습니다. Beta.6 작업에서는 당시 설치된 beta.5 앱을 유지했습니다. 전체 이름으로 설치하면 Tap 전체 대신 선택한 Cask에 trust가 적용됩니다. [Tap Trust](https://docs.brew.sh/Tap-Trust)
 
 ```bash
 brew install --cask soom-kang/touch-me/touch-me
