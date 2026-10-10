@@ -21,7 +21,95 @@ Fresh installation, permission off/on, lock/sleep, full logout/login and removal
 remain `NOT_RUN`; reboot, reconnection, power loss and other panels remain
 outside the verified recovery scope.
 
-## Implemented recovery contract
+## Ended-connection record handling — development candidate, 2026-10-10
+
+The user reported that unplugging and reconnecting USB-C while Touch Me was open
+left mapping blocked even after Retry restore. The supplied settings image shows
+`mode_restore_0xE00002C0` and an unresolved restoration notice after disconnection.
+This is incident evidence, not proof of the new candidate's behavior. The
+approved physical reconnection cycle subsequently passed as `PASS_USER_REPORTED`
+on 2026-10-10, within the scope recorded below.
+
+An ended connection has a separate cleanup disposition from verified restoration.
+The candidate never applies a previous attachment's original pair onto a newly
+enumerated device. It must prove both exact recorded HID and USB active services
+ended on the same boot; a registry query failure is not absence. Keep the active
+record if either service remains active or any proof is uncertain.
+
+The journal also requires its exclusive lease, a valid exact nonce and current
+ownership or a predecessor proven dead. A live, reused or unknown predecessor,
+changed boot, malformed record or unsafe path continues to block mapping. Under
+those checks, a changed-mode active record uses this sequence:
+
+1. Atomically preserve and sync private `disconnected-<nonce>.json`, retaining
+   the original record as an unconfirmed restoration.
+2. Persist and sync private `reconnect-required.json`.
+3. Remove only the exact active record and sync the directory.
+
+Retry an interrupted sequence with the same nonce, including after relaunch.
+Verify an existing matching archive or guard before using it; do not overwrite
+different records. Failed storage or directory sync remains visible and cannot
+be reported as restored or silently discarded. The active-record and
+`SavedMapping` schemas stay unchanged.
+
+An original `(2,0)` session performs no mode change and has no schema-1 active
+record to retire. It still requires a durable reconnect guard. When no active
+record exists and the captured `(0,0)` or `(2,0)` pair remained unchanged, persist
+the exact pair, attachment identity and owner in the guard first, then preserve
+the corresponding archive. This guard-first path is limited to unchanged modes;
+it does not replace the archive-first order for changed active records. If a
+valid unchanged-mode guard survives restart without its archive, complete that
+canonical archive using only the file evidence. No device-mode read or guessed
+write is needed to complete that interrupted file transition.
+
+If Start acknowledges a guard but the removal's directory sync fails, restore
+the guard durably before rolling back or releasing the failed Start's lease.
+If persistence also fails, keep the pending failure visible and block cleanup.
+This prevents a failed Start from dropping the restart-time manual-mode gate.
+
+The separate guard survives relaunch and requires the new connection's mode to
+be read after exclusive open and final device/display/permission/session checks.
+Only fresh `(0,0)` permits automatic Start. Clear the guard after the new
+default-mode journal is ready, or after informed manual Start. If fresh mode is
+`(2,0)`, automatic Start performs zero mode writes; the user may start manually
+and Stop retains `(2,0)`. Do not infer that the new pair came from this app.
+
+The candidate retains `stop()` and failure callbacks, adds a typed cleanup
+disposition and a defaulted reconnection policy for `start()`, and exposes a
+manual-Start-required error. This extension does not change the saved mapping
+or old journal format. Archive success can unblock normal Quit for a proven
+ended connection; an unresolved current connection or failed record handling
+still blocks the relevant cleanup. An inactive predecessor record preserves the
+existing normal-Quit allowance. Never delete a record to bypass this condition.
+
+The cable-wait intent is local to the running app until successful resume.
+Automatic recovery is limited to one supported P16KT at the saved USB location
+and display UUID, with current eligible geometry and all guards satisfied.
+Those checks do not prove it is the same physical panel: the verified profile
+has no permanent individual identity. Reboot, power loss, other panels and
+original-mode-2 physical behavior remain outside new acceptance. Test/build
+results are recorded in [Workflow](../../Workflow.md#usb-c-reconnection-candidate--2026-10-10).
+No new controlled crash-acceptance test, release or Homebrew activation was run.
+The user reported the installed app's normal Quit blocked by a recovery error
+(`BLOCKED_USER_REPORTED`). With separate one-time approval, exact path/PID 973
+was checked twice, terminated once, and confirmed absent. The active-record
+SHA-256 was unchanged before/after without logging its contents; the installed
+bundle was preserved. This transition does not verify original-mode restoration
+or authorize routine Force Quit.
+
+After the initial CUA read and sandboxed launch failures, the approved launch
+retry confirmed only the local candidate PID 53203 running (`PASS`). Its
+13:24:13.214 `MappingRecovery` log confirms the ended predecessor archival path
+ran before scanning; it is not an independent count of device-mode writes.
+On 2026-10-10, the user confirmed that the requested **Start → same USB-C
+disconnect → reconnect → automatic resume → two-position taps → Stop** cycle
+succeeded once (`PASS_USER_REPORTED`). Together with the focused test/build
+results, this meets the approved completion scope. No direct mode-pair readback
+or independent device-mode write count was taken. Original-mode-2 physical
+behavior, reboot, lock/sleep regression and broader crash recovery have no new
+acceptance claim.
+
+## Published beta.5/6 continuous-attachment recovery contract
 
 `DeviceModeTransaction` keeps the original mode/identifier pair in memory.
 `DeviceModeRecoveryJournal` adds a separate record before a verified `(0,0)` to
@@ -48,7 +136,7 @@ while preserving the record. This owner's unresolved restoration still blocks
 normal Quit. No dependency, UI layout, gesture contract or saved-mapping schema
 was changed.
 
-## User guidance and acceptance boundary
+## Published beta.5 acceptance boundary
 
 Use Stop and normal Quit. If restoration fails, keep the current connection and
 use Retry restore. Do not continue an upgrade or removal with this process's
@@ -133,7 +221,7 @@ original-mode-2 or other-panel behavior. See the
 [beta.5 acceptance record](beta5-native-acceptance.md) for artifact identity,
 observations and remaining checks.
 
-## Approved strict recovery policy — implemented and locally verified
+## Historical approved strict recovery policy — build 23
 
 Persist a separate, narrowly scoped recovery record before this process changes
 verified `(0,0)` to `(2,0)`. Keep the saved-mapping schema, public API, visual

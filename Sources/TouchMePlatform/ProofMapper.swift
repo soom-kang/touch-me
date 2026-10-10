@@ -10,16 +10,26 @@ public enum TargetChangeOrigin {
     case touchDeviceRemoval, displayValidation
 }
 
+public enum MappingStartPolicy: Equatable {
+    case manual, automatic, reconnectAutomatic
+}
+
+public enum MappingCleanupDisposition: Equatable {
+    case none, restored, attachmentEnded
+}
+
 public enum ProofError: Error, LocalizedError {
-    case missingPermissions, unsupportedDevice, unsupportedDisplay
+    case missingPermissions, unsupportedDevice, unsupportedDisplay, environmentUnavailable
     case deviceChanged(TargetChangeOrigin)
     case openFailed(IOReturn), readFailed(IOReturn), eventCreationFailed
     case modeUnsupported, modeStateUnexpected, modeReadFailed(IOReturn)
     case modeWriteFailed(IOReturn), modeReadbackMismatch, modeRestoreFailed(IOReturn)
+    case reconnectManualStartRequired
 
     public var errorDescription: String? {
         switch self {
         case .missingPermissions: return "Both Input Monitoring and Accessibility are required."
+        case .environmentUnavailable: return "Unlock the Mac and return to its active user session before mapping."
         case .unsupportedDevice: return "USB physical grouping or absolute contact descriptor could not be verified."
         case .unsupportedDisplay: return "Select an external display with no rotation or mirroring."
         case .deviceChanged(.touchDeviceRemoval): return "The touch device disconnected. Check its USB connection, then refresh."
@@ -32,6 +42,8 @@ public enum ProofError: Error, LocalizedError {
         case .modeReadFailed(let rc): return String(format: "Device mode read failed (0x%08X).", UInt32(bitPattern: rc))
         case .modeWriteFailed(let rc): return String(format: "Multitouch mode change failed (0x%08X).", UInt32(bitPattern: rc))
         case .modeReadbackMismatch: return "Multitouch mode readback did not match. Mapping did not start."
+        case .reconnectManualStartRequired:
+            return "The reconnected panel is already in multitouch mode (2,0). Start mapping manually to keep this mode; Stop will also leave it unchanged."
         case .modeRestoreFailed(let rc):
             if let reason = recoveryJournalDescription(rc) { return reason }
             return String(format: "Original device mode could not be restored (0x%08X). Keep the current connection and retry restoration; a changed attachment cannot authorize recovery.", UInt32(bitPattern: rc))
@@ -40,6 +52,7 @@ public enum ProofError: Error, LocalizedError {
     public var code: String {
         switch self {
         case .missingPermissions: return "permissions_missing"
+        case .environmentUnavailable: return "environment_unavailable"
         case .unsupportedDevice: return "descriptor_unsupported"
         case .unsupportedDisplay: return "display_unsupported"
         case .deviceChanged: return "target_changed"
@@ -51,6 +64,7 @@ public enum ProofError: Error, LocalizedError {
         case .modeReadFailed(let rc): return String(format: "mode_read_0x%08X", UInt32(bitPattern: rc))
         case .modeWriteFailed(let rc): return String(format: "mode_write_0x%08X", UInt32(bitPattern: rc))
         case .modeReadbackMismatch: return "mode_readback_mismatch"
+        case .reconnectManualStartRequired: return "reconnect_manual_start_required"
         case .modeRestoreFailed(let rc): return String(format: "mode_restore_0x%08X", UInt32(bitPattern: rc))
         }
     }
@@ -97,7 +111,11 @@ public final class ProofMapper {
     public private(set) var postedDowns = 0
     public private(set) var postedScrolls = 0
     public private(set) var maximumContacts = 0
-    public var modeRestorePending: Bool { deviceMode?.control.needsRestore == true }
+    public var modeRestorePending: Bool {
+        deviceMode?.control.needsRestore == true || stoppedObservationJournal?.hasPendingUnchangedDisconnect == true
+    }
+    public private(set) var lastCleanupDisposition: MappingCleanupDisposition = .none
+    public var reconnectExpectedDescriptorSHA256: String?
     public var onChange: (() -> Void)?
     public var onFailure: ((ProofError, DisplayTarget?) -> Void)?
     /// May stop mapping for a temporary app-session interruption before input checks.
@@ -108,6 +126,8 @@ public final class ProofMapper {
     private var releaseEvent: CGEvent?
     private var opened: [HIDCollection] = []
     private var deviceMode: (collection: HIDCollection, control: P16KTDeviceMode)?
+    private var stoppedAttachment: (identity: DeviceModeRecoveryIdentity, original: DeviceModeTransaction.Pair)?
+    private var stoppedObservationJournal: DeviceModeRecoveryJournal?
     private var contacts: [String: ContactElements] = [:]
     private var frameAssembler = HIDContactFrameAssembler()
     private var elementKeys: [String: String] = [:]
@@ -125,8 +145,10 @@ public final class ProofMapper {
 
     public var activeDisplayTarget: DisplayTarget? { target }
 
-    public func start(device: TouchDevice, display: DisplayTarget, expectedDisplay: DisplayTarget? = nil) throws {
+    public func start(device: TouchDevice, display: DisplayTarget, expectedDisplay: DisplayTarget? = nil,
+                      startPolicy: MappingStartPolicy = .manual) throws {
         precondition(Thread.isMainThread)
+        let expectedReconnectDescriptor = reconnectExpectedDescriptorSHA256
         let resumeStartedAt = ProcessInfo.processInfo.systemUptime
         let recoveryLog = Logger(subsystem: "io.github.soom-kang.touchme", category: "MappingRecovery")
         func resumePhase(_ phase: String) {
@@ -141,10 +163,11 @@ public final class ProofMapper {
         // Refresh immediately before opening; a saved VID/PID is insufficient.
         let scan = HIDDiscovery.scan()
         resumePhase("device_scan_finished")
-        guard scan.devices.count == 1, let fresh = scan.devices.first(where: { $0.key == device.key }), fresh.canMap,
+        guard scan.queryReturnedSet, scan.devices.count == 1, let fresh = scan.devices.first(where: { $0.key == device.key }), fresh.canMap,
               fresh.usableCollections.count == 1 else {
             throw ProofError.unsupportedDevice
         }
+        guard fresh.locationID == device.locationID else { throw ProofError.unsupportedDevice }
         guard let uuid = display.persistentUUID else { throw ProofError.unsupportedDisplay }
         guard let freshDisplay = DisplayDiscovery.scan().first(where: { $0.id == display.id }),
               freshDisplay.persistentUUID == uuid, freshDisplay.canMap else {
@@ -161,17 +184,34 @@ public final class ProofMapper {
         postedScrolls = 0
         maximumContacts = 0
         let context = Unmanaged.passUnretained(self).toOpaque()
+        func verifyOpenedEnvironment() throws {
+            guard PermissionState.current().canMap else { throw ProofError.missingPermissions }
+            guard NSApplication.shared.isProtectedDataAvailable,
+                  let currentSession = CGSessionCopyCurrentDictionary() as? [String: Any],
+                  currentSession["kCGSSessionOnConsoleKey"] as? Bool == true,
+                  currentSession["kCGSessionLoginDoneKey"] as? Bool == true else {
+                throw ProofError.environmentUnavailable
+            }
+            let displays = DisplayDiscovery.scan().filter { $0.persistentUUID == uuid }
+            guard displays.count == 1, let current = displays.first, current.canMap,
+                  current.matchesConfiguration(of: freshDisplay), CGDisplayIsAsleep(current.id) == 0 else {
+                throw ProofError.deviceChanged(.displayValidation)
+            }
+            target = current
+        }
         do {
             for collection in fresh.usableCollections {
                 let rc = IOHIDDeviceOpen(collection.device, IOOptionBits(kIOHIDOptionsTypeSeizeDevice))
                 resumePhase("device_open_finished")
                 guard rc == kIOReturnSuccess else { throw ProofError.openFailed(rc) }
                 opened.append(collection)
+                try verifyOpenedEnvironment()
                 let control = try P16KTDeviceMode(collection: collection)
                 resumePhase("mode_read_finished")
                 deviceMode = (collection, control)
                 let journal = try DeviceModeRecoveryJournal.acquire()
                 try control.attachRecovery(journal, collection: collection)
+                try control.prepareStart(policy: startPolicy, expectedDescriptor: expectedReconnectDescriptor)
                 try control.enable()
                 resumePhase("mode_enable_finished")
                 for e in collection.contacts {
@@ -206,8 +246,11 @@ public final class ProofMapper {
                 IOHIDDeviceScheduleWithRunLoop(collection.device, loop, mode)
                 resumePhase("contact_read_finished")
             }
+            try verifyOpenedEnvironment()
+            try deviceMode?.control.acknowledgeReconnect()
             _ = post(session.start())
             running = true
+            stoppedAttachment = nil
             if frameAssembler.allLifted { _ = session.update(contacts: []) }
             watchdog = Timer.scheduledTimer(withTimeInterval: 0.25, repeats: true) { [weak self] _ in self?.checkEnvironment() }
             if let watchdog { RunLoop.main.add(watchdog, forMode: .common) }
@@ -226,9 +269,56 @@ public final class ProofMapper {
         stop(recoverPreviousOwner: true)
     }
 
+    /// Bounded display-change classification can outlive the first HID cleanup.
+    /// This observes exact old services and performs journal I/O only after they end.
+    public func observeStoppedAttachment() throws -> Bool {
+        precondition(Thread.isMainThread)
+        do {
+            guard let stoppedAttachment,
+                  try P16KTDeviceMode.attachmentHasEnded(stoppedAttachment.identity) else { return false }
+            if deviceMode != nil {
+                if let error = stop() { throw error }
+                guard lastCleanupDisposition == .attachmentEnded else { return false }
+            } else {
+                let journal = try stoppedObservationJournal ?? DeviceModeRecoveryJournal.acquire()
+                stoppedObservationJournal = journal
+                try journal.retireUnchangedAttachment(identity: stoppedAttachment.identity, original: stoppedAttachment.original,
+                                                      bootSession: P16KTDeviceMode.currentBootSession(),
+                                                      attachmentEnded: { try P16KTDeviceMode.attachmentHasEnded(stoppedAttachment.identity) })
+                journal.close()
+                stoppedObservationJournal = nil
+                reconnectExpectedDescriptorSHA256 = stoppedAttachment.identity.descriptorSHA256
+                lastCleanupDisposition = .attachmentEnded
+            }
+            self.stoppedAttachment = nil
+            onChange?()
+            return true
+        } catch {
+            if stoppedObservationJournal?.hasPendingUnchangedDisconnect != true {
+                stoppedObservationJournal?.close()
+                stoppedObservationJournal = nil
+            }
+            onChange?()
+            throw modeRecoveryProofError(error)
+        }
+    }
+
+    public func cancelStoppedAttachmentObservation() {
+        // Cancel resume intent without discarding a file transition that needs Retry.
+        guard stoppedObservationJournal?.hasPendingUnchangedDisconnect != true else { return }
+        stoppedObservationJournal?.close()
+        stoppedObservationJournal = nil
+        stoppedAttachment = nil
+    }
+
     private func stop(recoverPreviousOwner: Bool) -> ProofError? {
         precondition(Thread.isMainThread)
+        lastCleanupDisposition = .none
         let hadControl = deviceMode != nil
+        if let control = deviceMode?.control, running || control.needsRestore,
+           let identity = control.attachmentIdentity {
+            stoppedAttachment = (identity, control.originalPair)
+        }
         // Release before clearing the target or closing devices, including rollback.
         _ = post(session.stop())
         if let releaseEvent {
@@ -251,28 +341,42 @@ public final class ProofMapper {
         if let deviceMode {
             var openedForRestore: IOHIDDevice?
             do {
-                if deviceMode.control.needsRestore,
-                   !opened.contains(where: { $0.registryID == deviceMode.collection.registryID }) {
-                    // Rebind stale handles only for the recorded continuous attachment.
-                    // A re-enumerated or replacement unit is rejected even on the same port.
-                    let scan = HIDDiscovery.scan()
-                    guard scan.devices.count == 1, let fresh = scan.devices.first,
-                          fresh.canMap, fresh.vendor == deviceMode.collection.vendor,
-                          fresh.product == deviceMode.collection.product,
-                          fresh.usableCollections.count == 1,
-                          let collection = fresh.usableCollections.first,
-                          deviceMode.control.isAtOriginalLocation(collection) else {
-                        throw ProofError.modeRestoreFailed(kIOReturnNoDevice)
+                if try deviceMode.control.attachmentHasEnded() {
+                    try deviceMode.control.retireDisconnected()
+                    reconnectExpectedDescriptorSHA256 = deviceMode.control.attachmentDescriptorSHA256
+                    self.deviceMode = nil
+                    stoppedAttachment = nil
+                    lastCleanupDisposition = .attachmentEnded
+                    Logger(subsystem: "io.github.soom-kang.touchme", category: "MappingRecovery")
+                        .notice("Ended attachment archived as unrestored; waiting for a fresh connection")
+                } else {
+                    if deviceMode.control.needsRestore,
+                       !opened.contains(where: { $0.registryID == deviceMode.collection.registryID }) {
+                        // Rebind stale handles only for the recorded continuous attachment.
+                        // A re-enumerated or replacement unit is rejected even on the same port.
+                        let scan = HIDDiscovery.scan()
+                        guard scan.devices.count == 1, let fresh = scan.devices.first,
+                              fresh.canMap, fresh.vendor == deviceMode.collection.vendor,
+                              fresh.product == deviceMode.collection.product,
+                              fresh.usableCollections.count == 1,
+                              let collection = fresh.usableCollections.first,
+                              deviceMode.control.isAtOriginalLocation(collection) else {
+                            throw ProofError.modeRestoreFailed(kIOReturnNoDevice)
+                        }
+                        let rc = IOHIDDeviceOpen(collection.device, IOOptionBits(kIOHIDOptionsTypeSeizeDevice))
+                        guard rc == kIOReturnSuccess else { throw ProofError.modeRestoreFailed(rc) }
+                        openedForRestore = collection.device
+                        try deviceMode.control.rebind(to: collection)
+                        self.deviceMode = (collection, deviceMode.control)
                     }
-                    let rc = IOHIDDeviceOpen(collection.device, IOOptionBits(kIOHIDOptionsTypeSeizeDevice))
-                    guard rc == kIOReturnSuccess else { throw ProofError.modeRestoreFailed(rc) }
-                    openedForRestore = collection.device
-                    try deviceMode.control.rebind(to: collection)
-                    self.deviceMode = (collection, deviceMode.control)
+                    try deviceMode.control.restore()
+                    self.deviceMode = nil
+                    lastCleanupDisposition = .restored
                 }
-                try deviceMode.control.restore()
-                self.deviceMode = nil
             } catch {
+                if let identity = deviceMode.control.attachmentIdentity {
+                    stoppedAttachment = (identity, deviceMode.control.originalPair)
+                }
                 let failure = modeRecoveryProofError(error)
                 if case .modeRestoreFailed = failure { restoreError = failure }
                 else { restoreError = .modeRestoreFailed(kIOReturnError) }
@@ -294,7 +398,10 @@ public final class ProofMapper {
         scrollRemainderX = 0
         scrollRemainderY = 0
         if recoverPreviousOwner, !hadControl, restoreError == nil {
-            do { try restorePreviousMode() }
+            do {
+                if stoppedObservationJournal != nil { _ = try observeStoppedAttachment() }
+                try restorePreviousMode()
+            }
             catch { restoreError = modeRecoveryProofError(error) }
         }
         onChange?()
@@ -304,7 +411,19 @@ public final class ProofMapper {
     private func restorePreviousMode() throws {
         let journal = try DeviceModeRecoveryJournal.acquire()
         defer { journal.close() }
-        guard let record = try journal.load() else { return }
+        guard let record = try journal.load() else {
+            _ = try journal.loadReconnectGuard()
+            return
+        }
+        if try P16KTDeviceMode.attachmentHasEnded(record.identity) {
+            try journal.retireDisconnected(record, bootSession: P16KTDeviceMode.currentBootSession(),
+                                           attachmentEnded: { try P16KTDeviceMode.attachmentHasEnded(record.identity) })
+            reconnectExpectedDescriptorSHA256 = record.identity.descriptorSHA256
+            lastCleanupDisposition = .attachmentEnded
+            Logger(subsystem: "io.github.soom-kang.touchme", category: "MappingRecovery")
+                .notice("Ended predecessor attachment archived without a device-mode write")
+            return
+        }
         guard PermissionState.current().inputMonitoring else { throw ProofError.missingPermissions }
         let scan = HIDDiscovery.scan()
         guard scan.queryReturnedSet, scan.devices.count == 1, let device = scan.devices.first,
@@ -542,6 +661,8 @@ public final class ProofMapper {
     private func fail(_ error: ProofError) {
         let previousDisplay = target
         let restoreError = stop()
-        onFailure?(restoreError ?? error, previousDisplay)
+        let failure = lastCleanupDisposition == .attachmentEnded
+            ? ProofError.deviceChanged(.touchDeviceRemoval) : (restoreError ?? error)
+        onFailure?(failure, previousDisplay)
     }
 }

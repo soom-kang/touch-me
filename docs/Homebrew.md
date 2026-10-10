@@ -3,8 +3,16 @@
 # Publish the Touch Me Homebrew beta
 
 Beta.6 is published and its public assets and Tap have been verified. This guide
-targets that release; the installed app remains beta.5 build 23. Earlier release
-records remain below.
+targets that release; its 2026-10-09 publication run retained installed beta.5
+build 23. Earlier release records remain below.
+
+## Local USB-C reconnection candidate — 2026-10-10
+
+The reconnection source change is not included in the public beta.6 DMG or Cask. `VERSION`, release assets, Tap and installed app are not changed by this work. Local test/build results are recorded in [Workflow](../Workflow.md#usb-c-reconnection-candidate--2026-10-10), separately from publication or Homebrew acceptance. On 2026-10-10, one approved candidate Start → USB-C disconnect/reconnect → automatic resume → two-position taps → Stop cycle passed (`PASS_USER_REPORTED`). This meets the approved local acceptance scope; no new Homebrew result is implied.
+
+The candidate can preserve an old record as `disconnected-<nonce>.json` only when both exact recorded HID/USB services are proven ended on the same boot and ownership is authorized. A synced `reconnect-required.json` keeps fresh-mode checks in force after relaunch, including sessions whose original `(2,0)` needed no mode-change record. This is unconfirmed restoration, not proof the old mode was restored, and no old mode is copied onto a new connection. `(0,0)` permits guarded automatic Start; `(2,0)` requires informed manual Start and retains its current mode after Stop.
+
+Preserve the current app and artifacts, and use normal Quit for app transitions. If restoration or record handling blocks Quit, preserve the evidence and agree the transition first. One separately approved previous-app termination and the local candidate launch are recorded in [Workflow](../Workflow.md#usb-c-reconnection-candidate--2026-10-10); this does not authorize routine Force Quit. The Cask has no record-reset, forced-quit or recovery hook. Do not delete recovery records to make an upgrade succeed. Public beta.6 retains its continuous-attachment recovery restriction; same-port reconnection cannot bypass it.
 
 ## Published beta.6 — 2026-10-09
 

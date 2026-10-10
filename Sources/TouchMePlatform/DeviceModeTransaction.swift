@@ -27,6 +27,13 @@ final class DeviceModeTransaction {
         guard try matches((2, original.identifier)) else { throw ProofError.modeReadbackMismatch }
     }
 
+    /// Checked against the pair captured after exclusive open, before enabling.
+    func requireDefaultModeForAutomaticReconnect() throws {
+        guard original.mode == 0, original.identifier == 0 else {
+            throw ProofError.reconnectManualStartRequired
+        }
+    }
+
     func restore() throws {
         guard needsRestore else { return }
         if (try? matches(original)) != true {

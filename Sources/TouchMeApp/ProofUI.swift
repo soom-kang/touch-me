@@ -2,6 +2,7 @@ import AppKit
 import CoreGraphics
 import SwiftUI
 import Combine
+import CryptoKit
 import IOKit.hid
 import OSLog
 import TouchMePlatform
@@ -14,6 +15,7 @@ enum Texts {
         guard korean else { return error.localizedDescription }
         switch error {
         case .missingPermissions: return "입력 모니터링과 손쉬운 사용 권한을 모두 허용해주세요."
+        case .environmentUnavailable: return "Mac 잠금을 해제하고 현재 사용자 세션으로 돌아온 뒤 시작하세요."
         case .unsupportedDevice: return "USB 장치 구분 또는 absolute X/Y·접촉 요소를 확인하지 못했습니다. 한 대만 연결하고 다시 조회해주세요."
         case .unsupportedDisplay: return "회전·미러링하지 않은 외부 화면을 선택해주세요."
         case .deviceChanged(.touchDeviceRemoval): return "터치 장치 연결이 끊겨 중지했습니다. USB 연결을 확인하고 다시 조회해주세요."
@@ -26,6 +28,7 @@ enum Texts {
         case .modeReadFailed: return "장치 모드를 읽지 못해 시작하지 않았습니다."
         case .modeWriteFailed: return "멀티터치 모드로 전환하지 못해 시작하지 않았습니다."
         case .modeReadbackMismatch: return "멀티터치 설정을 다시 읽은 결과가 달라 시작하지 않았습니다."
+        case .reconnectManualStartRequired: return "재연결한 장치가 모드 2를 유지하고 있어 자동으로 시작하지 않았습니다. 대상을 확인한 뒤 ‘매핑 시작’을 누르면 현재 모드를 유지합니다."
         case .modeRestoreFailed(let result):
             switch UInt32(bitPattern: result) {
             case 0xE0000F01: return "다른 프로세스가 모드 복구를 사용 중입니다. 기록을 보존하고 매핑을 차단했습니다."
@@ -44,6 +47,7 @@ enum Texts {
 private enum ProofMessage {
     case none, resumeRequired, mappingActive, startFailed, mappingStopped, environmentStopped
     case mappingSuspended, mappingResuming, resumeTimedOut
+    case reconnectWaiting, reconnectResuming
     case checkingInterruption, interruptionUnconfirmed(ProofError)
     case failure(ProofError)
 
@@ -68,12 +72,18 @@ private enum ProofMessage {
         case .resumeTimedOut:
             return Texts.get("매핑을 자동으로 재개하지 못했습니다. 장치·화면과 권한을 확인한 뒤 직접 시작하세요.",
                              "Mapping could not resume automatically. Check the device, display and permissions, then start it manually.")
+        case .reconnectWaiting:
+            return Texts.get("USB 연결이 끊겨 입력을 해제했습니다. 같은 포트에 P16KT를 다시 연결하면 장치와 화면을 확인합니다.",
+                             "USB disconnected and input was released. Reconnect the P16KT to the same port to check the device and display.")
+        case .reconnectResuming:
+            return Texts.get("재연결한 장치와 화면을 확인하고 있습니다. 장치 모드가 0이면 자동으로 재개합니다.",
+                             "Checking the reconnected device and display. Mapping resumes automatically only from device mode 0.")
         case .checkingInterruption:
-            return Texts.get("대상 화면 변화로 입력을 중지했습니다. 잠금·절전 상태를 확인하고 있습니다.",
-                             "Input stopped after a target display change. Checking for a lock or sleep interruption.")
+            return Texts.get("대상 화면 변화로 입력을 중지했습니다. USB 연결과 잠금·절전 상태를 확인하고 있습니다.",
+                             "Input stopped after a target display change. Checking the USB attachment and lock or sleep state.")
         case .interruptionUnconfirmed(let error):
-            return Texts.error(error) + Texts.get(" 잠금·절전 중단을 확인하지 못해 자동 재개하지 않았습니다.",
-                                                " No lock or sleep interruption was confirmed, so automatic resume was cancelled.") + " [\(error.code)]"
+            return Texts.error(error) + Texts.get(" USB 연결 종료나 잠금·절전 중단을 확인하지 못해 자동 재개하지 않았습니다.",
+                                                " Neither attachment removal nor a lock or sleep interruption was confirmed, so automatic resume was cancelled.") + " [\(error.code)]"
         case .startFailed: return Texts.get("시험을 시작하지 못했습니다.", "The proof could not start.")
         case .mappingStopped: return Texts.get("매핑을 중지했습니다.", "Mapping stopped.")
         case .failure(let error): return Texts.error(error) + " [\(error.code)]"
@@ -98,6 +108,12 @@ private struct PendingDisplayInterruption {
     let expiresAt: TimeInterval
 }
 
+private struct MappingReconnectContext {
+    let savedMapping: SavedMapping
+    let descriptorSHA256: String
+    var window = RecoveryWindow()
+}
+
 final class ProofModel: ObservableObject {
     @Published var devices: [TouchDevice] = []
     @Published var displays: [DisplayTarget] = []
@@ -120,6 +136,9 @@ final class ProofModel: ObservableObject {
     @Published private var confirmation = TargetConfirmation()
     var targetConfirmed: Bool { confirmation.isConfirmed }
     @Published private(set) var resumePending = false
+    @Published private var reconnectContext: MappingReconnectContext?
+    @Published private var reconnectManualStartRequired = false
+    var reconnectPending: Bool { reconnectContext != nil }
     let mapper = ProofMapper()
     var onRunChange: ((Bool) -> Void)?
     private var permissionTimer: Timer?
@@ -128,6 +147,9 @@ final class ProofModel: ObservableObject {
     private var startingAutomaticMapping = false
     private let recoveryLog = Logger(subsystem: "io.github.soom-kang.touchme", category: "MappingRecovery")
     private var savedMapping: SavedMapping?
+    private var pendingReconnectMapping: SavedMapping?
+    private var pendingReconnectContext: MappingReconnectContext?
+    private var stoppedAttachmentObservationBlocked = false
     private var restoreSavedSelection = true
     private var interruptions: Set<MappingInterruption> = []
     private var interruptionResumePending = false {
@@ -182,7 +204,12 @@ final class ProofModel: ObservableObject {
             }
             let previouslyAllowed = self.permissions.canMap
             self.permissions = PermissionState.current()
-            if self.interruptionResumePending {
+            if self.modeRestorePending || self.startupRecoveryBlocked {
+                self.observeStoppedAttachmentIfNeeded()
+            }
+            if self.reconnectPending {
+                self.attemptReconnectResume()
+            } else if self.interruptionResumePending {
                 self.attemptInterruptedResume()
             } else if !previouslyAllowed && self.permissions.canMap && self.resumePending {
                 self.refresh()
@@ -244,7 +271,10 @@ final class ProofModel: ObservableObject {
         if !permissions.inputMonitoring && !permissions.accessibility { return .permissionsRequired }
         if !permissions.inputMonitoring { return .inputMonitoringRequired }
         if !permissions.accessibility { return .accessibilityRequired }
-        if devices.isEmpty { return scanReturnedSet ? .noDevice : .deviceQueryFailed }
+        if devices.isEmpty {
+            if scanReturnedSet && reconnectPending { return .waitingReconnect }
+            return scanReturnedSet ? .noDevice : .deviceQueryFailed
+        }
         if devices.count > 1 { return .multipleDevices }
         guard let device = devices.first(where: { $0.key == selectedDevice }) else { return .selectDevice }
         if device.vendor != 0x0457 || device.product != 0x0819 { return .unsupportedModel }
@@ -253,7 +283,7 @@ final class ProofModel: ObservableObject {
         guard let display = displays.first(where: { $0.id == selectedDisplay }) else { return .selectDisplay }
         if let blocker = MappingReadiness.displayBlocker(display) { return blocker }
         if !targetConfirmed { return .targetConfirmationRequired }
-        return .ready
+        return reconnectManualStartRequired ? .reconnectManualStartRequired : .ready
     }
 
     func refresh(attemptResume: Bool = true) {
@@ -264,6 +294,12 @@ final class ProofModel: ObservableObject {
             startupRecoveryError = error
             recordFailure(.failure(error))
             return
+        }
+        if mapper.lastCleanupDisposition == .attachmentEnded {
+            beginReconnectIfNeeded()
+        } else {
+            pendingReconnectMapping = nil
+            pendingReconnectContext = nil
         }
         startupRecoveryError = nil
         confirmation.invalidate()
@@ -288,30 +324,38 @@ final class ProofModel: ObservableObject {
                 selectedDisplay = displays.first(where: { $0.canMap })?.id ?? 0
             }
         }
-        if resumePending {
+        if let reconnectContext {
+            messageState = reconnectContext.window.deadline == nil ? .reconnectWaiting : .reconnectResuming
+        } else if resumePending {
             messageState = interruptionResumePending
                 ? (interruptions.isEmpty ? .mappingResuming : .mappingSuspended) : .resumeRequired
         }
-        if attemptResume { resumeSavedMappingIfPossible() }
+        if attemptResume && !reconnectPending { resumeSavedMappingIfPossible() }
     }
 
     func start(automatic: Bool = false) {
         synchronizeAvailability()
+        guard !automatic || !reconnectManualStartRequired else { return }
         guard canStart, let device = devices.first(where: { $0.key == selectedDevice }),
               let display = displays.first(where: { $0.id == selectedDisplay }),
               let uuid = display.persistentUUID, let location = device.locationID else { return }
         let saved = SavedMapping(displayUUID: uuid, vendor: device.vendor, product: device.product,
                                  locationID: location, resumeMapping: true)
         guard saved.isValid else { return }
-        let expectedDisplay = automatic ? settlingContext?.display : nil
+        let reconnect = automatic ? reconnectContext : nil
+        let expectedDisplay = automatic && reconnect == nil ? settlingContext?.display : nil
+        let startPolicy: MappingStartPolicy = reconnect != nil ? .reconnectAutomatic : automatic ? .automatic : .manual
+        mapper.reconnectExpectedDescriptorSHA256 = reconnect?.descriptorSHA256
         startingAutomaticMapping = automatic
         defer {
             startingAutomaticMapping = false
             updateRecoveryScheduling()
         }
-        cancelPendingResume(clearSettling: !automatic)
+        cancelPendingResume(clearSettling: reconnect != nil || !automatic, clearReconnect: reconnect == nil)
         do {
-            try mapper.start(device: device, display: display, expectedDisplay: expectedDisplay)
+            try mapper.start(device: device, display: display, expectedDisplay: expectedDisplay, startPolicy: startPolicy)
+            reconnectContext = nil
+            reconnectManualStartRequired = false
             MappingPreferences.save(saved)
             savedMapping = saved
             restoreSavedSelection = true
@@ -319,6 +363,24 @@ final class ProofModel: ObservableObject {
             messageState = .mappingActive
             synchronizeAvailability()
         } catch let error as ProofError {
+            if let reconnect, case .modeRestoreFailed = error, mapper.modeRestorePending {
+                pendingReconnectMapping = reconnect.savedMapping
+            }
+            if let reconnect, !mapper.modeRestorePending {
+                switch error {
+                case .unsupportedDevice, .unsupportedDisplay, .deviceChanged:
+                    // A second detach before Start does not create a new deadline.
+                    reconnectContext = reconnect
+                    messageState = .reconnectResuming
+                    return
+                case .openFailed(let result), .modeReadFailed(let result):
+                    guard result == kIOReturnNoDevice else { break }
+                    reconnectContext = reconnect
+                    messageState = .reconnectResuming
+                    return
+                default: break
+                }
+            }
             if case .modeRestoreFailed = error, !mapper.modeRestorePending {
                 startupRecoveryError = error
             }
@@ -331,6 +393,7 @@ final class ProofModel: ObservableObject {
 
     func resumeSavedMappingIfPossible() {
         synchronizeAvailability()
+        guard !reconnectPending, !reconnectManualStartRequired else { return }
         if interruptionResumePending {
             guard interruptions.isEmpty, recoveryWindow.deadline != nil else { return }
             let now = self.uptime()
@@ -353,12 +416,69 @@ final class ProofModel: ObservableObject {
         start(automatic: true)
     }
 
+    private func beginReconnectIfNeeded() {
+        guard !terminating, !modeRestorePending else { return }
+        if reconnectPending { return }
+        guard let savedMapping = pendingReconnectContext?.savedMapping ?? pendingReconnectMapping ?? savedMapping,
+              savedMapping.resumeMapping,
+              let descriptor = mapper.reconnectExpectedDescriptorSHA256 else { return }
+        let continued = pendingReconnectContext
+        cancelPendingResume()
+        // Quit during a disconnected wait must not become an ordinary startup resume.
+        MappingPreferences.setResumeMapping(false)
+        self.savedMapping = MappingPreferences.load()
+        reconnectContext = continued ?? MappingReconnectContext(savedMapping: savedMapping, descriptorSHA256: descriptor)
+        confirmation.invalidate()
+        devices = []
+        selectedDevice = ""
+        startupRecoveryError = nil
+        messageState = reconnectContext?.window.deadline == nil ? .reconnectWaiting : .reconnectResuming
+        recoveryLog.notice("Attachment ended; waiting for a verified reconnect")
+    }
+
+    private func matchesReconnect(_ device: TouchDevice, context: MappingReconnectContext) -> Bool {
+        guard matches(device, saved: context.savedMapping), device.usableCollections.count == 1,
+              let collection = device.usableCollections.first,
+              let descriptor = IOHIDDeviceGetProperty(collection.device, kIOHIDReportDescriptorKey as CFString) as? Data else {
+            return false
+        }
+        return SHA256.hash(data: descriptor).map { String(format: "%02x", $0) }.joined() == context.descriptorSHA256
+    }
+
+    private func attemptReconnectResume() {
+        guard !terminating, !running, !modeRestorePending, !startupRecoveryBlocked,
+              let context = reconnectContext else { return }
+        let now = self.uptime()
+        if context.window.hasExpired(at: now) {
+            rememberStoppedState()
+            messageState = .resumeTimedOut
+            return
+        }
+        // Poll at the existing one-second cadence, including while unplugged.
+        refresh(attemptResume: false)
+        guard var current = reconnectContext, devices.count == 1,
+              let device = devices.first, matchesReconnect(device, context: current) else { return }
+        if current.window.deadline == nil {
+            current.window.begin(at: self.uptime())
+            reconnectContext = current
+            messageState = .reconnectResuming
+            recoveryLog.notice("Verified device reappeared; reconnect readiness window started")
+        }
+        guard interruptions.isEmpty, !current.window.hasExpired(at: self.uptime()),
+              self.uptime() >= current.window.nextAttempt, canStart,
+              displays.first(where: { $0.id == selectedDisplay })?.persistentUUID == current.savedMapping.displayUUID else { return }
+        current.window.postpone(until: self.uptime() + 1)
+        reconnectContext = current
+        start(automatic: true)
+    }
+
     func synchronizeAvailability() {
         updateInterruption(nil, present: false)
     }
 
     private var displaySleepState: Bool? {
         let uuid = mapper.activeDisplayTarget?.persistentUUID
+            ?? reconnectContext?.savedMapping.displayUUID
             ?? settlingContext?.display.persistentUUID
             ?? pendingDisplayInterruption?.display.persistentUUID
             ?? (resumePending ? savedMapping?.displayUUID : nil)
@@ -397,6 +517,7 @@ final class ProofModel: ObservableObject {
     private func updateInterruption(_ event: MappingInterruption?, present: Bool, displaySleeping: Bool? = nil) {
         guard !terminating else { return }
         defer { updateRecoveryScheduling() }
+        if pendingDisplayInterruption != nil { observeStoppedAttachmentIfNeeded() }
         expirePendingDisplayInterruption()
         var updated = interruptions
         if let event {
@@ -431,7 +552,7 @@ final class ProofModel: ObservableObject {
             resumePending = interruptionResumePending && savedMapping?.resumeMapping == true
             recoveryWindow.deadline = nil
             if running, !releaseMapping() {
-                rememberStoppedState()
+                rememberStoppedState(preserveReconnectIntent: true)
                 return
             }
             if resumePending && !modeRestorePending { messageState = .mappingSuspended }
@@ -462,6 +583,10 @@ final class ProofModel: ObservableObject {
     func displayConfigurationChanged() {
         synchronizeDisplayPowerAvailability()
         synchronizeAvailability()
+        if reconnectPending && !running {
+            refresh(attemptResume: false)
+            return
+        }
         guard pendingDisplayInterruption == nil else { return }
         if running, let target = mapper.activeDisplayTarget {
             let currentDisplays = DisplayDiscovery.scan()
@@ -473,7 +598,7 @@ final class ProofModel: ObservableObject {
                 return
             }
             guard releaseMapping() else {
-                rememberStoppedState()
+                rememberStoppedState(preserveReconnectIntent: true)
                 return
             }
             handleMappingFailure(.deviceChanged(.displayValidation), previousDisplay: target)
@@ -485,7 +610,7 @@ final class ProofModel: ObservableObject {
                 interruptionResumePending = resumePending
                 recoveryWindow.deadline = settlingContext?.deadline
                 if !releaseMapping() {
-                    rememberStoppedState()
+                    rememberStoppedState(preserveReconnectIntent: true)
                     return
                 }
             }
@@ -526,8 +651,12 @@ final class ProofModel: ObservableObject {
             && device.locationID == saved.locationID
     }
 
-    private func rememberStoppedState() {
-        cancelPendingResume()
+    private func rememberStoppedState(preserveReconnectIntent: Bool = false) {
+        let pending = preserveReconnectIntent ? pendingReconnectMapping : nil
+        let pendingContext = preserveReconnectIntent ? pendingReconnectContext ?? reconnectContext : nil
+        cancelPendingResume(cancelObservation: !preserveReconnectIntent)
+        pendingReconnectMapping = pending
+        pendingReconnectContext = pendingContext
         MappingPreferences.setResumeMapping(false)
         savedMapping = MappingPreferences.load()
     }
@@ -540,6 +669,19 @@ final class ProofModel: ObservableObject {
     }
 
     private func handleMappingFailure(_ error: ProofError, previousDisplay: DisplayTarget? = nil) {
+        if case .reconnectManualStartRequired = error {
+            rememberStoppedState()
+            reconnectManualStartRequired = true
+            recordFailure(.failure(error))
+            return
+        }
+        if mapper.lastCleanupDisposition == .attachmentEnded {
+            beginReconnectIfNeeded()
+            if reconnectPending {
+                messageState = reconnectContext?.window.deadline == nil ? .reconnectWaiting : .reconnectResuming
+                return
+            }
+        }
         if case .deviceChanged = error, canRetryTargetChange, let settlingContext {
             savedMapping = settlingContext.savedMapping
             resumePending = true
@@ -564,7 +706,22 @@ final class ProofModel: ObservableObject {
             synchronizeAvailability()
             return
         }
-        rememberStoppedState()
+        let reconnectIntent: SavedMapping?
+        let continuedReconnect: MappingReconnectContext?
+        if case .modeRestoreFailed = error {
+            reconnectIntent = reconnectContext?.savedMapping ?? pendingReconnectMapping
+                ?? (previousDisplay != nil && savedMapping?.resumeMapping == true ? savedMapping : nil)
+            continuedReconnect = reconnectContext ?? pendingReconnectContext
+        } else {
+            reconnectIntent = nil
+            continuedReconnect = nil
+        }
+        rememberStoppedState(preserveReconnectIntent: reconnectIntent != nil || continuedReconnect != nil)
+        pendingReconnectMapping = reconnectIntent
+        pendingReconnectContext = continuedReconnect
+        if case .modeRestoreFailed = error {
+            stoppedAttachmentObservationBlocked = shouldPauseAttachmentObservation(after: error)
+        }
         confirmation.invalidate()
         recordFailure(.failure(error))
     }
@@ -577,16 +734,62 @@ final class ProofModel: ObservableObject {
         recordFailure(.interruptionUnconfirmed(pendingDisplayInterruption.error))
     }
 
+    private func shouldPauseAttachmentObservation(after error: ProofError) -> Bool {
+        guard case .modeRestoreFailed(let result) = error else { return true }
+        switch UInt32(bitPattern: result) {
+        case 0xE0000F01...0xE0000F03, 0xE0000F05...0xE0000F07:
+            return true
+        default:
+            // Device I/O or an incomplete attachment change may precede service removal.
+            return false
+        }
+    }
+
+    @discardableResult
+    private func observeStoppedAttachmentIfNeeded() -> Bool {
+        guard !terminating, !running, !stoppedAttachmentObservationBlocked,
+              pendingDisplayInterruption != nil || pendingReconnectMapping != nil || pendingReconnectContext != nil else { return false }
+        do {
+            guard try mapper.observeStoppedAttachment() else { return false }
+            if let pendingDisplayInterruption {
+                pendingReconnectMapping = pendingDisplayInterruption.savedMapping
+            }
+            beginReconnectIfNeeded()
+            return true
+        } catch {
+            let failure = (error as? ProofError) ?? .modeRestoreFailed(kIOReturnError)
+            let intent = pendingDisplayInterruption?.savedMapping ?? pendingReconnectMapping
+            rememberStoppedState(preserveReconnectIntent: true)
+            pendingReconnectMapping = intent
+            stoppedAttachmentObservationBlocked = true
+            if !mapper.modeRestorePending { startupRecoveryError = failure }
+            confirmation.invalidate()
+            recordFailure(.failure(failure))
+            return false
+        }
+    }
+
     private func recordFailure(_ failure: ProofMessage) {
         lastFailureState = failure
         // Readiness is live; a past failure must not masquerade as its current blocker.
         messageState = .none
     }
 
-    private func cancelPendingResume(clearSettling: Bool = true) {
+    private func cancelPendingResume(clearSettling: Bool = true, clearReconnect: Bool = true,
+                                     cancelObservation: Bool = true) {
         resumePending = false
         interruptionResumePending = false
         recoveryWindow.reset()
+        if cancelObservation {
+            mapper.cancelStoppedAttachmentObservation()
+            stoppedAttachmentObservationBlocked = false
+        }
+        if clearReconnect {
+            reconnectContext = nil
+            reconnectManualStartRequired = false
+            pendingReconnectMapping = nil
+            pendingReconnectContext = nil
+        }
         if clearSettling {
             settlingContext = nil
             pendingDisplayInterruption = nil
@@ -596,7 +799,9 @@ final class ProofModel: ObservableObject {
     @discardableResult
     func stop() -> Bool {
         rememberStoppedState()
-        return releaseMapping()
+        let stopped = releaseMapping(allowReconnect: false)
+        mapper.cancelStoppedAttachmentObservation()
+        return stopped
     }
 
     @discardableResult
@@ -616,6 +821,7 @@ final class ProofModel: ObservableObject {
         // An inactive predecessor record owns no input in this process.
         if startupRecoveryBlocked && !mapper.running && !mapper.modeRestorePending { return true }
         let stopped = releaseMapping()
+        mapper.cancelStoppedAttachmentObservation()
         if !stopped && !mapper.modeRestorePending { return true }
         if !stopped { terminating = false }
         return stopped
@@ -624,20 +830,38 @@ final class ProofModel: ObservableObject {
     @discardableResult
     func retryRestore() -> Bool {
         // Retrying failed quit cleanup is not an explicit request to pause.
+        stoppedAttachmentObservationBlocked = false
+        if observeStoppedAttachmentIfNeeded() {
+            refresh(attemptResume: false)
+            return true
+        }
+        if stoppedAttachmentObservationBlocked { return false }
         let restored = releaseMapping()
         if restored { refresh(attemptResume: false) }
         return restored
     }
 
-    private func releaseMapping() -> Bool {
+    private func releaseMapping(allowReconnect: Bool = true) -> Bool {
+        let reconnectIntent = allowReconnect && mapper.running && savedMapping?.resumeMapping == true ? savedMapping : nil
         if let error = mapper.stop() {
+            if case .modeRestoreFailed = error, let reconnectIntent {
+                pendingReconnectMapping = reconnectIntent
+                stoppedAttachmentObservationBlocked = shouldPauseAttachmentObservation(after: error)
+            }
             if !mapper.modeRestorePending { startupRecoveryError = error }
             confirmation.invalidate()
             recordFailure(.failure(error))
             return false
         }
         startupRecoveryError = nil
-        messageState = .mappingStopped
+        if allowReconnect && mapper.lastCleanupDisposition == .attachmentEnded {
+            beginReconnectIfNeeded()
+        } else {
+            pendingReconnectMapping = nil
+            pendingReconnectContext = nil
+        }
+        messageState = reconnectPending
+            ? (reconnectContext?.window.deadline == nil ? .reconnectWaiting : .reconnectResuming) : .mappingStopped
         return true
     }
 
@@ -746,8 +970,8 @@ struct ProofSettingsView: View {
                     Button((model.modeRestorePending || model.startupRecoveryBlocked) && !model.running ? Texts.get("복구 재시도", "Retry restore") : Texts.get("중지", "Stop")) {
                         if (model.modeRestorePending || model.startupRecoveryBlocked) && !model.running { model.retryRestore() } else { model.stop() }
                     }
-                        .disabled(!model.running && !model.modeRestorePending && !model.startupRecoveryBlocked && !model.resumePending).keyboardShortcut(".", modifiers: .command)
-                    Text(model.running ? Texts.get("실행 중", "Running") : model.resumePending ? Texts.get("재개 대기", "Waiting to resume") : Texts.get("중지됨", "Stopped"))
+                        .disabled(!model.running && !model.modeRestorePending && !model.startupRecoveryBlocked && !model.resumePending && !model.reconnectPending).keyboardShortcut(".", modifiers: .command)
+                    Text(model.running ? Texts.get("실행 중", "Running") : model.resumePending || model.reconnectPending ? Texts.get("재개 대기", "Waiting to resume") : Texts.get("중지됨", "Stopped"))
                     Spacer()
                 }
                 Text(Texts.get("수신 값: \(model.values) · 게시한 누름: \(model.clicks)", "Received values: \(model.values) · Posted downs: \(model.clicks)"))

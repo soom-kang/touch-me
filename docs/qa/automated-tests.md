@@ -3,6 +3,52 @@
 Ticket: TMQA-005. Tests added here are not a claim that native tests passed.
 No CI service, external dependency, device driver, or permission change is added.
 
+## USB-C reconnection candidate — 2026-10-10
+
+Use the existing Swift targets and `bash scripts/test.sh`; no separate runner,
+device simulator or new dependency is added. The stable-source
+`bash scripts/test.sh` run passed 37 tests (24 Platform, 13 Core) and app
+compilation. The candidate app build and native-cycle status are recorded in
+[Workflow](../../Workflow.md#usb-c-reconnection-candidate--2026-10-10).
+The earlier Linux results below remain historical and do not describe the
+current Mac's tool availability or candidate checks.
+
+Focused coverage belongs in the existing journal, transaction and recovery
+tests:
+
+- Journal: exact ended-service proof and same-boot/owner/nonce rejection,
+  private archive and durable guard, and retry after interrupted saves or
+  removal sync. Query failures must preserve the active record. Unchanged
+  original modes 0/2 also persist a guard, complete a missing canonical archive
+  after restart, and retain the guard when acknowledgement sync fails.
+- Transaction: a fresh `(2,0)` read after open rejects automatic Start with
+  zero mode writes; informed manual Start and Stop preserve that pair.
+- Recovery window: repeated readiness events keep the first device
+  reappearance's fixed ten-second deadline.
+
+These checks do not open a real HID device or establish the native exclusive
+open, service termination, permissions, screen state or delivered touch events.
+One `bash scripts/build-app.sh` run passed candidate compilation/bundling and
+the built-in `codesign --verify --strict`, producing local beta.6/build 24;
+the approved **Start → same USB-C disconnect → reconnect → automatic resume →
+two-position taps → Stop** device cycle passed once on 2026-10-10
+(`PASS_USER_REPORTED`). With the focused test/build results, the approved
+completion scope is met. Keep original-mode-2 physical
+behavior, reboot, lock/sleep regression, Gatekeeper and Homebrew upgrade results
+separate. Preserve previous apps and artifacts.
+The first `bash scripts/test.sh` attempt failed to compile a new test due to a
+missing `try`. Its correction produced an interim 36-test PASS; the final
+stable-source 37-test run includes the review changes. Existing Command Line
+Tools linker search-path warnings were non-fatal. The previous app's normal Quit
+is `BLOCKED_USER_REPORTED`. After initial CUA and sandboxed launch failures, a
+separately approved transition preserved the active record and installed bundle;
+the sole local candidate launch is tool-observed `PASS`. Its log confirms the
+ended predecessor archival path ran before scanning. These process/log results
+do not establish device-mode write counts. No direct mode-pair readback or
+independent hardware write-count measurement was taken in the user-reported
+cycle. See Workflow for the exact candidate identity, bounded transition
+evidence and separately recorded physical result.
+
 ## Portable packaging tests
 
 From the repository root:
@@ -65,6 +111,8 @@ are not expanded into a new framework in this task. The focused defects now have
 production test seams; this is not exhaustive model or OS integration coverage.
 Native descriptor validation/re-enumeration, feature I/O, permissions, UI states,
 backlog event tracing and login behavior still require supported macOS/P16KT.
-Use the [build 21 checklist](build-21-native-checklist.md) for the public artifact,
-and a separately built candidate for the source fixes. TMQA-003 remains blocked
-on its [hardware decision gate](abnormal-exit-recovery.md).
+Use the [build 21 checklist](build-21-native-checklist.md) only for that historical
+artifact, and a separately built candidate for the source fixes. TMQA-003's
+approved build 23 continuous-attachment SIGKILL scope passed; that result does
+not verify this candidate's USB-C cycle. See the separate
+[recovery acceptance boundaries](abnormal-exit-recovery.md).

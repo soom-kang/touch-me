@@ -156,6 +156,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSMenuItemValidation {
         if item.action == #selector(stopMapping) {
             return model?.running == true || model?.modeRestorePending == true
                 || model?.startupRecoveryBlocked == true || model?.resumePending == true
+                || model?.reconnectPending == true
         }
         return true
     }

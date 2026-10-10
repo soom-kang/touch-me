@@ -33,9 +33,74 @@ The package separates session logic from macOS device access and app controls:
 | `TouchMePlatform`  | USB Human Interface Device (HID) discovery, display selection, P16KT mode restoration and macOS events |
 | `TouchMeApp`       | Menu bar, settings and test windows, preferences, login launch and resume decisions                    |
 
-The app accepts one verified panel and an eligible external display. Mapping opens the device exclusively, enables the verified mode when needed, and restores it on Stop or normal Quit. Restoration failure stays visible and can block Quit.
+The app accepts one verified panel and an eligible external display. Mapping opens the device exclusively and enables the verified mode when needed. Stop or normal Quit restores the original mode on the verified continuous attachment. The candidate's proven ended-connection cleanup instead preserves an unconfirmed-restoration archive, as described in the [journal contract](docs/qa/abnormal-exit-recovery.md). Restoration or archive failures stay visible and can block Quit.
 
 No app networking code or raw-input logging is implemented in the current source. Preferences store the selected device/display identity, the intent to resume and the app's language selection; they do not store a touch history. English is the default, and changing language updates app-owned UI without restarting the session or changing macOS language settings.
+
+## USB-C reconnection candidate — 2026-10-10
+
+The current development change adds safe reconnection handling without changing `VERSION`, the existing active-record schema or `SavedMapping`. Published beta.6 and earlier acceptance records below retain their original scope. No commit, push, installation, release, Tap update or DMG packaging is part of this change.
+
+For a changed-mode active record, require the exclusive lease, same boot, exact nonce and current or proven-dead owner. Prove both exact old HID and USB services ended; query failure is not absence. Persist and sync `disconnected-<nonce>.json` → `reconnect-required.json` → active-record removal. This preserves an unconfirmed restoration and never writes the old mode onto a new attachment.
+
+For an unchanged captured `(0,0)` or `(2,0)` pair with no active record, persist the guard with the exact pair, identity and owner first, then its archive. On restart, a valid guard can complete a missing canonical archive from file evidence without device writes.
+
+Retry failed stages without overwriting different records. If Start's guard-removal sync fails, persist the guard again before rollback. Keep unresolved storage failures visible and block cleanup.
+
+Automatic Start checks the saved USB location, descriptor, single supported panel, display UUID, current geometry, permissions and session after exclusive device open. A fresh `(0,0)` permits it. A fresh `(2,0)` requires informed manual Start and remains `(2,0)` after Stop. The durable reconnect guard survives relaunch and is cleared only after a new default-mode journal is ready or manual Start is approved. The unfinished cable-wait intent stays in memory.
+
+Use the existing one-second timer while the cable is absent. The first device reappearance begins one fixed ten-second readiness window. Repeated events do not extend it. Stop, target selection or normal Quit cancels it. Screen-change notifications that precede HID removal use the existing two-second classification and one-second poll to check exact old service termination. Ordinary lock/sleep recovery retains its existing rules.
+
+Use the existing targets and `bash scripts/test.sh` for focused validation, and run `bash scripts/build-app.sh` once for the candidate. Then perform the approved candidate-only cycle **Start → disconnect → reconnect → automatic resume → two-position taps → Stop**. Preserve existing apps and artifacts. Use normal Quit before switching apps; if blocked, preserve the record and agree a specific transition. Confirm the previous process is absent before launching the candidate. Local checks do not establish native cycle success.
+
+| Candidate check | Current result |
+| --- | --- |
+| Swift compilation and existing tests | `PASS`: 37 tests (24 Platform, 13 Core), with app compilation |
+| Candidate app build and strict signature | `PASS`: one `bash scripts/build-app.sh` run, compilation/bundling and built-in strict signature verification, exit 0 |
+| Previous app exit and local candidate launch | Normal Quit `BLOCKED_USER_REPORTED`; separately approved one-time transition and candidate launch `PASS` |
+| Approved USB-C cycle and two-position taps | `PASS_USER_REPORTED` on 2026-10-10: one Start → same USB-C disconnect/reconnect → automatic resume → two-position taps → Stop cycle; approved acceptance scope met |
+| New release, Homebrew install or upgrade | Not performed; outside scope |
+
+The local candidate is `dist/Touch Me.app`, release `0.8.0-beta.6`, numeric
+bundle version `0.8.0`, build 24 (previous local build 23 → 24). The installed
+app is also beta.6/build 24, so version/build alone cannot identify the candidate:
+
+| Executable | SHA-256 |
+| --- | --- |
+| `dist/Touch Me.app/Contents/MacOS/TouchMe` | `06306a6ed873d314ab565066b42d5a022618ea067a53cd76abceb7333f2e41f7` |
+| `/Applications/Touch Me.app/Contents/MacOS/TouchMe` | `7a2bcd46e4ec2e0a507ebe4b0230c6ad993f9ce92a287c102d1048c483432945` |
+
+The user reported that a recovery error blocked the installed app's normal
+Quit. With separate one-time approval, its exact path and PID 973 were checked
+and rechecked before one `SIGKILL`. Process absence was then confirmed. The
+active record's SHA-256 was unchanged before/after, without logging its contents;
+the installed app bundle was preserved. This approval covers only that transition.
+
+The initial CUA read returned `native pipe closed`. A sandboxed launch then
+returned `-10827` despite the candidate executable being present and executable;
+the approved launch retry succeeded. Only the `dist` candidate, PID 53203,
+was observed running. Its 13:24:13.214 `MappingRecovery` log confirms the ended
+predecessor archival path ran before scanning. This is launch/path evidence,
+not an independent mode-write count or physical-cycle result. Routine operation
+continues to use normal Quit.
+
+On 2026-10-10, the user confirmed automatic resume, both tap positions and Stop
+all succeeded in the requested cycle. Combined with the passing focused tests
+and candidate build, this meets the approved completion scope. No direct mode-pair
+readback or independent device-mode write count was taken. Original-mode-2
+physical behavior, reboot, lock/sleep regression and broader crash recovery
+remain unverified for this candidate.
+
+The initial test compile failed on a missing `try`; its correction passed 36
+tests before review changes. The stable-source 37-test run supersedes that
+interim result. Existing Command Line Tools linker warnings for missing
+`Developer/usr/lib` and `Developer/Library/Frameworks` were non-fatal.
+The final documentation diff passed `git diff --check`; documentation changes
+after the candidate build do not trigger another build. Separate packaging
+tests, DMG creation, Homebrew/release and Gatekeeper were not run in this scope.
+The physical-device result is limited to the user-reported cycle above.
+
+The [lifecycle policy](docs/qa/lifecycle-policy.md), [journal contract](docs/qa/abnormal-exit-recovery.md) and [automated test scope](docs/qa/automated-tests.md) describe the acceptance boundaries. No separate validation framework is added.
 
 ## Build and inspect the app
 
@@ -150,7 +215,7 @@ These are local artifact and style results. Public download and online audit res
 
 A build or packaging failure is a stop condition for delivering a new artifact. Fix the reported local cause and repeat only the failed command. Retain the previous usable artifact until the replacement passes its checks.
 
-If device restoration fails during an approved device check, keep the current connection and choose Retry restore. A changed attachment blocks recovery; preserve its record and error. Do not hide the failure, silently switch devices or overwrite the stored resume intent to claim recovery.
+If device restoration fails during an approved device check, keep the current connection and choose Retry restore. A changed attachment cannot authorize writing the old mode. The reconnection candidate may preserve an ended connection only under the checks above; that is not successful restoration. Preserve its record and error if any check is uncertain. Do not hide the failure, silently switch devices or overwrite the stored resume intent to claim recovery.
 
 After a completed cleanup, `.build` and `dist/previous-builds` may be absent. Subsequent builds recreate them. Inspect the exact generated paths and active mounts before removing them; do not follow symlinks into external folders.
 

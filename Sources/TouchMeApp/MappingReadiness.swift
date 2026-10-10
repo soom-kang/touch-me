@@ -8,8 +8,9 @@ enum MappingReadiness: Equatable {
     case deviceQueryFailed, noDevice, multipleDevices, selectDevice, unsupportedModel
     case unverifiedDescriptor, missingLocation, selectDisplay, builtInDisplay, mirroredDisplay
     case rotatedDisplay, invalidDisplayBounds, missingDisplayUUID, targetConfirmationRequired
+    case waitingReconnect, reconnectManualStartRequired
 
-    var canStart: Bool { self == .ready }
+    var canStart: Bool { self == .ready || self == .reconnectManualStartRequired }
 
     static func displayBlocker(_ display: DisplayTarget) -> Self? {
         if display.builtIn { return .builtInDisplay }
@@ -30,14 +31,20 @@ enum MappingReadiness: Equatable {
             return Texts.get("매핑이 실행 중입니다. 대상을 바꾸려면 먼저 중지하세요.",
                              "Mapping is running. Stop before changing the target.")
         case .restoreRequired:
-            return Texts.get("현재 실행이 변경한 장치 모드를 복구해야 합니다. 연결을 유지한 채 ‘복구 재시도’를 누르세요. 연결이 바뀌면 원복이 차단됩니다.",
-                             "This session's device mode still needs restoring. Keep the connection and choose Retry restore; a changed attachment blocks restoration.")
+            return Texts.get("장치 모드 복구 또는 연결 종료 기록 처리가 남아 있습니다. 아래 오류를 확인하고 ‘복구 재시도’를 누르세요.",
+                             "Device-mode restoration or ended-attachment record processing is still pending. Check the error below and choose Retry restore.")
         case .recordedRestoreRequired:
             return Texts.get("이전 실행의 복구 기록을 확인하지 못해 매핑을 차단했습니다. 아래 오류를 확인하고 ‘복구 재시도’를 누르세요. 기록을 보존한 채 정상 종료할 수 있습니다.",
                              "Mapping is blocked by the previous session's recovery record. Check the error below and choose Retry restore. Normal Quit preserves the record.")
         case .checkingInterruption:
-            return Texts.get("화면 변경 후 잠금·절전 여부를 확인하고 있습니다. 잠시 기다리세요.",
-                             "Checking for a lock or sleep interruption after a display change. Please wait.")
+            return Texts.get("화면 변경 후 USB 연결과 잠금·절전 여부를 확인하고 있습니다. 잠시 기다리세요.",
+                             "Checking the USB attachment and lock or sleep state after a display change. Please wait.")
+        case .waitingReconnect:
+            return Texts.get("USB 연결이 끊겼습니다. 같은 포트에 P16KT를 다시 연결하세요. 다시 조회할 수 있으며 ‘중지’를 누르면 대기를 취소합니다.",
+                             "USB disconnected. Reconnect the P16KT to the same port. Refresh is available; Stop cancels the wait.")
+        case .reconnectManualStartRequired:
+            return Texts.get("재연결한 장치가 모드 2를 유지하고 있습니다. 자동 재개를 멈췄습니다. ‘매핑 시작’을 누르면 현재 모드를 그대로 사용합니다.",
+                             "The reconnected device retained mode 2, so automatic resume stopped. Start mapping uses its current mode without resetting it.")
         case .protectedDataUnavailable:
             return Texts.get("Mac 잠금을 해제한 뒤 시작할 수 있습니다.", "Unlock the Mac before starting mapping.")
         case .sessionUnavailable:

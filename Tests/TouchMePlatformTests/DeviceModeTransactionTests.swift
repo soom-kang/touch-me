@@ -4,6 +4,23 @@ import Testing
 struct DeviceModeTransactionTests {
     private enum Failure: Error { case injected }
 
+    @Test func automaticReconnectUsesOpenedBaselineWithoutWritingModeTwo() throws {
+        for initial in [0, 2] {
+            var pair: DeviceModeTransaction.Pair = (initial, 0)
+            var writes = 0
+            let transaction = try DeviceModeTransaction(read: { pair }, write: { pair = $0; writes += 1 })
+            if initial == 0 {
+                try transaction.requireDefaultModeForAutomaticReconnect()
+            } else {
+                #expect(throws: ProofError.self) { try transaction.requireDefaultModeForAutomaticReconnect() }
+                try transaction.enable()
+                try transaction.restore()
+            }
+            #expect(writes == 0)
+            #expect(pair.mode == initial)
+        }
+    }
+
     @Test func normalModesAndLostProcessState() throws {
         for initial in [0, 2] {
             var pair: DeviceModeTransaction.Pair = (initial, 0)

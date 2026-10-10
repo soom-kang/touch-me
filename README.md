@@ -12,7 +12,7 @@ It maps touch input to the display you select, enabling taps, double-clicks, one
 
 Beta `0.8.0-beta.6` requires the **USB/HID profile verified on the P16KT**. Mapping won't start if the device identifiers or HID (Human Interface Device) input layout differ. Support for other ZEUSLAP models isn't guaranteed, so check the setup below first.
 
-[Beta.6 build 24](https://github.com/soom-kang/touch-me/releases/tag/v0.8.0-beta.6) is published with completed QA records and no runtime-code changes since beta.5. Public DMG/checksum, Tap and online audit checks passed; artifact identities are in the [release notes](docs/releases/v0.8.0-beta.6.md). The [beta.5 build 23 acceptance](docs/qa/beta5-native-acceptance.md) is regression evidence only. Beta.6 installation, GUI, Gatekeeper, real-device use and Homebrew upgrade are `NOT_RUN`; the installed beta.5 app is retained.
+[Beta.6 build 24](https://github.com/soom-kang/touch-me/releases/tag/v0.8.0-beta.6) is published with completed QA records and no runtime-code changes since beta.5. Public DMG/checksum, Tap and online audit checks passed; artifact identities are in the [release notes](docs/releases/v0.8.0-beta.6.md). The [beta.5 build 23 acceptance](docs/qa/beta5-native-acceptance.md) is regression evidence only. At the 2026-10-09 publication checkpoint, beta.6 installation, GUI, Gatekeeper, real-device use and Homebrew upgrade were `NOT_RUN`, and the installed beta.5 app was retained.
 
 ## Check your setup first
 
@@ -87,9 +87,25 @@ The app pauses mapping for screen lock, sleep or an inactive user session while 
 
 **Open Touch Me at login** is off by default. Enable it in settings after installing the app in Applications. This option opens the app at login; the saved mapping state determines whether mapping resumes.
 
+## USB-C reconnection — development candidate, 2026-10-10
+
+This source change is a local candidate, not an update to the published beta.6 download. On 2026-10-10, the user confirmed one approved cycle: Start → USB-C disconnect → reconnect → automatic resume → two-position taps → Stop (`PASS_USER_REPORTED`).
+The candidate and installed app both show beta.6/build 24; use their executable
+paths and hashes in [Workflow](Workflow.md#usb-c-reconnection-candidate--2026-10-10)
+to distinguish them. The local candidate launch is verified; the separately
+approved previous-app transition is recorded there. The reported cycle meets the
+approved acceptance scope; direct mode readback and broader recovery cases were
+not verified in this check.
+
+While the candidate remains open, disconnecting the mapped panel releases input and enters **Waiting for reconnection**. Reconnect one supported P16KT at the saved USB location with the saved display. The app checks permissions, session availability, descriptors and current display geometry before resuming. It retries once per second for ten seconds from the first device reappearance; repeated notifications do not extend that window. **Stop**, changing the selected target or normal **Quit** cancels the wait.
+
+Only a freshly read `(0,0)` mode after exclusive open permits automatic Start. If the new connection is already `(2,0)`, follow **Start mapping** after the app's notice: the current mode is preserved, including after Stop. The app never copies the old connection's mode onto the new connection.
+
+The old record is preserved only after both recorded HID and USB services are proven ended, under the same-boot and ownership checks. This records an unconfirmed restoration. A session that started in `(2,0)` has no mode-change record; its captured original pair still receives the durable reconnect guard. The guard keeps the fresh-mode check in force after relaunch and does not persist an unfinished cable-wait intent. Uncertain identity, ownership or record handling blocks Start and exposes the error. See the [lifecycle policy](docs/qa/lifecycle-policy.md) and [record-handling contract](docs/qa/abnormal-exit-recovery.md).
+
 ## Recover, update or remove the app
 
-Mapping temporarily changes the verified P16KT device mode. Stop or normal Quit releases input and restores the original mode when a change was necessary. A restoration error can prevent the app from quitting:
+Mapping temporarily changes the verified P16KT device mode. Stop or normal Quit releases input and restores the original mode on a verified continuous attachment when a change was necessary. If the candidate proves that connection ended, it preserves the record without claiming restoration; see the [record-handling contract](docs/qa/abnormal-exit-recovery.md). A restoration or archive error can prevent the app from quitting. The following table describes published beta.6; the candidate's ended-connection exception is described above:
 
 | Situation | Next action |
 | --- | --- |
@@ -98,7 +114,7 @@ Mapping temporarily changes the verified P16KT device mode. Stop or normal Quit 
 | Device access fails | Stop other mappers and check the USB connection |
 | Device-mode restoration fails | Keep the current connection and select **Retry restore**; changed attachment blocks recovery |
 
-Force Quit, a crash or power loss can't run normal cleanup. Public beta.4 and the historical beta.5 build 22 keep the original mode only in process memory. Build 22 retained mode 2 after one `SIGKILL` and relaunch → Stop → normal Quit; a separate diagnostic restored captured `(0,0)`. The new candidate records the original pair before changing mode and permits recovery only for the same boot and continuously attached verified device after the previous owner is proven dead. Changed attachment or uncertain records block mapping; reconnecting to the same port does not authorize recovery. Build 23 passed one controlled original-0 SIGKILL/relaunch recovery on the same boot and continuous P16KT attachment; other interruption conditions remain unverified.
+Force Quit, a crash or power loss can't run normal cleanup. Public beta.4 and the historical beta.5 build 22 keep the original mode only in process memory. Build 22 retained mode 2 after one `SIGKILL` and relaunch → Stop → normal Quit; a separate diagnostic restored captured `(0,0)`. Published beta.5 and beta.6 record the original pair before changing mode and permit recovery only for the same boot and continuously attached verified device after the previous owner is proven dead. Changed attachment or uncertain records block mapping; reconnecting to the same port does not authorize recovery. Build 23 passed one controlled original-0 SIGKILL/relaunch recovery on the same boot and continuous P16KT attachment; other interruption conditions remain unverified.
 
 Don't treat reopening the app or a later successful Stop as proof that the pre-crash mode was restored. If device behavior is unexpected, stop mapping, put upgrades and removal on hold, and keep the error details. Don't force an assumed mode value onto the device. See the [abnormal-exit verification notes](docs/qa/abnormal-exit-recovery.md) for the verification scope.
 

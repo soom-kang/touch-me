@@ -4,23 +4,101 @@ Ticket: TMQA-002. The development source preserves mapping intent across
 temporary lock, sleep and user-session interruptions. Beta.3 includes this
 recovery change; the published beta.2 app requires manual restart.
 
-| Event | Release input and restore device | Saved resume intent | Next action |
+The 2026-10-10 development candidate adds the USB-C reconnection path below.
+It is not part of published beta.6. One approved physical reconnection cycle is
+`PASS_USER_REPORTED` on 2026-10-10;
+the lock/sleep observations later in this document remain historical evidence.
+
+| Event | Input and device cleanup | Saved resume intent | Next action |
 | --- | --- | --- | --- |
-| Explicit Stop | Yes | Clear | Manual Start after safety conditions pass |
+| Explicit Stop | Release input; restore the continuous attachment or preserve its proven ended-connection record | Clear | Manual Start after safety conditions pass |
 | Screen lock, sleep or inactive user session | Yes | Preserve | Guarded resume after all interruption conditions clear |
+| Confirmed USB-C disconnection while mapping | Release input; preserve the ended connection's record without claiming restoration | Keep pending intent in memory only | Wait for the saved device and display; do not write the old mode onto a new attachment |
+| First device reappearance during USB-C wait | Already released | Pending within one fixed ten-second window | Automatic Start only from freshly read `(0,0)`; `(2,0)` requires informed manual Start |
+| Uncertain service query or failed disconnected-record handling | Release input; preserve unresolved record | No automatic Start | Expose the failure; retry safe record handling |
 | Display configuration change during suspension or recovery | Already released | Preserve | Recheck the saved target after one quiet second |
 | Target error within a confirmed interruption's recovery window | Yes | Preserve | Recheck the original device and display configuration before retrying |
 | Display validation failure before an interruption is confirmed | Yes | Pending for at most two seconds | Preserve only if a public interruption signal is observed; otherwise clear and require manual Start |
-| Independent display configuration change while active | Yes | Clear after classification | Refresh, verify target, manual Start |
+| Independent display configuration change while active | Yes | Clear after classification | Refresh, verify target, manual Start; proven USB disconnection uses the separate path below |
 | Recovery not ready within ten seconds | Already released | Clear | Check setup, manual Start |
 | Mapper failure | Yes | Clear | Resolve failure and verify target |
-| Normal Quit | Yes | Preserve existing value | Resume only if saved target, USB location and permissions match |
+| Normal Quit | Release input; restore the continuous attachment or preserve its proven ended-connection record | Preserve existing value | Resume only if saved target, USB location and permissions match |
 | Retry after failed Quit restoration | Retry | Preserve existing value | Do not report success until restoration succeeds |
 
 Only running mapping or an existing valid pending resume creates deferred intent.
 Explicit Stop, target selection changes and confirmation cancellation cancel it.
 Normal Quit preserves the saved value and cancels in-process recovery. Quit cannot
 restore an intent already cleared by Stop, a mapping error or recovery timeout.
+
+## USB-C reconnection guards — development candidate, 2026-10-10
+
+Device removal and a preceding display-change notification both ask whether the
+old HID and USB services have ended. This checks active services by the exact
+recorded registry IDs under the same boot. An invalid iterator, query failure or
+only one ended service cannot establish disconnection. Other mappers, malformed
+records and uncertain ownership remain blocking conditions.
+
+Under an exclusive journal lease, an exact active-record nonce and current or
+proven-dead owner allow the record to move to private
+`disconnected-<nonce>.json`. For changed-mode active records, save and sync that
+archive, then save and sync `reconnect-required.json`, then remove the active
+record and sync the directory. A partial failure retries the same nonce and
+preserves evidence; no different archive or guard is overwritten. This
+disposition does not confirm restoration and never authorizes applying the old
+original pair to the new service.
+
+When no active record exists and the original pair remained captured `(0,0)`
+or `(2,0)`, save a durable guard with the exact pair, identity and owner first,
+then save its archive. In particular, an original-mode-2 session must not lose
+the reconnect gate merely because it performed no mode change. If restart finds
+a valid unchanged-mode guard but its archive is absent, complete the canonical
+archive from that file evidence without opening or writing a device. If guard
+acknowledgement removes the file but directory sync fails, save the guard again
+durably before rolling back Start; unresolved persistence blocks cleanup.
+
+While the candidate remains open, the existing one-second timer scans for the
+saved USB location and display UUID. Cable absence does not consume the readiness
+window. The first device reappearance starts a fixed ten-second window; duplicate
+notifications cannot move its deadline. Stop, target selection, confirmation
+cancellation and normal Quit cancel pending cable recovery. Before a successful
+resume, that intent stays in memory and is not restored on the next launch.
+If a display-change notification precedes service termination, the existing
+two-second classification and one-second poll retain the exact old attachment
+long enough to check termination. They do not assume disconnection from the
+display change alone.
+
+After exclusive open, recheck the saved location, descriptors, one supported
+P16KT, saved display UUID, current eligible geometry, permissions and session.
+Unlike the lock/sleep path, cable reconnection uses current geometry for the
+same saved display rather than requiring the previous bounds. Read the new
+connection's current mode only then. `(0,0)` permits automatic Start; `(2,0)`
+performs no automatic mode write, displays the direct-start notice and permits
+informed manual Start that retains `(2,0)` after Stop. Any other pair fails the
+existing mode contract. A durable reconnect guard survives process restart;
+clear it only after a new default-mode journal is ready or manual Start is
+approved. This does not create persistent USB-wait intent.
+
+The setting window keeps its existing layout and distinguishes cable wait,
+manual Start required and failed record handling. Refresh and Stop remain
+available during cable wait. Recovery logs use the existing `MappingRecovery`
+category, without raw input or credentials. Normal lock/sleep guards below are
+unchanged. A native device call already in progress can still exceed the
+readiness deadline.
+
+Candidate acceptance is one **Start → USB-C disconnect → reconnect → automatic
+resume → two-position taps → Stop** cycle after confirming the previous process
+is absent. The previous app's normal Quit is `BLOCKED_USER_REPORTED`. A separately
+approved exact-PID termination preserved its active record and app bundle, and
+the sole local candidate launch is tool-observed `PASS`. Its log confirms the
+ended predecessor archival path ran before scanning. On 2026-10-10, the user
+confirmed automatic resume, two-position taps and Stop all succeeded in that
+cycle (`PASS_USER_REPORTED`). With the focused test/build results, the approved
+completion scope is met. No direct mode-pair readback or independent mode-write
+count was taken. Normal Quit remains the routine transition policy.
+The [Workflow candidate checks](../../Workflow.md#usb-c-reconnection-candidate--2026-10-10)
+record actual script results separately. Original-mode-2 hardware behavior,
+reboot, lock/sleep regression, broader crash recovery and other panels have no
+new acceptance claim.
 
 ## Recovery guards
 
@@ -50,8 +128,8 @@ the model releases mapping and those checks return if mapping has stopped.
 Cleanup mouse-up events always remain allowed. Other mapper failures still
 cancel resume.
 
-Display identity is checked by a unique persistent UUID and unchanged bounds,
-built-in, rotation and mirroring state. An unchanged target with a new temporary
+For lock/sleep recovery, display identity is checked by a unique persistent UUID
+and unchanged bounds, built-in, rotation and mirroring state. An unchanged target with a new temporary
 display ID continues mapping with the refreshed ID. Both the display watchdog and
 screen-configuration callback release input before classifying an invalid target.
 If no interruption is confirmed yet, they retain the actual previous target for
@@ -59,7 +137,8 @@ at most two seconds using the existing timer. This pending classification cannot
 start mapping or refresh into an automatic Start. Only a public interruption
 signal observed before expiration promotes it to the existing guarded recovery.
 Expiration, explicit Stop, selection change, Quit or restoration error cancels
-it. A display change alone never authorizes automatic resume.
+it. A display change alone never authorizes automatic resume. The cable path
+requires the independent ended-service proof described above.
 
 After all guards clear, recovery waits one quiet second, then refreshes the exact
 saved USB location and display UUID. Readiness queries retry once per second for
