@@ -12,11 +12,11 @@ It maps touch input to the display you select, enabling taps, double-clicks, one
 
 Beta `0.8.0-beta.8` requires the **USB/HID profile verified on the P16KT**. Mapping won't start if the device identifiers or HID (Human Interface Device) input layout differ. Support for other ZEUSLAP models isn't guaranteed, so check the setup below first.
 
-**Beta.8/build 26 is PREPARING / NOT_PUBLISHED as of 2026-10-12.** Check the [beta.8 release notes](docs/releases/v0.8.0-beta.8.md) before installing. One new app and DMG passed native artifact checks in a separate checkout. Source regression results are reused: 38 Swift tests and 22 packaging tests. New build 26 GUI, real-device use, installation, Homebrew upgrade and Gatekeeper checks are `NOT_RUN`.
+[Beta.8/build 26](https://github.com/soom-kang/touch-me/releases/tag/v0.8.0-beta.8) was **PUBLISHED** on 2026-10-12 at 10:41:21 KST (01:41:21 UTC). Public DMG/checksum bytes match the inspected release. The public and installed Tap revision `47a3e433` matches the verified Cask. One new app and DMG passed native artifact checks; the existing 38 Swift and 22 packaging test results are reused. Build 26 GUI, real-device use, installation, Homebrew upgrade and Gatekeeper are `NOT_RUN`. See the [beta.8 release notes](docs/releases/v0.8.0-beta.8.md).
 
-The release prepares the TMQA-006 recovery-cleanup fix and TMQA-007 packaging fix described below. It keeps the arm64/macOS 26+ target, ad hoc signature and existing device-mode and preference formats.
+The release includes the TMQA-006 recovery-cleanup fix and TMQA-007 packaging fix described below. It keeps the arm64/macOS 26+ target, ad hoc signature and existing device-mode and preference formats.
 
-Online audit remains `BLOCKED` under the agreed trust-preserving deferral. No trust settings or bypass variables are changed.
+Online audit remains `BLOCKED` under the agreed deferral. No trust/developer modification commands or bypass variables were used. Target trust settings match their baseline; the shared store has a [separate observation limit](docs/releases/v0.8.0-beta.8.md#preserved-state-and-observation-limit).
 
 Historical 2026-10-10 publication: [beta.7/build 25](https://github.com/soom-kang/touch-me/releases/tag/v0.8.0-beta.7) was **PUBLISHED** at 14:25:14 KST (05:25:14 UTC). At that checkpoint, anonymous public DMG/sidecar bytes and hashes matched the frozen release, and public/locally fetched Tap revisions matched the verified Cask. The release reused 37 Swift tests and one development build 24 reconnection cycle; build 25 installation, GUI, real-device use, Gatekeeper and Homebrew upgrade were `NOT_RUN`. See the [beta.7 release notes](docs/releases/v0.8.0-beta.7.md) for the historical artifact identities and results.
 
@@ -29,7 +29,7 @@ in commit `f828fd22`. Retry and Start confirm storage sync even when no active
 recovery record remains. Packaging stages a complete DMG/checksum pair,
 archives the previous valid pair together and rolls back ordinary file-move
 errors. A rollback failure stops further moves and reports the recovery paths.
-Missing or mismatched previous pairs are preserved and rejected. Separate file
+A previous pair with one missing file or a checksum mismatch is preserved and rejected. When both files are absent, first-time packaging is allowed. Separate file
 moves do not guarantee crash, power-loss or concurrent-run atomicity.
 
 Before beta.8 preparation, one local QA app and DMG passed native signature/image
@@ -55,13 +55,13 @@ Other panels, Intel Macs and older macOS versions have no recorded validation. S
 
 ## Install and start your first mapping session
 
-Beta.8 is not published yet. The steps below target beta.8/build 26 after its release and Cask are available; the current published release remains beta.7 at the recorded checkpoint. Both installation routes use the same permission and target-display setup.
+Install the published beta.8/build 26 through Homebrew or its DMG. Both installation routes use the same permission and target-display setup.
 
 ### Install with Homebrew
 
 If you already have a manually installed `/Applications/Touch Me.app`, turn off **Open Touch Me at login** and select **Stop mapping**. Confirm restoration on the continuous connection or safe preservation of a verified ended-connection record, then quit normally and move the old app outside Applications to keep it. Stop installation if restoration fails. The [Homebrew installation guide](docs/Homebrew.md#install-update-and-remove-after-publication) explains how to preserve the app and preferences without forcing an overwrite.
 
-After the Tap Cask points to the published beta.8 asset and checksum, install it:
+Install the verified beta.8 Cask:
 
 ```bash
 brew install --cask soom-kang/touch-me/touch-me
@@ -69,7 +69,7 @@ brew install --cask soom-kang/touch-me/touch-me
 
 ### Install from the DMG
 
-After publication, download `touch-me-0.8.0-beta.8-arm64.dmg` and its `.sha256` file from the [beta.8 release](https://github.com/soom-kang/touch-me/releases/tag/v0.8.0-beta.8). Confirm version/build `0.8.0-beta.8`/26 and the recorded checksum in the [release notes](docs/releases/v0.8.0-beta.8.md), then open the disk image and drag **Touch Me.app** to **Applications**. Eject the image after copying. The earlier local beta.7 QA candidate has a different identity and is not this download.
+Download `touch-me-0.8.0-beta.8-arm64.dmg` and its `.sha256` file from the [beta.8 release](https://github.com/soom-kang/touch-me/releases/tag/v0.8.0-beta.8). Confirm version/build `0.8.0-beta.8`/26 and the recorded checksum in the [release notes](docs/releases/v0.8.0-beta.8.md), then open the disk image and drag **Touch Me.app** to **Applications**. Eject the image after copying. The earlier local beta.7 QA candidate has a different identity and is not this download.
 
 The beta has an ad hoc signature and isn't notarized. If macOS blocks the downloaded app's first launch, verify its source and checksum before following [Apple's manual approval guidance](https://support.apple.com/en-us/102445). An available approval option doesn't guarantee the app can run.
 
@@ -151,11 +151,11 @@ For local builds or distribution details, read these documents:
 
 - [Build workflow](Workflow.md): module responsibilities, local builds, packaging and checks for each change
 - [Homebrew distribution](docs/Homebrew.md): Tap and release procedure, installation conflicts, updates and removal
-- [Beta.8 release notes](docs/releases/v0.8.0-beta.8.md): recovery/packaging fixes, release preparation and validation limits
+- [Beta.8 release notes](docs/releases/v0.8.0-beta.8.md): recovery/packaging fixes, publication results and validation limits
 - Historical release notes: [beta.4](docs/releases/v0.8.0-beta.4.md), [beta.5](docs/releases/v0.8.0-beta.5.md), [beta.6](docs/releases/v0.8.0-beta.6.md), [beta.7](docs/releases/v0.8.0-beta.7.md)
 - [Editable architecture diagram](docs/assets/architecture.html)
 
-The beta.8 packaging target is `dist/touch-me-0.8.0-beta.8-arm64.dmg`, for build 26. Local artifact checks passed; public verification is pending; a local path does not establish publication.
+The beta.8 packaging target is `dist/touch-me-0.8.0-beta.8-arm64.dmg`, for build 26. Local artifact checks and exact public-byte verification passed; a local path does not establish publication.
 
 ## Recorded validation
 

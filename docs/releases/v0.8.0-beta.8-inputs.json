@@ -45,5 +45,6 @@
     "scripts/package-dmg.py": "ae38b4e674d4c3a344712d0f24a42c03cb5aaa1ce0de0a4332745a3e384d8344",
     "scripts/test.sh": "44b239916cd9eb536077a9f4c478cf814a0838f7311f6a155cf283d628df1932"
   },
-  "source_state": "Release candidate from f828fd22; VERSION advanced to 0.8.0-beta.8; compare inputs with final tag commit."
+  "release_commit": "e97d1720e2e994761614935cb04303f05fd1c691",
+  "source_state": "All 43 frozen inputs verified against the exact release tag commit before publication."
 }

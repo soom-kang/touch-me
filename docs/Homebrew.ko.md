@@ -2,36 +2,42 @@
 
 # Touch Me Homebrew beta 배포
 
-Beta.8은 **PREPARING / NOT_PUBLISHED**입니다. 새 release와 Tap 검사를 마치기
-전까지 공개 version은 beta.7입니다. 로컬 앱 설치와 upgrade는 이번 배포 범위
-밖이며 이전 공개 기록은 아래에 보존합니다.
+Beta.8과 기존 Tap 갱신을 **PUBLISHED**로 공개했습니다. 설치 앱과 상태는
+보존했으며 로컬 앱 설치나 upgrade는 수행하지 않았습니다.
 
-## Beta.8 release 준비 — 2026-10-12
+## Beta.8 공개 — 2026-10-12
 
-사용자는 source 기준 `f828fd22`에서 prerelease `v0.8.0-beta.8`, build 26을
-배포하는 데 동의했습니다. 별도 checkout에서 앱과 DMG를 각각 한 번 생성했고
-native 산출물 검사를 통과했습니다. Source/tag 공개와 기존 Tap 갱신은 아직 남아
-있습니다. 동결한 후보 식별과 실제 결과는 [beta.8 release notes](releases/v0.8.0-beta.8.md)에
-기록합니다. Source가 유지되는 동안 완료한 Swift tests 38개와 packaging tests
-22개를 재사용합니다. Build/package 입력에서는 `VERSION`만 바뀌었으며 최종 release
-입력 43개에는 Cask draft의 새 version/digest도 포함됩니다.
+Prerelease `v0.8.0-beta.8`, build 26을 10:41:21 KST(01:41:21 UTC)에
+공개했습니다. Source/tag `e97d1720`은 동결한 입력 43개와 일치합니다.
+익명 public DMG·sidecar의 bytes, 크기와 checksum 텍스트는 검사한 후보와
+같습니다. 공개 Tap, 검토한 checkout과 clean한 로컬 Tap은 `47a3e433`에
+일치하며 앱 설치·upgrade 없이 fast-forward로 갱신했습니다. 전체 식별은
+[beta.8 release notes](releases/v0.8.0-beta.8.md)에 기록합니다.
 
-1. 동결한 앱/DMG를 유지하고 최종 입력을 release commit과 대조합니다. 후보의
-   metadata/서명/라이선스/아이콘, arm64, DMG 무결성/sidecar, 읽기 전용 내부 앱
-   bytes와 정상 detach 검사는 통과했습니다. 단순 재확인을 위해 다시 빌드하지 않습니다.
-2. 검토한 source, tag와 prerelease를 공개하며 이전 tag/asset을 대치하지 않습니다.
-   익명 public DMG/sidecar bytes를 동결한 후보와 비교한 뒤 기존 Tap을 변경합니다.
-3. 실제 `Casks/touch-me.rb`, beta.8의 정확한 버전 prerelease allowlist와 Tap 양언어
-   안내를 갱신합니다. Cask Ruby syntax와 동등한 Homebrew style 규칙을 설치된
-   vendored RuboCop wrapper로 확인합니다. 별도 cache를 사용하며 gem 설치/정리와
-   `brew style` front-end는 실행하지 않습니다. 이후 공개 Tap revision과 Cask/asset
-   식별을 확인합니다.
+실제 Cask의 버전, URL과 digest는 공개 DMG와 일치합니다. 본문은 source
+초안의 안내 주석 두 줄을 제외한 template과 같으며 prerelease allowlist는
+`touch-me`의 정확한 beta.8 버전만 허용합니다. Cask Ruby 문법과 동등한
+Homebrew style 규칙은 설치된 vendored RuboCop wrapper로 통과했습니다
+(파일 1개, offenses 없음). 첫 style 실행은 디렉터리를 잘못 지정해 exit
+130으로 중단했으며 Tap 디렉터리에서 바로잡은 실행은 통과했습니다.
+Developer 설정을 보존하기 위해 `brew style` front-end, gem 설치와 정리는
+실행하지 않았습니다.
 
-Online audit는 승인한 보류에 따라 **BLOCKED**입니다. 2026-10-12 preflight에서는
-선택한 Cask가 trusted, Tap 전체가 untrusted였습니다. 두 상태와 developer 설정을
-유지하며 audit 실행이나 trust 우회 환경변수는 사용하지 않습니다. 현재 관측으로
-beta.7의 과거 audit 결과를 바꾸지 않습니다. Build 26 GUI/실기기, 설치, upgrade와
-첫 실행 Gatekeeper는 `NOT_RUN`이며 설치 앱, 기록, 환경설정과 권한을 보존합니다.
+앱과 DMG를 각각 한 번 만들고 native 산출물 검사를 통과했습니다. 기존
+Swift 38개와 packaging 22개 PASS는 재사용했습니다. 이전 release 7개,
+asset 14개와 annotated/peeled tag ref 14개의 식별도 유지했습니다.
+새 산출물과 이전 asset을 보존하고, 산출물이 바뀌면 새 버전을 만드세요.
+Cask 갱신 전 공개 bytes를 비교하며 불완전한 로컬 출력은 점검용으로 보존합니다.
+
+Online audit는 승인된 보류로 **BLOCKED**입니다. Trust나 developer 설정을
+변경하는 명령과 trust 우회 변수는 사용하지 않았습니다. Build 26 GUI·실기기,
+설치·upgrade·Gatekeeper와 로그인·잠금·절전·crash acceptance는 **NOT_RUN**입니다.
+아래 설치 안내는 공개한 beta.8 Cask를 대상으로 하며 이전 구간은 과거 배포
+근거로 유지합니다.
+
+설치 앱·복구 기록·환경설정·기존 산출물과 대상 trust/developer 상태는 baseline에
+일치합니다. 공유 trust-store raw hash는 달라졌으며 원인·변경 주체는 미확인입니다.
+복구 조작은 하지 않았습니다. [보존 한계](releases/v0.8.0-beta.8.md#상태-보존과-관측-한계)를 확인하세요.
 
 ## Beta.8 이전 source QA 기준 기록 — 2026-10-12
 
@@ -294,7 +300,7 @@ Audit에는 설치된 Cask 이름을 사용합니다. Homebrew 7.0.9는 `.rb` �
 
 ## 공개 후 설치·업데이트·제거
 
-다음은 공개한 beta.7과 확인한 Tap Cask의 설치 안내입니다. 이번 release 작업에서는 로컬 앱 설치나 upgrade를 실행하지 않았습니다. Beta.6 작업에서는 당시 설치된 beta.5 앱을 유지했습니다. 전체 이름으로 설치하면 Tap 전체 대신 선택한 Cask에 trust가 적용됩니다. [Tap Trust](https://docs.brew.sh/Tap-Trust)
+다음은 공개한 beta.8과 확인한 Tap Cask의 설치 안내입니다. 이번 release 작업에서는 로컬 앱 설치나 upgrade를 실행하지 않았습니다. Beta.6 작업에서는 당시 설치된 beta.5 앱을 유지했습니다. 전체 이름으로 설치하면 Tap 전체 대신 선택한 Cask에 trust가 적용됩니다. [Tap Trust](https://docs.brew.sh/Tap-Trust)
 
 ```bash
 brew install --cask soom-kang/touch-me/touch-me

@@ -12,11 +12,11 @@ Touch Me는 ZEUSLAP 터치 모니터를 Mac에서 활용할 수 있도록 만든
 
 Beta `0.8.0-beta.8`은 **P16KT에서 확인한 USB/HID profile**을 요구합니다. 장치 식별자와 HID(Human Interface Device) 입력 구조가 다르면 매핑을 시작하지 않습니다. 다른 ZEUSLAP 모델까지 지원한다고 보장하지 않으므로 아래 환경을 먼저 확인해 주세요.
 
-**2026-10-12 현재 beta.8/build 26은 PREPARING / NOT_PUBLISHED입니다.** 설치 전에 [beta.8 release notes](docs/releases/v0.8.0-beta.8.md)를 확인하세요. 별도 checkout에서 새 앱과 DMG를 각각 한 번 생성하고 native 산출물 검사를 통과했습니다. 수정 source의 Swift tests 38개와 packaging tests 22개 PASS를 재사용합니다. 새 build 26의 GUI, 실기기 사용, 설치, Homebrew upgrade와 Gatekeeper 검사는 `NOT_RUN`입니다.
+[Beta.8/build 26](https://github.com/soom-kang/touch-me/releases/tag/v0.8.0-beta.8)을 2026-10-12 10:41:21 KST(01:41:21 UTC)에 **PUBLISHED**로 공개했습니다. 공개 DMG/checksum bytes는 검사한 release와 일치하며 공개·로컬 Tap revision `47a3e433`도 검증한 Cask와 같습니다. 새 앱과 DMG를 각각 한 번 생성하고 native 산출물 검사를 통과했습니다. 기존 Swift 38개와 packaging 22개 PASS는 재사용합니다. Build 26 GUI·실기기 사용·설치·Homebrew upgrade·Gatekeeper는 `NOT_RUN`입니다. [Beta.8 release notes](docs/releases/v0.8.0-beta.8.md)를 확인하세요.
 
-이번 release에는 아래에서 설명하는 TMQA-006 복구 기록 정리와 TMQA-007 패키징 수정을 반영할 예정입니다. 기존 arm64/macOS 26+ 대상, ad hoc 서명과 장치 모드 및 환경설정 형식은 유지합니다.
+이번 release에는 아래에서 설명하는 TMQA-006 복구 기록 정리와 TMQA-007 패키징 수정을 포함합니다. 기존 arm64/macOS 26+ 대상, ad hoc 서명과 장치 모드 및 환경설정 형식은 유지합니다.
 
-합의한 trust 보존 범위에 따라 online audit는 계속 `BLOCKED`입니다. Trust 설정이나 우회 변수는 바꾸지 않습니다.
+합의한 범위에 따라 online audit는 계속 `BLOCKED`입니다. Trust·developer 변경 명령이나 우회 변수는 사용하지 않았습니다. 대상 trust 상태는 baseline과 같으며 공유 store의 [관측 한계](docs/releases/v0.8.0-beta.8.md#상태-보존과-관측-한계)는 별도로 기록합니다.
 
 2026-10-10 공개 checkpoint: [beta.7/build 25](https://github.com/soom-kang/touch-me/releases/tag/v0.8.0-beta.7)를 14:25:14 KST(05:25:14 UTC)에 **PUBLISHED**로 공개했습니다. 당시 익명 public DMG/sidecar의 bytes와 hash는 동결한 release와 일치했고 공개 Tap과 로컬 Tap revision도 검토한 Cask와 일치했습니다. Swift tests 37개와 개발 build 24의 재연결 cycle 한 번을 재사용했으며 build 25 설치, GUI, 실기기 사용, Gatekeeper와 Homebrew upgrade는 `NOT_RUN`이었습니다. 과거 산출물 식별과 결과는 [beta.7 release notes](docs/releases/v0.8.0-beta.7.md)에 보존합니다.
 
@@ -28,8 +28,9 @@ Beta `0.8.0-beta.8`은 **P16KT에서 확인한 USB/HID profile**을 요구합니
 TMQA-006/007 수정 결과를 기록했습니다. Active record가 없어도 재시도와 Start 전에
 저장소 sync를 확인합니다. 패키징은 staging에서 완전한 DMG/checksum 쌍을
 준비하고 유효한 이전 쌍을 함께 보관합니다. 일반 파일 이동 오류는 rollback하며
-rollback도 실패하면 추가 이동을 중단하고 복구할 경로를 표시합니다. 이전 파일이
-빠졌거나 checksum이 불일치하면 그대로 보존하고 중단합니다. 개별 파일 이동은
+rollback도 실패하면 추가 이동을 중단하고 복구할 경로를 표시합니다. 기존 쌍 중 한 파일만
+없거나 checksum이 불일치하면 그대로 보존하고 중단합니다. 두 파일이 모두 없으면
+첫 패키징을 허용합니다. 개별 파일 이동은
 crash, power-loss나 concurrent-run atomicity를 보장하지 않습니다.
 
 Beta.8 준비 전에는 로컬 QA 앱과 DMG 각 1개가 native 서명, 이미지 검사와 읽기 전용
@@ -55,7 +56,7 @@ Apple Silicon Mac에서 P16KT 한 대를 연결하는 환경을 대상으로 합
 
 ## 설치하고 첫 매핑 시작하기
 
-Beta.8은 아직 공개하지 않았습니다. 아래 절차는 release와 Cask가 준비된 뒤 설치할 beta.8/build 26을 대상으로 합니다. 기록된 checkpoint의 공개 release는 beta.7입니다. 어느 쪽으로 설치하든 권한과 대상 화면 설정은 같습니다.
+공개한 beta.8/build 26을 Homebrew로 설치하거나 DMG에서 복사할 수 있습니다. 어느 쪽으로 설치하든 권한과 대상 화면 설정은 같습니다.
 
 ### Homebrew로 설치하기
 
@@ -69,7 +70,7 @@ brew install --cask soom-kang/touch-me/touch-me
 
 ### DMG로 설치하기
 
-공개 후 [beta.8 release](https://github.com/soom-kang/touch-me/releases/tag/v0.8.0-beta.8)에서 `touch-me-0.8.0-beta.8-arm64.dmg`와 `.sha256` 파일을 받으세요. Version/build `0.8.0-beta.8`/26과 [release notes](docs/releases/v0.8.0-beta.8.md)에 기록한 checksum을 확인한 뒤 디스크 이미지를 열어 **Touch Me.app**을 **Applications**로 끌어 복사하세요. 복사를 마치면 이미지를 추출하세요. 이전 로컬 beta.7 QA 후보는 별도 산출물입니다.
+[beta.8 release](https://github.com/soom-kang/touch-me/releases/tag/v0.8.0-beta.8)에서 `touch-me-0.8.0-beta.8-arm64.dmg`와 `.sha256` 파일을 받으세요. Version/build `0.8.0-beta.8`/26과 [release notes](docs/releases/v0.8.0-beta.8.md)에 기록한 checksum을 확인한 뒤 디스크 이미지를 열어 **Touch Me.app**을 **Applications**로 끌어 복사하세요. 복사를 마치면 이미지를 추출하세요. 이전 로컬 beta.7 QA 후보는 별도 산출물입니다.
 
 Beta는 ad hoc 서명을 사용하며 공증하지 않았습니다. macOS가 다운로드한 앱의 첫 실행을 차단하면 출처와 checksum을 확인한 뒤 [Apple의 수동 실행 승인 안내](https://support.apple.com/en-us/102445)를 따르세요. 승인 항목이 보이더라도 앱 실행을 보장하지는 않습니다.
 
@@ -151,11 +152,11 @@ Beta는 ad hoc 서명을 사용하며 공증하지 않았습니다. macOS가 다
 
 - [개발 Workflow](Workflow.ko.md): 모듈별 역할, 로컬 빌드와 패키징, 변경에 맞는 검증
 - [Homebrew 배포](docs/Homebrew.ko.md): Tap과 release 절차, 설치 충돌, 업데이트와 제거
-- [beta.8 release notes](docs/releases/v0.8.0-beta.8.md): 복구/패키징 수정, release 준비 상태와 검증 한계
+- [beta.8 release notes](docs/releases/v0.8.0-beta.8.md): 복구/패키징 수정, 공개 결과와 검증 한계
 - 과거 release notes: [beta.4](docs/releases/v0.8.0-beta.4.md), [beta.5](docs/releases/v0.8.0-beta.5.md), [beta.6](docs/releases/v0.8.0-beta.6.md), [beta.7](docs/releases/v0.8.0-beta.7.md)
 - [편집 가능한 구조 다이어그램](docs/assets/architecture.ko.html)
 
-Beta.8/build 26의 패키징 대상은 `dist/touch-me-0.8.0-beta.8-arm64.dmg`입니다. 로컬 산출물 검사는 통과했고 공개 검증은 준비 중이며 로컬 경로만으로 공개 여부를 판정하지 않습니다.
+Beta.8/build 26의 패키징 대상은 `dist/touch-me-0.8.0-beta.8-arm64.dmg`입니다. 로컬 산출물 검사와 공개 bytes 일치 검증을 통과했으며 로컬 경로만으로 공개 여부를 판정하지 않습니다.
 
 ## 기록된 검증 결과
 

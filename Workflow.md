@@ -6,32 +6,40 @@
 
 Use this workflow to build the arm64 app, inspect its bundle and create a personal disk image. The existing scripts use Apple's local tools and Python 3. They do not install additional dependencies or publish artifacts.
 
-## Beta.8 release preparation — 2026-10-12
+## Beta.8 release — 2026-10-12
 
-Status: **PREPARING / NOT_PUBLISHED**. The user agreed to prerelease
-`v0.8.0-beta.8`, build 26, from source baseline `f828fd22`. One app build and one
-DMG passed native artifact checks in a separate checkout. Publication and the
-existing Tap update are pending at this checkpoint. Candidate hashes and actual
+Status: **PUBLISHED**. Prerelease `v0.8.0-beta.8`, build 26, was published at
+10:41:21 KST (01:41:21 UTC). Release source/tag `e97d1720` matches all 43 frozen
+inputs. The public DMG and checksum are byte-for-byte identical to the inspected
+candidate. Public, reviewed and installed Tap revision `47a3e433` matches the
+actual Cask; the installed Tap fast-forwarded cleanly. Full identities and
 results are in [beta.8 release notes](docs/releases/v0.8.0-beta.8.md).
 
-Reuse the completed 38 Swift and 22 packaging tests while their source inputs
-remain unchanged. Only `VERSION` changed among the inputs used to build/package
-the tested local QA candidate. The 43-input release manifest also includes the
-Cask draft, whose version and digest were finalized after packaging. Compare
-the final manifest against the exact release commit before tagging; neither a
-version label nor an earlier manifest substitutes for that comparison.
+One app and one DMG were built in a separate checkout. Bundle metadata, strict
+ad hoc signature, arm64, license/icon, native DMG integrity/sidecar, five inner-app
+file hashes, installation guide, Applications symlink and normal detach passed.
+The completed 38 Swift and 22 packaging tests were reused without rerunning
+unchanged sources. Build/package inputs changed only in `VERSION`; the final
+43-input manifest also includes the Cask draft finalized after packaging.
 
-Online audit is **BLOCKED** by the agreed deferral. At the 2026-10-12 preflight,
-the selected Cask was trusted and the whole Tap was untrusted. Preserve both
-states and developer settings. Check the actual Cask's Ruby syntax and the
-equivalent Homebrew style rules using its installed vendored RuboCop wrapper;
-do not run the `brew style` front-end or install/clean gems. Public DMG/sidecar
-bytes must match the frozen candidate before the Tap changes.
+Actual Cask Ruby syntax and the equivalent Homebrew style rules passed with the
+installed vendored RuboCop wrapper (one file, no offenses). The first style run
+used the source directory and was interrupted with exit 130; the corrected Tap
+working-directory run passed. The `brew style` front-end and gem installation/
+cleanup were not run. Seven earlier releases, 14 assets and 14 tag references
+retained their identities.
 
-Build 26 GUI/device use, installation, upgrade and downloaded first-launch
-Gatekeeper checks are `NOT_RUN`. Preserve the installed app, recovery records,
-preferences and permissions. Prior release and QA results below retain their
-original artifact and approval boundaries.
+Online audit is **BLOCKED** under the approved trust-preserving deferral.
+Selected-Cask trust, whole-Tap trust and developer settings are preserved. Build
+26 GUI/device behavior, installation, upgrade, Gatekeeper and login/lock/sleep/
+crash acceptance are **NOT_RUN**. The installed app, recovery records,
+preferences and prior local artifacts are retained. Earlier records below keep
+their original artifact and approval boundaries.
+
+The installed app, recovery files, preferences and prior local artifacts match
+their inventories. Target trust/developer settings also match, but the shared
+trust-store raw hash changed; its cause and actor are unverified. No restoration
+was attempted. See the [preservation limit](docs/releases/v0.8.0-beta.8.md#preserved-state-and-observation-limit).
 
 ## Source QA baseline before beta.8 — 2026-10-12
 

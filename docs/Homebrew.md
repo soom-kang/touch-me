@@ -2,39 +2,45 @@
 
 # Publish the Touch Me Homebrew beta
 
-Beta.8 is **PREPARING / NOT_PUBLISHED**. Beta.7 remains the published version
-until the new release and Tap checks pass. Local app installation and upgrade
-remain outside this distribution scope. Earlier publication records remain below.
+Beta.8 and the existing Tap update are **PUBLISHED**. The installed app and its
+state are preserved. Local app installation and upgrade were not performed.
 
-## Beta.8 release preparation — 2026-10-12
+## Beta.8 publication — 2026-10-12
 
-The user agreed to prerelease `v0.8.0-beta.8`, build 26, from source baseline
-`f828fd22`. One app build and one DMG passed native artifact checks in a separate
-checkout. Source/tag publication and the existing Tap update are pending.
-Use [beta.8 release notes](releases/v0.8.0-beta.8.md) for the frozen identity and
-actual results. Reuse the completed 38 Swift and 22 packaging tests while their
-source is unchanged. Build/package inputs changed only in `VERSION`; the final
-43-input release manifest also includes the Cask draft's new version/digest.
+Prerelease `v0.8.0-beta.8`, build 26, was published at 10:41:21 KST
+(01:41:21 UTC). Source/tag `e97d1720` matches all 43 frozen inputs. Anonymous
+public DMG/sidecar bytes, size and checksum text match the inspected candidate.
+The public Tap, reviewed checkout and clean installed Tap resolve to
+`47a3e433`. The installed Tap fast-forwarded without installing/upgrading the
+app. See [beta.8 release notes](releases/v0.8.0-beta.8.md) for full identities.
 
-1. Keep the frozen app/DMG and compare final inputs against the release commit.
-   The candidate's metadata/signature/license/icon, arm64, DMG integrity/sidecar,
-   read-only inner-app bytes and normal detach passed. Do not rebuild merely to
-   reconfirm these checks.
-2. Publish the reviewed source, tag and prerelease without replacing earlier
-   tags/assets. Compare anonymous public DMG/sidecar bytes with the frozen
-   candidate before changing the existing Tap.
-3. Update the actual `Casks/touch-me.rb`, beta.8's exact-version prerelease
-   allowlist and bilingual Tap guidance. Check Cask Ruby syntax and the
-   equivalent Homebrew style rules with the installed vendored RuboCop wrapper,
-   task cache and no gem installation/cleanup. The `brew style` front-end is
-   not run. Verify the public Tap revision and Cask/asset identity afterward.
+The actual Cask's version, URL and digest match that public DMG. Its body matches
+the source template, excluding the template's two draft-header comments. The
+prerelease allowlist contains only the exact beta.8 version for `touch-me`.
+Cask Ruby syntax and equivalent Homebrew style rules passed with the installed
+vendored RuboCop wrapper (one file, no offenses). The first style run was
+interrupted with exit 130 after selecting the wrong working directory; the
+corrected Tap-directory run passed. The `brew style` front-end, gem installation
+and cleanup were not run, preserving developer settings.
 
-Online audit remains **BLOCKED** by the approved deferral. The 2026-10-12
-preflight found the selected Cask trusted and the whole Tap untrusted. Preserve
-those states and developer settings; do not run the audit or use trust bypass
-variables. This observation does not replace beta.7's historical audit result.
-Build 26 GUI/device, installation, upgrade and Gatekeeper first launch are
-`NOT_RUN`. Preserve the installed app, records, preferences and permissions.
+One app and DMG were built, then native artifact checks passed. The completed
+38 Swift and 22 packaging tests were reused. All seven earlier releases,
+14 assets and 14 annotated/peeled tag refs retained their identities.
+Keep the new and older assets immutable; a later artifact change needs another
+version. Compare public bytes before updating a Cask and preserve incomplete
+local output for inspection.
+
+Online audit remains **BLOCKED** under the approved deferral. The selected Cask
+is trusted and the whole Tap is untrusted; neither state was changed. No trust
+bypass variables were used. Build 26 GUI/device, installation, upgrade,
+Gatekeeper and login/lock/sleep/crash acceptance are **NOT_RUN**. Installation
+instructions below apply to the published beta.8 Cask; prior sections preserve
+historical publication evidence.
+
+The installed app, recovery files, preferences and prior local artifacts match
+their inventories. Target trust/developer settings also match, but the shared
+trust-store raw hash changed; its cause and actor are unverified. No restoration
+was attempted. See the [preservation limit](releases/v0.8.0-beta.8.md#preserved-state-and-observation-limit).
 
 ## Source QA baseline before beta.8 — 2026-10-12
 
@@ -301,7 +307,7 @@ Homebrew 7.0.8 was inspected on 2026-10-07 and its relevant contracts were reche
 
 ## Install, update and remove after publication
 
-These instructions target published beta.7 and its verified Tap Cask. This release run performed no local app installation or upgrade. The beta.6 run retained the then-installed beta.5 app. Fully qualified installation scopes trust to the selected Cask rather than the whole Tap. [Tap Trust](https://docs.brew.sh/Tap-Trust)
+These instructions target published beta.8 and its verified Tap Cask. This release run performed no local app installation or upgrade. The beta.6 run retained the then-installed beta.5 app. Fully qualified installation scopes trust to the selected Cask rather than the whole Tap. [Tap Trust](https://docs.brew.sh/Tap-Trust)
 
 ```bash
 brew install --cask soom-kang/touch-me/touch-me

@@ -6,30 +6,37 @@
 
 이 Workflow에 따라 arm64 앱을 빌드하고 번들을 확인한 뒤 개인용 디스크 이미지를 만드세요. 기존 스크립트는 Apple의 로컬 도구와 Python 3를 사용합니다. 추가 dependency 설치와 산출물 공개는 수행하지 않습니다.
 
-## Beta.8 release 준비 — 2026-10-12
+## Beta.8 release — 2026-10-12
 
-상태는 **PREPARING / NOT_PUBLISHED**입니다. 사용자는 source 기준 `f828fd22`에서
-prerelease `v0.8.0-beta.8`, build 26을 배포하는 데 동의했습니다. 별도 checkout에서
-앱과 DMG를 각각 한 번 생성했고 native 산출물 검사를 통과했습니다. 이 checkpoint에는
-공개와 기존 Tap 갱신이 남아 있습니다. 후보 hash와 실제 결과는
+상태는 **PUBLISHED**입니다. Prerelease `v0.8.0-beta.8`, build 26을
+10:41:21 KST(01:41:21 UTC)에 공개했습니다. Release source/tag `e97d1720`은
+동결한 입력 43개와 일치합니다. 공개 DMG와 checksum은 검사한 후보와 바이트
+단위로 같습니다. 공개·검토·설치된 Tap revision `47a3e433`은 실제 Cask와
+일치하며 로컬 Tap은 clean fast-forward로 갱신했습니다. 전체 식별과 결과는
 [beta.8 release notes](docs/releases/v0.8.0-beta.8.md)에 기록합니다.
 
-Source 입력이 유지되는 동안 완료한 Swift tests 38개와 packaging tests 22개를
-재사용합니다. 이전 로컬 QA 후보의 build/package 입력에서 바뀐 것은 `VERSION`뿐입니다.
-Release manifest의 입력 43개에는 Cask draft도 포함되며 version과 digest는 패키징
-후 확정했습니다. Tag를 만들기 전에 최종 manifest를 정확한 release commit과
-대조합니다. Version 표기나 이전 manifest로 이 비교를 대신하지 않습니다.
+별도 checkout에서 앱과 DMG를 각각 한 번 생성했습니다. Bundle metadata,
+strict ad hoc 서명, arm64, 라이선스·아이콘, native DMG 무결성·sidecar,
+내부 앱 파일 5개의 hash, 설치 안내, Applications symlink와 정상 detach를
+확인했습니다. Source가 같은 기존 Swift 38개와 packaging 22개 PASS는
+재실행 없이 재사용했습니다. 빌드·패키징에 사용하는 입력은 `VERSION`만
+바뀌었고, 최종 43개 manifest에는 패키징 후 확정한 Cask draft도 포함됩니다.
 
-Online audit는 합의한 보류에 따라 **BLOCKED**입니다. 2026-10-12 preflight에서
-선택한 Cask는 trusted, Tap 전체는 untrusted였으며 두 상태와 developer 설정을
-유지합니다. 실제 Cask의 Ruby syntax와 동등한 Homebrew style 규칙은 설치된
-vendored RuboCop wrapper로 확인합니다. `brew style` front-end나 gem 설치/정리는
-실행하지 않습니다. 익명 public DMG/sidecar bytes를 동결한 후보와 비교한 뒤 Tap을
-갱신합니다.
+실제 Cask Ruby 문법과 동등한 Homebrew style 규칙은 설치된 vendored RuboCop
+wrapper로 통과했습니다(파일 1개, offenses 없음). 첫 style 실행은 source
+디렉터리에서 시작해 exit 130으로 중단했으며 Tap 디렉터리에서 바로잡은
+실행은 통과했습니다. `brew style` front-end와 gem 설치·정리는 실행하지
+않았습니다. 이전 release 7개, asset 14개와 tag ref 14개의 식별도 보존됐습니다.
 
-Build 26의 GUI/실기기, 설치, upgrade와 다운로드한 앱의 첫 실행 Gatekeeper 검사는
-`NOT_RUN`입니다. 설치 앱, 복구 기록, 환경설정과 권한을 보존합니다. 아래 과거 release와
-QA 결과는 원래 산출물과 승인 범위를 유지합니다.
+Online audit는 합의한 trust 보존 범위에 따라 **BLOCKED**입니다. Trust와
+Developer 변경 명령은 실행하지 않았습니다. Build 26 GUI·실기기 동작,
+설치·upgrade·Gatekeeper와 로그인·잠금·절전·crash acceptance는 **NOT_RUN**입니다.
+설치 앱, 복구 기록, 환경설정과 기존 로컬 산출물도 유지합니다. 아래 과거
+기록은 당시 산출물과 승인 범위를 보존합니다.
+
+설치 앱·복구 기록·환경설정·기존 산출물과 대상 trust/developer 상태는 baseline에
+일치합니다. 공유 trust-store raw hash는 달라졌으며 원인·변경 주체는 미확인입니다.
+복구 조작은 하지 않았습니다. [보존 한계](docs/releases/v0.8.0-beta.8.md#상태-보존과-관측-한계)를 확인하세요.
 
 ## Beta.8 이전 source QA 기준 기록 — 2026-10-12
 
