@@ -10,27 +10,33 @@ Touch Me는 ZEUSLAP 터치 모니터를 Mac에서 활용할 수 있도록 만든
 
 터치 입력을 선택한 화면의 좌표에 맞춰 전달해 탭과 더블 클릭, 한 손가락 드래그, 두 손가락 스크롤을 사용할 수 있습니다. 앱에서 대상 화면을 선택하고 확인한 뒤 매핑을 시작하며, 메뉴 막대에서 매핑을 중지하거나 설정을 바꿀 수 있습니다.
 
-Beta `0.8.0-beta.7`은 **P16KT에서 확인한 USB/HID profile**을 요구합니다. 장치 식별자와 HID(Human Interface Device) 입력 구조가 다르면 매핑을 시작하지 않습니다. 다른 ZEUSLAP 모델까지 지원한다고 보장하지 않으므로 아래 환경을 먼저 확인해 주세요.
+Beta `0.8.0-beta.8`은 **P16KT에서 확인한 USB/HID profile**을 요구합니다. 장치 식별자와 HID(Human Interface Device) 입력 구조가 다르면 매핑을 시작하지 않습니다. 다른 ZEUSLAP 모델까지 지원한다고 보장하지 않으므로 아래 환경을 먼저 확인해 주세요.
 
-[Beta.7/build 25](https://github.com/soom-kang/touch-me/releases/tag/v0.8.0-beta.7)를 2026-10-10 14:25:14 KST(05:25:14 UTC)에 **PUBLISHED**로 공개했습니다. 익명 public DMG·sidecar bytes와 hash는 동결한 release와 일치합니다. 공개 Tap과 로컬에 가져온 Tap의 revision도 검토한 Cask와 일치합니다.
+**2026-10-12 현재 beta.8/build 26은 PREPARING / NOT_PUBLISHED입니다.** 설치 전에 [beta.8 release notes](docs/releases/v0.8.0-beta.8.md)를 확인하세요. 별도 checkout에서 새 앱과 DMG를 각각 한 번 생성하고 native 산출물 검사를 통과했습니다. 수정 source의 Swift tests 38개와 packaging tests 22개 PASS를 재사용합니다. 새 build 26의 GUI, 실기기 사용, 설치, Homebrew upgrade와 Gatekeeper 검사는 `NOT_RUN`입니다.
 
-개발 build 24에서 확인한 USB-C 재연결 변경을 포함하며 Swift tests 37개와 사용자 확인 cycle 한 번의 결과를 재사용합니다. Build 25 설치·GUI·실기기 사용·Gatekeeper·Homebrew upgrade는 `NOT_RUN`입니다.
+이번 release에는 아래에서 설명하는 TMQA-006 복구 기록 정리와 TMQA-007 패키징 수정을 반영할 예정입니다. 기존 arm64/macOS 26+ 대상, ad hoc 서명과 장치 모드 및 환경설정 형식은 유지합니다.
 
-사용자가 기존 trust를 유지하고 audit를 보류하기로 선택해 online audit는 `BLOCKED`이며 trust 설정이나 우회 변수를 바꾸지 않습니다. 산출물 식별과 공개 결과는 [beta.7 release notes](docs/releases/v0.8.0-beta.7.md)에 기록합니다.
+합의한 trust 보존 범위에 따라 online audit는 계속 `BLOCKED`입니다. Trust 설정이나 우회 변수는 바꾸지 않습니다.
+
+2026-10-10 공개 checkpoint: [beta.7/build 25](https://github.com/soom-kang/touch-me/releases/tag/v0.8.0-beta.7)를 14:25:14 KST(05:25:14 UTC)에 **PUBLISHED**로 공개했습니다. 당시 익명 public DMG/sidecar의 bytes와 hash는 동결한 release와 일치했고 공개 Tap과 로컬 Tap revision도 검토한 Cask와 일치했습니다. Swift tests 37개와 개발 build 24의 재연결 cycle 한 번을 재사용했으며 build 25 설치, GUI, 실기기 사용, Gatekeeper와 Homebrew upgrade는 `NOT_RUN`이었습니다. 과거 산출물 식별과 결과는 [beta.7 release notes](docs/releases/v0.8.0-beta.7.md)에 보존합니다.
 
 2026-10-09 공개 기록: QA 완료 문서를 포함한 [beta.6 build 24](https://github.com/soom-kang/touch-me/releases/tag/v0.8.0-beta.6)를 공개했고 당시 beta.5 이후 실행 코드 변경은 없었습니다. Public DMG·checksum, Tap과 online audit 검사는 통과했고 산출물 식별은 [release notes](docs/releases/v0.8.0-beta.6.md)에 있습니다. [Beta.5 build 23 acceptance](docs/qa/beta5-native-acceptance.md)는 회귀 근거로만 인용합니다. 2026-10-09 공개 checkpoint에서 beta.6 설치·GUI·Gatekeeper·실기기 사용·Homebrew upgrade는 `NOT_RUN`이었으며 당시 설치된 beta.5 앱을 보존했습니다.
 
 ## 현재 QA — 2026-10-12
 
-[현재 source QA 보고서](docs/qa/2026-10-12-qa-report.md)에 TMQA-006/007의 로컬
-수정 결과를 기록했습니다. 재시도와 Start는 남은 파일 정리를 확인한 뒤 진행하며,
-패키징은 완전한 DMG/checksum 쌍을 준비하고 최종 반영 실패 시 이전 쌍을 복구합니다.
-불완전한 이전 쌍은 보존하고 중단합니다. 수정한 checkout의 Swift 38개와 packaging
-22개 tests는 통과했습니다. 이후 로컬 앱과 DMG를 각각 1개 생성했고 native 서명,
-이미지 검사와 읽기 전용 inner-app 비교를 통과했습니다. 자세한 결과는
-[로컬 native build 기록](docs/qa/2026-10-12-native-build.md)에 있습니다. 공개 beta.7/build 25와
-설치 앱은 바뀌지 않았습니다. 로컬 후보는 같은 version/build 표기와 다른 hash를
-사용하며 합의한 상태 보존 범위에서 GUI/실기기 acceptance는 `NOT_RUN`입니다.
+[Source QA 보고서](docs/qa/2026-10-12-qa-report.md)에 commit `f828fd22`의
+TMQA-006/007 수정 결과를 기록했습니다. Active record가 없어도 재시도와 Start 전에
+저장소 sync를 확인합니다. 패키징은 staging에서 완전한 DMG/checksum 쌍을
+준비하고 유효한 이전 쌍을 함께 보관합니다. 일반 파일 이동 오류는 rollback하며
+rollback도 실패하면 추가 이동을 중단하고 복구할 경로를 표시합니다. 이전 파일이
+빠졌거나 checksum이 불일치하면 그대로 보존하고 중단합니다. 개별 파일 이동은
+crash, power-loss나 concurrent-run atomicity를 보장하지 않습니다.
+
+Beta.8 준비 전에는 로컬 QA 앱과 DMG 각 1개가 native 서명, 이미지 검사와 읽기 전용
+inner-app 비교를 통과했습니다. 이 [로컬 native build snapshot](docs/qa/2026-10-12-native-build.md)은
+beta.7/build 25로 표시되지만 공개 beta.7과 hash가 다릅니다. 해당 산출물 검사로
+새 beta.8/build 26을 검증했다고 볼 수 없습니다. 공개 beta.7과 설치 앱은 보존하며
+새 GUI/실기기 acceptance를 주장하지 않습니다.
 
 ## 먼저 사용 환경을 확인하세요
 
@@ -49,13 +55,13 @@ Apple Silicon Mac에서 P16KT 한 대를 연결하는 환경을 대상으로 합
 
 ## 설치하고 첫 매핑 시작하기
 
-Homebrew로 beta.7을 설치하거나 공개한 DMG에서 앱을 복사할 수 있습니다. 어느 쪽으로 설치하든 다음 권한과 대상 화면 설정은 같습니다.
+Beta.8은 아직 공개하지 않았습니다. 아래 절차는 release와 Cask가 준비된 뒤 설치할 beta.8/build 26을 대상으로 합니다. 기록된 checkpoint의 공개 release는 beta.7입니다. 어느 쪽으로 설치하든 권한과 대상 화면 설정은 같습니다.
 
 ### Homebrew로 설치하기
 
 수동 설치한 `/Applications/Touch Me.app`이 이미 있다면 **로그인 시 Touch Me 열기**를 끄고 **매핑 중지**를 선택하세요. 연속 연결의 모드 복구나 종료가 확인된 연결의 기록 보존을 확인한 뒤 정상 종료하고 기존 앱을 Applications 밖으로 옮겨 보존하세요. 복구에 실패하면 설치를 멈추세요. 강제 덮어쓰기 없이 기존 앱과 환경설정을 보존하는 방법은 [Homebrew 설치 안내](docs/Homebrew.ko.md#공개-후-설치업데이트제거)에 정리했습니다.
 
-공개한 beta.7 Cask로 설치하세요:
+Tap의 Cask가 공개 beta.8 산출물과 checksum을 가리키는지 확인한 뒤 설치하세요:
 
 ```bash
 brew install --cask soom-kang/touch-me/touch-me
@@ -63,7 +69,7 @@ brew install --cask soom-kang/touch-me/touch-me
 
 ### DMG로 설치하기
 
-[beta.7 release](https://github.com/soom-kang/touch-me/releases/tag/v0.8.0-beta.7)에서 `touch-me-0.8.0-beta.7-arm64.dmg`와 `.sha256` 파일을 받으세요. 버전·build `0.8.0-beta.7`/25와 [release notes](docs/releases/v0.8.0-beta.7.md)에 기록한 checksum을 확인한 뒤 디스크 이미지를 열어 **Touch Me.app**을 **Applications**로 끌어 복사하세요. 복사를 마치면 이미지를 추출하세요.
+공개 후 [beta.8 release](https://github.com/soom-kang/touch-me/releases/tag/v0.8.0-beta.8)에서 `touch-me-0.8.0-beta.8-arm64.dmg`와 `.sha256` 파일을 받으세요. Version/build `0.8.0-beta.8`/26과 [release notes](docs/releases/v0.8.0-beta.8.md)에 기록한 checksum을 확인한 뒤 디스크 이미지를 열어 **Touch Me.app**을 **Applications**로 끌어 복사하세요. 복사를 마치면 이미지를 추출하세요. 이전 로컬 beta.7 QA 후보는 별도 산출물입니다.
 
 Beta는 ad hoc 서명을 사용하며 공증하지 않았습니다. macOS가 다운로드한 앱의 첫 실행을 차단하면 출처와 checksum을 확인한 뒤 [Apple의 수동 실행 승인 안내](https://support.apple.com/en-us/102445)를 따르세요. 승인 항목이 보이더라도 앱 실행을 보장하지는 않습니다.
 
@@ -105,9 +111,9 @@ Beta는 ad hoc 서명을 사용하며 공증하지 않았습니다. macOS가 다
 
 **로그인 시 Touch Me 열기**는 기본값이 꺼짐입니다. 앱을 Applications에 설치한 뒤 설정에서 켤 수 있습니다. 이 옵션은 로그인할 때 앱을 여는 설정이고 매핑 재개 여부는 저장한 실행 상태에 따릅니다.
 
-## USB-C 재연결 — beta.7
+## USB-C 재연결
 
-공개한 beta.7에 이 동작을 포함했습니다. 2026-10-10에 사용자가 개발 build 24의 cycle 한 번을 확인했습니다: 시작 → USB-C 분리 → 재연결 → 자동 재개 → 두 위치 탭 → 중지(`PASS_USER_REPORTED`). 검증한 실행 파일 hash와 별도로 승인한 기존 앱 전환은 [Workflow](Workflow.ko.md#usb-c-재연결-후보--2026-10-10)에 보존합니다. 매핑 코드가 유지되는 동안 이 결과를 재사용하며 release build 25의 직접 실기기 검증은 아닙니다. 해당 cycle에서 모드 직접 읽기나 다른 복구 조건은 검증하지 않았습니다.
+이 동작은 beta.7부터 포함됐습니다. 2026-10-10에 사용자가 개발 build 24의 cycle 한 번을 확인했습니다: 시작 → USB-C 분리 → 재연결 → 자동 재개 → 두 위치 탭 → 중지(`PASS_USER_REPORTED`). 검증한 실행 파일 hash와 별도로 승인한 기존 앱 전환은 [Workflow](Workflow.ko.md#usb-c-재연결-후보--2026-10-10)에 보존합니다. 이 결과는 과거 회귀 근거입니다. Beta.8은 복구 기록 정리를 변경하며 새 build 26의 실기기 acceptance는 없습니다. 당시 cycle에서 모드 직접 읽기나 다른 복구 조건은 검증하지 않았습니다.
 
 앱이 열린 상태에서 매핑 중인 패널을 분리하면 입력을 해제하고 **재연결 대기** 상태로 바뀝니다. 지원하는 P16KT 한 대를 저장한 USB 위치와 화면에 다시 연결하세요. 앱은 권한, 세션 상태, descriptor와 현재 화면 좌표를 확인한 뒤 재개합니다. 장치가 처음 다시 나타난 시점부터 10초 동안 1초 간격으로 재시도하며 중복 알림으로 시간을 늘리지 않습니다. **중지**, 대상 선택 변경이나 **정상 종료**는 대기를 취소합니다.
 
@@ -117,7 +123,7 @@ Beta는 ad hoc 서명을 사용하며 공증하지 않았습니다. macOS가 다
 
 ## 오류 복구와 업데이트, 제거
 
-매핑 중에는 확인한 P16KT의 장치 모드를 임시로 변경합니다. 중지하거나 정상 종료하면 입력을 해제하고 확인한 연속 연결에서 변경했던 모드를 원래 값으로 복구합니다. 앱이 연결 종료를 확인한 경우에는 복구 성공으로 판정하지 않고 기록을 보존하며 [기록 처리 계약](docs/qa/abnormal-exit-recovery.md)을 따릅니다. 복구나 archive에 실패하면 앱 종료가 차단될 수 있습니다. Beta.7의 복구 절차는 다음과 같습니다:
+매핑 중에는 확인한 P16KT의 장치 모드를 임시로 변경합니다. 중지하거나 정상 종료하면 입력을 해제하고 확인한 연속 연결에서 변경했던 모드를 원래 값으로 복구합니다. 앱이 연결 종료를 확인한 경우에는 복구 성공으로 판정하지 않고 기록을 보존하며 [기록 처리 계약](docs/qa/abnormal-exit-recovery.md)을 따릅니다. 복구나 archive에 실패하면 앱 종료가 차단될 수 있습니다. 다음 순서로 복구하세요:
 
 | 상황 | 다음 행동 |
 | --- | --- |
@@ -145,13 +151,11 @@ Beta는 ad hoc 서명을 사용하며 공증하지 않았습니다. macOS가 다
 
 - [개발 Workflow](Workflow.ko.md): 모듈별 역할, 로컬 빌드와 패키징, 변경에 맞는 검증
 - [Homebrew 배포](docs/Homebrew.ko.md): Tap과 release 절차, 설치 충돌, 업데이트와 제거
-- [beta.4 release notes](docs/releases/v0.8.0-beta.4.md): 과거 변경과 검증 한계
-- [beta.5 release notes](docs/releases/v0.8.0-beta.5.md): 과거 release snapshot
-- [beta.6 release notes](docs/releases/v0.8.0-beta.6.md): 과거 재배포와 검증 한계
-- [beta.7 release notes](docs/releases/v0.8.0-beta.7.md): USB-C 재연결, release 식별과 현재 검사 결과
+- [beta.8 release notes](docs/releases/v0.8.0-beta.8.md): 복구/패키징 수정, release 준비 상태와 검증 한계
+- 과거 release notes: [beta.4](docs/releases/v0.8.0-beta.4.md), [beta.5](docs/releases/v0.8.0-beta.5.md), [beta.6](docs/releases/v0.8.0-beta.6.md), [beta.7](docs/releases/v0.8.0-beta.7.md)
 - [편집 가능한 구조 다이어그램](docs/assets/architecture.ko.html)
 
-Beta.7 패키징 대상은 `dist/touch-me-0.8.0-beta.7-arm64.dmg`이며 로컬 경로만으로 공개 여부를 판정하지 않습니다.
+Beta.8/build 26의 패키징 대상은 `dist/touch-me-0.8.0-beta.8-arm64.dmg`입니다. 로컬 산출물 검사는 통과했고 공개 검증은 준비 중이며 로컬 경로만으로 공개 여부를 판정하지 않습니다.
 
 ## 기록된 검증 결과
 

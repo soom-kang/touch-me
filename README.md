@@ -10,28 +10,33 @@ Touch Me is a macOS menu bar app built to help you use ZEUSLAP touch-enabled mon
 
 It maps touch input to the display you select, enabling taps, double-clicks, one-finger dragging and two-finger scrolling. Choose and confirm the target display in the app, then start mapping. Use the menu bar to stop mapping or change settings.
 
-Beta `0.8.0-beta.7` requires the **USB/HID profile verified on the P16KT**. Mapping won't start if the device identifiers or HID (Human Interface Device) input layout differ. Support for other ZEUSLAP models isn't guaranteed, so check the setup below first.
+Beta `0.8.0-beta.8` requires the **USB/HID profile verified on the P16KT**. Mapping won't start if the device identifiers or HID (Human Interface Device) input layout differ. Support for other ZEUSLAP models isn't guaranteed, so check the setup below first.
 
-[Beta.7/build 25](https://github.com/soom-kang/touch-me/releases/tag/v0.8.0-beta.7) was **PUBLISHED** on 2026-10-10 at 14:25:14 KST (05:25:14 UTC). Anonymous public DMG/sidecar bytes and hashes match the frozen release. The public and locally fetched Tap revisions match the verified Cask.
+**Beta.8/build 26 is PREPARING / NOT_PUBLISHED as of 2026-10-12.** Check the [beta.8 release notes](docs/releases/v0.8.0-beta.8.md) before installing. One new app and DMG passed native artifact checks in a separate checkout. Source regression results are reused: 38 Swift tests and 22 packaging tests. New build 26 GUI, real-device use, installation, Homebrew upgrade and Gatekeeper checks are `NOT_RUN`.
 
-It includes the USB-C reconnection change verified in development build 24; the 37 Swift tests and one user-reported reconnection cycle are reused. Build 25 installation, GUI, real-device use, Gatekeeper and Homebrew upgrade are `NOT_RUN`.
+The release prepares the TMQA-006 recovery-cleanup fix and TMQA-007 packaging fix described below. It keeps the arm64/macOS 26+ target, ad hoc signature and existing device-mode and preference formats.
 
-Online audit is `BLOCKED`: the user chose to preserve existing trust and defer the audit without changing trust settings or bypass variables. See the [beta.7 release notes](docs/releases/v0.8.0-beta.7.md) for artifact identities and publication results.
+Online audit remains `BLOCKED` under the agreed trust-preserving deferral. No trust settings or bypass variables are changed.
+
+Historical 2026-10-10 publication: [beta.7/build 25](https://github.com/soom-kang/touch-me/releases/tag/v0.8.0-beta.7) was **PUBLISHED** at 14:25:14 KST (05:25:14 UTC). At that checkpoint, anonymous public DMG/sidecar bytes and hashes matched the frozen release, and public/locally fetched Tap revisions matched the verified Cask. The release reused 37 Swift tests and one development build 24 reconnection cycle; build 25 installation, GUI, real-device use, Gatekeeper and Homebrew upgrade were `NOT_RUN`. See the [beta.7 release notes](docs/releases/v0.8.0-beta.7.md) for the historical artifact identities and results.
 
 Historical 2026-10-09 publication: [beta.6 build 24](https://github.com/soom-kang/touch-me/releases/tag/v0.8.0-beta.6) contained completed QA records with no runtime-code changes since beta.5 at that release. Public DMG/checksum, Tap and online audit checks passed; artifact identities are in the [release notes](docs/releases/v0.8.0-beta.6.md). The [beta.5 build 23 acceptance](docs/qa/beta5-native-acceptance.md) is regression evidence only. At the 2026-10-09 publication checkpoint, beta.6 installation, GUI, Gatekeeper, real-device use and Homebrew upgrade were `NOT_RUN`, and the installed beta.5 app was retained.
 
 ## Current QA — 2026-10-12
 
-The [current source QA report](docs/qa/2026-10-12-qa-report.md) records local fixes
-for TMQA-006/007. Retry and Start now confirm pending file cleanup before
-proceeding. Packaging prepares a complete DMG/checksum pair and restores the
-previous pair when finalization fails; an incomplete prior pair is preserved
-and rejected. The modified checkout passes Swift 38 and packaging 22 tests.
-One local app and DMG have since been built; native signature/image checks and
-read-only inner-app comparison passed. See the [local native build record](docs/qa/2026-10-12-native-build.md).
-Published beta.7/build 25 and the installed app are unchanged. The local candidate
-has the same displayed version/build and different hashes; GUI/device acceptance
-remains `NOT_RUN` under the agreed preservation-only scope.
+The [source QA report](docs/qa/2026-10-12-qa-report.md) records TMQA-006/007 fixes
+in commit `f828fd22`. Retry and Start confirm storage sync even when no active
+recovery record remains. Packaging stages a complete DMG/checksum pair,
+archives the previous valid pair together and rolls back ordinary file-move
+errors. A rollback failure stops further moves and reports the recovery paths.
+Missing or mismatched previous pairs are preserved and rejected. Separate file
+moves do not guarantee crash, power-loss or concurrent-run atomicity.
+
+Before beta.8 preparation, one local QA app and DMG passed native signature/image
+checks and read-only inner-app comparison. That [local native build snapshot](docs/qa/2026-10-12-native-build.md)
+used beta.7/build 25 labels with different hashes from the published beta.7.
+Those artifact checks do not verify the new beta.8/build 26. The published beta.7
+and installed app are preserved; no new GUI/device acceptance is claimed.
 
 ## Check your setup first
 
@@ -50,13 +55,13 @@ Other panels, Intel Macs and older macOS versions have no recorded validation. S
 
 ## Install and start your first mapping session
 
-Install beta.7 through Homebrew or copy the app from its published DMG. Both routes use the same permission and target-display setup below.
+Beta.8 is not published yet. The steps below target beta.8/build 26 after its release and Cask are available; the current published release remains beta.7 at the recorded checkpoint. Both installation routes use the same permission and target-display setup.
 
 ### Install with Homebrew
 
 If you already have a manually installed `/Applications/Touch Me.app`, turn off **Open Touch Me at login** and select **Stop mapping**. Confirm restoration on the continuous connection or safe preservation of a verified ended-connection record, then quit normally and move the old app outside Applications to keep it. Stop installation if restoration fails. The [Homebrew installation guide](docs/Homebrew.md#install-update-and-remove-after-publication) explains how to preserve the app and preferences without forcing an overwrite.
 
-Install the published beta.7 Cask:
+After the Tap Cask points to the published beta.8 asset and checksum, install it:
 
 ```bash
 brew install --cask soom-kang/touch-me/touch-me
@@ -64,7 +69,7 @@ brew install --cask soom-kang/touch-me/touch-me
 
 ### Install from the DMG
 
-Download `touch-me-0.8.0-beta.7-arm64.dmg` and its `.sha256` file from the [beta.7 release](https://github.com/soom-kang/touch-me/releases/tag/v0.8.0-beta.7). Confirm version/build `0.8.0-beta.7`/25 and the recorded checksum in the [release notes](docs/releases/v0.8.0-beta.7.md), then open the disk image and drag **Touch Me.app** to **Applications**. Eject the image after copying.
+After publication, download `touch-me-0.8.0-beta.8-arm64.dmg` and its `.sha256` file from the [beta.8 release](https://github.com/soom-kang/touch-me/releases/tag/v0.8.0-beta.8). Confirm version/build `0.8.0-beta.8`/26 and the recorded checksum in the [release notes](docs/releases/v0.8.0-beta.8.md), then open the disk image and drag **Touch Me.app** to **Applications**. Eject the image after copying. The earlier local beta.7 QA candidate has a different identity and is not this download.
 
 The beta has an ad hoc signature and isn't notarized. If macOS blocks the downloaded app's first launch, verify its source and checksum before following [Apple's manual approval guidance](https://support.apple.com/en-us/102445). An available approval option doesn't guarantee the app can run.
 
@@ -106,9 +111,9 @@ The app pauses mapping for screen lock, sleep or an inactive user session while 
 
 **Open Touch Me at login** is off by default. Enable it in settings after installing the app in Applications. This option opens the app at login; the saved mapping state determines whether mapping resumes.
 
-## USB-C reconnection — beta.7
+## USB-C reconnection
 
-Published beta.7 includes this behavior. On 2026-10-10, the user confirmed one development build 24 cycle: Start → USB-C disconnect → reconnect → automatic resume → two-position taps → Stop (`PASS_USER_REPORTED`). The tested executable hash and separately approved previous-app transition are preserved in [Workflow](Workflow.md#usb-c-reconnection-candidate--2026-10-10). That result is reused while mapping code stays unchanged; it is not a direct device test of release build 25. Direct mode readback and broader recovery cases were not verified in the cycle.
+Beta.7 introduced this behavior. On 2026-10-10, the user confirmed one development build 24 cycle: Start → USB-C disconnect → reconnect → automatic resume → two-position taps → Stop (`PASS_USER_REPORTED`). The tested executable hash and separately approved previous-app transition are preserved in [Workflow](Workflow.md#usb-c-reconnection-candidate--2026-10-10). This remains historical regression evidence; beta.8 changes recovery cleanup and has no new build 26 device acceptance. Direct mode readback and broader recovery cases were not verified in the cycle.
 
 While the app remains open, disconnecting the mapped panel releases input and enters **Waiting for reconnection**. Reconnect one supported P16KT at the saved USB location with the saved display. The app checks permissions, session availability, descriptors and current display geometry before resuming. It retries once per second for ten seconds from the first device reappearance; repeated notifications do not extend that window. **Stop**, changing the selected target or normal **Quit** cancels the wait.
 
@@ -118,7 +123,7 @@ The old record is preserved only after both recorded HID and USB services are pr
 
 ## Recover, update or remove the app
 
-Mapping temporarily changes the verified P16KT device mode. Stop or normal Quit releases input and restores the original mode on a verified continuous attachment when a change was necessary. If the app proves that connection ended, it preserves the record without claiming restoration; see the [record-handling contract](docs/qa/abnormal-exit-recovery.md). A restoration or archive error can prevent the app from quitting. Beta.7 uses these recovery steps:
+Mapping temporarily changes the verified P16KT device mode. Stop or normal Quit releases input and restores the original mode on a verified continuous attachment when a change was necessary. If the app proves that connection ended, it preserves the record without claiming restoration; see the [record-handling contract](docs/qa/abnormal-exit-recovery.md). A restoration or archive error can prevent the app from quitting. Use these recovery steps:
 
 | Situation | Next action |
 | --- | --- |
@@ -146,13 +151,11 @@ For local builds or distribution details, read these documents:
 
 - [Build workflow](Workflow.md): module responsibilities, local builds, packaging and checks for each change
 - [Homebrew distribution](docs/Homebrew.md): Tap and release procedure, installation conflicts, updates and removal
-- [Beta.4 release notes](docs/releases/v0.8.0-beta.4.md): historical changes and validation limits
-- [Beta.5 release notes](docs/releases/v0.8.0-beta.5.md): historical release snapshot
-- [Beta.6 release notes](docs/releases/v0.8.0-beta.6.md): historical redistribution and validation limits
-- [Beta.7 release notes](docs/releases/v0.8.0-beta.7.md): USB-C reconnection, release identity and current check results
+- [Beta.8 release notes](docs/releases/v0.8.0-beta.8.md): recovery/packaging fixes, release preparation and validation limits
+- Historical release notes: [beta.4](docs/releases/v0.8.0-beta.4.md), [beta.5](docs/releases/v0.8.0-beta.5.md), [beta.6](docs/releases/v0.8.0-beta.6.md), [beta.7](docs/releases/v0.8.0-beta.7.md)
 - [Editable architecture diagram](docs/assets/architecture.html)
 
-The beta.7 packaging target is `dist/touch-me-0.8.0-beta.7-arm64.dmg`; a local path does not establish publication.
+The beta.8 packaging target is `dist/touch-me-0.8.0-beta.8-arm64.dmg`, for build 26. Local artifact checks passed; public verification is pending; a local path does not establish publication.
 
 ## Recorded validation
 

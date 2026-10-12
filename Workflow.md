@@ -6,7 +6,34 @@
 
 Use this workflow to build the arm64 app, inspect its bundle and create a personal disk image. The existing scripts use Apple's local tools and Python 3. They do not install additional dependencies or publish artifacts.
 
-## Current QA checkpoint — 2026-10-12
+## Beta.8 release preparation — 2026-10-12
+
+Status: **PREPARING / NOT_PUBLISHED**. The user agreed to prerelease
+`v0.8.0-beta.8`, build 26, from source baseline `f828fd22`. One app build and one
+DMG passed native artifact checks in a separate checkout. Publication and the
+existing Tap update are pending at this checkpoint. Candidate hashes and actual
+results are in [beta.8 release notes](docs/releases/v0.8.0-beta.8.md).
+
+Reuse the completed 38 Swift and 22 packaging tests while their source inputs
+remain unchanged. Only `VERSION` changed among the inputs used to build/package
+the tested local QA candidate. The 43-input release manifest also includes the
+Cask draft, whose version and digest were finalized after packaging. Compare
+the final manifest against the exact release commit before tagging; neither a
+version label nor an earlier manifest substitutes for that comparison.
+
+Online audit is **BLOCKED** by the agreed deferral. At the 2026-10-12 preflight,
+the selected Cask was trusted and the whole Tap was untrusted. Preserve both
+states and developer settings. Check the actual Cask's Ruby syntax and the
+equivalent Homebrew style rules using its installed vendored RuboCop wrapper;
+do not run the `brew style` front-end or install/clean gems. Public DMG/sidecar
+bytes must match the frozen candidate before the Tap changes.
+
+Build 26 GUI/device use, installation, upgrade and downloaded first-launch
+Gatekeeper checks are `NOT_RUN`. Preserve the installed app, recovery records,
+preferences and permissions. Prior release and QA results below retain their
+original artifact and approval boundaries.
+
+## Source QA baseline before beta.8 — 2026-10-12
 
 The modified checkout on `65a8e71` passed `bash scripts/test.sh` (38 tests,
 including App compilation) and the existing packaging suite (22 tests), once
@@ -31,9 +58,9 @@ The app keeps these identifiers and versions:
 | --------------------- | ------------------------------------------------- |
 | App and executable    | `Touch Me.app` / `TouchMe`                        |
 | Bundle identifier     | `io.github.soom-kang.touchme`                     |
-| Release version       | `0.8.0-beta.7`, read from `VERSION`               |
+| Release version       | `0.8.0-beta.8`, read from `VERSION`               |
 | Bundle version        | `0.8.0` plus an incrementing numeric build number |
-| Full release metadata | `TouchMeReleaseVersion=0.8.0-beta.7`              |
+| Full release metadata | `TouchMeReleaseVersion=0.8.0-beta.8`              |
 | Target                | `arm64`, macOS 26 or later                        |
 
 Keep the identifier and saved-preference format stable when changing documentation or packaging. Changing the signing identity or installation path can require permission checks in the installed app.
@@ -53,6 +80,9 @@ The app accepts one verified panel and an eligible external display. Mapping ope
 No app networking code or raw-input logging is implemented in the current source. Preferences store the selected device/display identity, the intent to resume and the app's language selection; they do not store a touch history. English is the default, and changing language updates app-owned UI without restarting the session or changing macOS language settings.
 
 ## Beta.7 release preparation — 2026-10-10
+
+This section records the completed beta.7 publication. Its public build 25 is
+distinct from the later local QA build 25; neither is beta.8 acceptance.
 
 Status: **PUBLISHED**. Prerelease `v0.8.0-beta.7` was published on 2026-10-10
 at 14:25:14 KST (05:25:14 UTC), with numeric bundle version `0.8.0` and build 25. Preserve the development
@@ -209,8 +239,8 @@ The script verifies the app's identifier, release metadata against `VERSION`, li
 | Output                                        | Purpose                   |
 | --------------------------------------------- | ------------------------- |
 | `dist/Touch Me.app`                           | Locally signed app bundle |
-| `dist/touch-me-0.8.0-beta.7-arm64.dmg`        | Local beta candidate image |
-| `dist/touch-me-0.8.0-beta.7-arm64.dmg.sha256` | SHA-256 checksum          |
+| `dist/touch-me-0.8.0-beta.8-arm64.dmg`        | Local beta candidate image |
+| `dist/touch-me-0.8.0-beta.8-arm64.dmg.sha256` | SHA-256 checksum          |
 
 An existing image moves to `dist/previous-builds` in the release checkout. Verify DMG integrity and its checksum:
 
@@ -220,8 +250,8 @@ read-only mounted inner identity and normal detach passed. Beta.5 build 23 and
 historical build 22 checksums cannot validate the new artifact.
 
 ```bash
-hdiutil verify dist/touch-me-0.8.0-beta.7-arm64.dmg
-(cd dist && shasum -a 256 -c touch-me-0.8.0-beta.7-arm64.dmg.sha256)
+hdiutil verify dist/touch-me-0.8.0-beta.8-arm64.dmg
+(cd dist && shasum -a 256 -c touch-me-0.8.0-beta.8-arm64.dmg.sha256)
 ```
 
 ![Local packaging flow from source and license files to a signed app, personal disk image and SHA-256 checksum.](docs/assets/packaging.png)

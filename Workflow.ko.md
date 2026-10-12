@@ -6,7 +6,32 @@
 
 이 Workflow에 따라 arm64 앱을 빌드하고 번들을 확인한 뒤 개인용 디스크 이미지를 만드세요. 기존 스크립트는 Apple의 로컬 도구와 Python 3를 사용합니다. 추가 dependency 설치와 산출물 공개는 수행하지 않습니다.
 
-## 현재 QA checkpoint — 2026-10-12
+## Beta.8 release 준비 — 2026-10-12
+
+상태는 **PREPARING / NOT_PUBLISHED**입니다. 사용자는 source 기준 `f828fd22`에서
+prerelease `v0.8.0-beta.8`, build 26을 배포하는 데 동의했습니다. 별도 checkout에서
+앱과 DMG를 각각 한 번 생성했고 native 산출물 검사를 통과했습니다. 이 checkpoint에는
+공개와 기존 Tap 갱신이 남아 있습니다. 후보 hash와 실제 결과는
+[beta.8 release notes](docs/releases/v0.8.0-beta.8.md)에 기록합니다.
+
+Source 입력이 유지되는 동안 완료한 Swift tests 38개와 packaging tests 22개를
+재사용합니다. 이전 로컬 QA 후보의 build/package 입력에서 바뀐 것은 `VERSION`뿐입니다.
+Release manifest의 입력 43개에는 Cask draft도 포함되며 version과 digest는 패키징
+후 확정했습니다. Tag를 만들기 전에 최종 manifest를 정확한 release commit과
+대조합니다. Version 표기나 이전 manifest로 이 비교를 대신하지 않습니다.
+
+Online audit는 합의한 보류에 따라 **BLOCKED**입니다. 2026-10-12 preflight에서
+선택한 Cask는 trusted, Tap 전체는 untrusted였으며 두 상태와 developer 설정을
+유지합니다. 실제 Cask의 Ruby syntax와 동등한 Homebrew style 규칙은 설치된
+vendored RuboCop wrapper로 확인합니다. `brew style` front-end나 gem 설치/정리는
+실행하지 않습니다. 익명 public DMG/sidecar bytes를 동결한 후보와 비교한 뒤 Tap을
+갱신합니다.
+
+Build 26의 GUI/실기기, 설치, upgrade와 다운로드한 앱의 첫 실행 Gatekeeper 검사는
+`NOT_RUN`입니다. 설치 앱, 복구 기록, 환경설정과 권한을 보존합니다. 아래 과거 release와
+QA 결과는 원래 산출물과 승인 범위를 유지합니다.
+
+## Beta.8 이전 source QA 기준 기록 — 2026-10-12
 
 `65a8e71` 위의 수정한 checkout에서 `bash scripts/test.sh`(App 컴파일과 38개 tests)와
 기존 packaging suite(22개)를 macOS 26.7.1/arm64에서 각각 한 번 실행해 통과했습니다.
@@ -30,9 +55,9 @@ Apple Silicon Mac, macOS 26 이상, 패키지의 Swift 6.0 manifest와 호환되
 | --------------------- | ------------------------------------ |
 | 앱과 실행 파일        | `Touch Me.app` / `TouchMe`           |
 | Bundle Identifier     | `io.github.soom-kang.touchme`        |
-| Release 버전          | `VERSION`에서 읽는 `0.8.0-beta.7`    |
+| Release 버전          | `VERSION`에서 읽는 `0.8.0-beta.8`    |
 | 번들 버전             | `0.8.0`과 증가하는 숫자 build 번호   |
-| 전체 release metadata | `TouchMeReleaseVersion=0.8.0-beta.7` |
+| 전체 release metadata | `TouchMeReleaseVersion=0.8.0-beta.8` |
 | 대상 환경             | `arm64`, macOS 26 이상               |
 
 문서나 패키징을 바꿀 때는 식별자와 저장한 환경설정 형식을 유지하세요. 서명 identity나 설치 경로를 바꾸면 설치 앱의 권한 확인이 필요할 수 있습니다.
@@ -52,6 +77,9 @@ Apple Silicon Mac, macOS 26 이상, 패키지의 Swift 6.0 manifest와 호환되
 현재 소스에는 앱의 네트워크 통신이나 원시 입력 로그 기능이 없습니다. 환경설정에는 선택한 장치·화면 정보, 재개할 의도와 앱 언어 선택을 저장하며, 터치 이력은 저장하지 않습니다. 기본 언어는 영어입니다. 언어를 바꾸면 앱이 만든 UI를 즉시 갱신하며 세션을 재시작하거나 macOS 언어 설정을 바꾸지 않습니다.
 
 ## Beta.7 release 준비 — 2026-10-10
+
+이 절은 완료한 beta.7 공개 기록입니다. 공개 build 25와 이후 로컬 QA build 25는
+서로 다른 산출물이며 어느 쪽도 beta.8 acceptance를 검증하지 않습니다.
 
 상태는 **PUBLISHED**입니다. Prerelease `v0.8.0-beta.7`을 2026-10-10
 14:25:14 KST(05:25:14 UTC)에 숫자 번들 버전 `0.8.0`, build 25로 공개했습니다. 개발 build 24와 설치 앱은
@@ -204,8 +232,8 @@ python3 scripts/package-dmg.py
 | 산출물                                        | 용도                    |
 | --------------------------------------------- | ----------------------- |
 | `dist/Touch Me.app`                           | 로컬 서명한 앱 번들     |
-| `dist/touch-me-0.8.0-beta.7-arm64.dmg`        | 로컬 beta 후보 이미지   |
-| `dist/touch-me-0.8.0-beta.7-arm64.dmg.sha256` | SHA-256 checksum        |
+| `dist/touch-me-0.8.0-beta.8-arm64.dmg`        | 로컬 beta 후보 이미지   |
+| `dist/touch-me-0.8.0-beta.8-arm64.dmg.sha256` | SHA-256 checksum        |
 
 Release checkout의 기존 이미지는 `dist/previous-builds`로 옮깁니다. DMG 무결성과 checksum을 확인하세요:
 
@@ -215,8 +243,8 @@ Release checkout의 기존 이미지는 `dist/previous-builds`로 옮깁니다. 
 23과 과거 build 22의 checksum은 새 산출물을 검증하는 근거로 사용할 수 없습니다.
 
 ```bash
-hdiutil verify dist/touch-me-0.8.0-beta.7-arm64.dmg
-(cd dist && shasum -a 256 -c touch-me-0.8.0-beta.7-arm64.dmg.sha256)
+hdiutil verify dist/touch-me-0.8.0-beta.8-arm64.dmg
+(cd dist && shasum -a 256 -c touch-me-0.8.0-beta.8-arm64.dmg.sha256)
 ```
 
 ![소스와 라이선스로 로컬 서명 앱을 만들고 개인용 디스크 이미지와 SHA-256 checksum을 생성하는 흐름입니다.](docs/assets/packaging.ko.png)

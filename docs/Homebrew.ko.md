@@ -2,11 +2,38 @@
 
 # Touch Me Homebrew beta 배포
 
-Beta.7과 기존 Tap 갱신을 공개하고 확인했습니다. 로컬 앱 설치와 upgrade는
-이번 공개 범위 밖입니다. Beta.6와 이전 배포 기록은 아래에
-보존합니다.
+Beta.8은 **PREPARING / NOT_PUBLISHED**입니다. 새 release와 Tap 검사를 마치기
+전까지 공개 version은 beta.7입니다. 로컬 앱 설치와 upgrade는 이번 배포 범위
+밖이며 이전 공개 기록은 아래에 보존합니다.
 
-## 현재 source QA — 2026-10-12
+## Beta.8 release 준비 — 2026-10-12
+
+사용자는 source 기준 `f828fd22`에서 prerelease `v0.8.0-beta.8`, build 26을
+배포하는 데 동의했습니다. 별도 checkout에서 앱과 DMG를 각각 한 번 생성했고
+native 산출물 검사를 통과했습니다. Source/tag 공개와 기존 Tap 갱신은 아직 남아
+있습니다. 동결한 후보 식별과 실제 결과는 [beta.8 release notes](releases/v0.8.0-beta.8.md)에
+기록합니다. Source가 유지되는 동안 완료한 Swift tests 38개와 packaging tests
+22개를 재사용합니다. Build/package 입력에서는 `VERSION`만 바뀌었으며 최종 release
+입력 43개에는 Cask draft의 새 version/digest도 포함됩니다.
+
+1. 동결한 앱/DMG를 유지하고 최종 입력을 release commit과 대조합니다. 후보의
+   metadata/서명/라이선스/아이콘, arm64, DMG 무결성/sidecar, 읽기 전용 내부 앱
+   bytes와 정상 detach 검사는 통과했습니다. 단순 재확인을 위해 다시 빌드하지 않습니다.
+2. 검토한 source, tag와 prerelease를 공개하며 이전 tag/asset을 대치하지 않습니다.
+   익명 public DMG/sidecar bytes를 동결한 후보와 비교한 뒤 기존 Tap을 변경합니다.
+3. 실제 `Casks/touch-me.rb`, beta.8의 정확한 버전 prerelease allowlist와 Tap 양언어
+   안내를 갱신합니다. Cask Ruby syntax와 동등한 Homebrew style 규칙을 설치된
+   vendored RuboCop wrapper로 확인합니다. 별도 cache를 사용하며 gem 설치/정리와
+   `brew style` front-end는 실행하지 않습니다. 이후 공개 Tap revision과 Cask/asset
+   식별을 확인합니다.
+
+Online audit는 승인한 보류에 따라 **BLOCKED**입니다. 2026-10-12 preflight에서는
+선택한 Cask가 trusted, Tap 전체가 untrusted였습니다. 두 상태와 developer 설정을
+유지하며 audit 실행이나 trust 우회 환경변수는 사용하지 않습니다. 현재 관측으로
+beta.7의 과거 audit 결과를 바꾸지 않습니다. Build 26 GUI/실기기, 설치, upgrade와
+첫 실행 Gatekeeper는 `NOT_RUN`이며 설치 앱, 기록, 환경설정과 권한을 보존합니다.
+
+## Beta.8 이전 source QA 기준 기록 — 2026-10-12
 
 [QA 보고서](qa/2026-10-12-qa-report.md)에 TMQA-006/007의 로컬 수정 결과를 기록했으며
 exact build 25의 native acceptance 공백은 유지합니다. 패키징은 최종 경로를 바꾸기
@@ -26,6 +53,9 @@ beta.7/build 25와 표시 metadata가 같지만 bytes는 다릅니다. Public Ca
 유지하며 로컬 QA 후보를 공개 release로 취급하지 않습니다.
 
 ## Beta.7 release 준비 — 2026-10-10
+
+이 절은 완료한 beta.7 공개 checkpoint를 보존합니다. 해당 산출물과 승인 범위로
+beta.8 acceptance를 검증하지 않습니다.
 
 상태는 **PUBLISHED**입니다. Prerelease `v0.8.0-beta.7`을 2026-10-10
 14:25:14 KST(05:25:14 UTC)에 build 25와

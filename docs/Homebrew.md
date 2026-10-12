@@ -2,11 +2,41 @@
 
 # Publish the Touch Me Homebrew beta
 
-Beta.7 and the existing Tap update are published and verified. Local app
-installation and upgrade remain outside this publication scope.
-Beta.6 and earlier publication records remain below.
+Beta.8 is **PREPARING / NOT_PUBLISHED**. Beta.7 remains the published version
+until the new release and Tap checks pass. Local app installation and upgrade
+remain outside this distribution scope. Earlier publication records remain below.
 
-## Current source QA — 2026-10-12
+## Beta.8 release preparation — 2026-10-12
+
+The user agreed to prerelease `v0.8.0-beta.8`, build 26, from source baseline
+`f828fd22`. One app build and one DMG passed native artifact checks in a separate
+checkout. Source/tag publication and the existing Tap update are pending.
+Use [beta.8 release notes](releases/v0.8.0-beta.8.md) for the frozen identity and
+actual results. Reuse the completed 38 Swift and 22 packaging tests while their
+source is unchanged. Build/package inputs changed only in `VERSION`; the final
+43-input release manifest also includes the Cask draft's new version/digest.
+
+1. Keep the frozen app/DMG and compare final inputs against the release commit.
+   The candidate's metadata/signature/license/icon, arm64, DMG integrity/sidecar,
+   read-only inner-app bytes and normal detach passed. Do not rebuild merely to
+   reconfirm these checks.
+2. Publish the reviewed source, tag and prerelease without replacing earlier
+   tags/assets. Compare anonymous public DMG/sidecar bytes with the frozen
+   candidate before changing the existing Tap.
+3. Update the actual `Casks/touch-me.rb`, beta.8's exact-version prerelease
+   allowlist and bilingual Tap guidance. Check Cask Ruby syntax and the
+   equivalent Homebrew style rules with the installed vendored RuboCop wrapper,
+   task cache and no gem installation/cleanup. The `brew style` front-end is
+   not run. Verify the public Tap revision and Cask/asset identity afterward.
+
+Online audit remains **BLOCKED** by the approved deferral. The 2026-10-12
+preflight found the selected Cask trusted and the whole Tap untrusted. Preserve
+those states and developer settings; do not run the audit or use trust bypass
+variables. This observation does not replace beta.7's historical audit result.
+Build 26 GUI/device, installation, upgrade and Gatekeeper first launch are
+`NOT_RUN`. Preserve the installed app, records, preferences and permissions.
+
+## Source QA baseline before beta.8 — 2026-10-12
 
 The [QA report](qa/2026-10-12-qa-report.md) records local fixes for TMQA-006/007
 and retains the exact build 25 native acceptance gap. Packaging now completes
@@ -28,6 +58,9 @@ It shares beta.7/build 25's displayed metadata and has different bytes. Keep the
 public Cask/digest unchanged; this local QA candidate is not the published release.
 
 ## Beta.7 release preparation — 2026-10-10
+
+This section preserves the completed beta.7 publication checkpoint. Its artifact
+and approval scope do not establish beta.8 acceptance.
 
 Status: **PUBLISHED**. Prerelease `v0.8.0-beta.7` was published on 2026-10-10
 at 14:25:14 KST (05:25:14 UTC), with build 25 and
