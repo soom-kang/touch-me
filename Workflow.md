@@ -6,6 +6,21 @@
 
 Use this workflow to build the arm64 app, inspect its bundle and create a personal disk image. The existing scripts use Apple's local tools and Python 3. They do not install additional dependencies or publish artifacts.
 
+## Current QA checkpoint — 2026-10-12
+
+The modified checkout on `65a8e71` passed `bash scripts/test.sh` (38 tests,
+including App compilation) and the existing packaging suite (22 tests), once
+each on macOS 26.7.1/arm64. TMQA-006 adds empty-record directory sync under the
+journal lease; TMQA-007 stages a complete DMG/checksum pair and rolls back
+failed finalization. Existing test targets cover the failure boundaries.
+See the [QA report and local tickets](docs/qa/2026-10-12-qa-report.md) for agreed
+decisions and limits. The later [local native build](docs/qa/2026-10-12-native-build.md)
+produced one app and one DMG; signature/image checks, read-only inner-app comparison
+and normal detach passed. The first native image create failed; the same staging
+was retried and finalized without another app/package staging build. `--scan`
+returned no visible devices/displays in its CLI context. GUI, installation,
+commit/push and publication were not performed. The prior records below stay historical.
+
 ## Prepare your environment
 
 Use an Apple Silicon Mac with macOS 26 or later, Swift tools compatible with the package's Swift 6.0 manifest, and Python 3. Run commands from the project directory. Building does not require a connected touchscreen.

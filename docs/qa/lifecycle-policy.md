@@ -4,6 +4,20 @@ Ticket: TMQA-002. The development source preserves mapping intent across
 temporary lock, sleep and user-session interruptions. Beta.3 includes this
 recovery change; the published beta.2 app requires manual restart.
 
+## Current QA boundary — 2026-10-12
+
+The [current QA report](2026-10-12-qa-report.md) extends TMQA-005's model-level
+acceptance matrix and records TMQA-008 as a latency observation task. Existing
+Swift helper tests pass, but App lifecycle wiring, GUI responsiveness and exact
+build 25 device acceptance were not executed. Synchronous main-thread I/O remains
+the known limit described below; this review adds no observed hang or latency
+guarantee. TMQA-006 now confirms directory sync under the journal lease before
+empty-record Retry/Start succeeds; failures block Start without adding device
+I/O. Gesture behavior and the fixed readiness-window policy are unchanged.
+The [local native build](2026-10-12-native-build.md) confirms artifact integrity
+only; its metadata scan exits before App model initialization. The user chose
+preservation-only checks, leaving lifecycle GUI/device execution `NOT_RUN`.
+
 ## Beta.7 release boundary — 2026-10-10
 
 Beta.7 was **PUBLISHED** on 2026-10-10 at 14:25:14 KST (05:25:14 UTC).

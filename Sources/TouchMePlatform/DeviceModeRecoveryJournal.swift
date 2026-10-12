@@ -250,6 +250,15 @@ final class DeviceModeRecoveryJournal {
         return record
     }
 
+    /// A preceding lease may have unlinked a predecessor record before its
+    /// directory sync failed. Visible absence alone is not durable cleanup.
+    /// This barrier never removes a record or performs device-mode I/O.
+    func confirmNoActiveRecord() throws {
+        try verifyLease()
+        guard try load() == nil else { throw DeviceModeRecoveryJournalError.recordChanged }
+        try directorySync(directoryFD)
+    }
+
     /// Recover the caller's exact installation after a failed directory sync.
     /// A record from another lease or process is never adopted by this accessor.
     func ownedActiveRecord() throws -> DeviceModeRecoveryRecord? {

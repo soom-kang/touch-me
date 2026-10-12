@@ -11,6 +11,66 @@ import uuid
 ROOT = Path(__file__).resolve().parent.parent
 
 
+def sha256_file(path):
+    checksum = hashlib.sha256()
+    with path.open("rb") as stream:
+        for chunk in iter(lambda: stream.read(1024 * 1024), b""):
+            checksum.update(chunk)
+    return checksum.hexdigest()
+
+
+def validate_previous_pair(image, sidecar):
+    present = [path.exists() or path.is_symlink() for path in (image, sidecar)]
+    if not any(present):
+        return False
+    reason = "both files must be regular files with a matching checksum"
+    if all(present) and all(path.is_file() and not path.is_symlink() for path in (image, sidecar)):
+        try:
+            expected = f"{sha256_file(image)}  {image.name}\n"
+            if sidecar.read_text(encoding="utf-8") == expected:
+                return True
+            reason = "the checksum does not match the existing image and filename"
+        except (OSError, UnicodeError) as error:
+            reason = str(error)
+    raise SystemExit(f"Cannot replace the previous DMG/checksum pair: {reason}. "
+                     f"Preserve and inspect both paths before retrying: {image}; {sidecar}")
+
+
+def promote_pair(image, staged_sidecar, output, sidecar, previous_present):
+    archive = output.parent / "previous-builds" / f"touch-me-{VERSION}-{uuid.uuid4()}"
+    completed = []
+
+    def move(source, destination):
+        source.rename(destination)
+        completed.append((source, destination))
+
+    try:
+        if previous_present:
+            archive.mkdir(parents=True)
+            # Missing checksums fail verification throughout the two-file move.
+            # Keep original filenames so the archived checksum remains usable.
+            move(sidecar, archive / sidecar.name)
+            move(output, archive / output.name)
+        move(image, output)
+        move(staged_sidecar, sidecar)
+    except OSError as error:
+        for source, destination in reversed(completed):
+            try:
+                destination.rename(source)
+            except OSError as rollback_error:
+                raise SystemExit(
+                    f"Packaging finalization failed: {error}. Rollback failed: {rollback_error}. "
+                    "No further files were moved. Preserve all remaining files; do not retry until inspected. "
+                    f"Final paths: {output}; {sidecar}. Staging directory: {image.parent}. "
+                    f"Archive directory: {archive if previous_present else 'not created'}") from rollback_error
+        raise SystemExit(
+            f"Packaging finalization failed; the previous output state was restored: {error}. "
+            f"Final paths: {output}; {sidecar}. Staging directory: {image.parent}. "
+            f"Archive directory: {archive if previous_present else 'not created'}") from error
+    # These separate renames are not a crash-, power-loss- or concurrency-atomic
+    # transaction. Interrupted output still needs checksum verification/manual recovery.
+
+
 def read_release_version():
     try:
         version = (ROOT / "VERSION").read_text(encoding="utf-8").strip()
@@ -26,9 +86,11 @@ def read_release_version():
 VERSION, SHORT_VERSION = read_release_version()
 APP = ROOT / "dist" / "Touch Me.app"
 OUTPUT = ROOT / "dist" / f"touch-me-{VERSION}-arm64.dmg"
+SIDECAR = OUTPUT.with_suffix(".dmg.sha256")
 WORK = ROOT / ".build" / "dmg" / str(uuid.uuid4())
 STAGING = WORK / "contents"
 IMAGE = WORK / OUTPUT.name
+STAGED_SIDECAR = WORK / SIDECAR.name
 
 try:
     with (APP / "Contents" / "Info.plist").open("rb") as stream:
@@ -48,6 +110,7 @@ if not license_resource.is_file():
     raise SystemExit("The app is missing its project license; rebuild the app")
 if license_resource.read_text(encoding="utf-8") != (ROOT / "LICENSE").read_text(encoding="utf-8").rstrip() + "\n":
     raise SystemExit("The app's project license does not match LICENSE; rebuild the app")
+previous_present = validate_previous_pair(OUTPUT, SIDECAR)
 subprocess.run(["codesign", "--verify", "--strict", str(APP)], check=True)
 architecture = subprocess.check_output(["lipo", "-archs", str(APP / "Contents" / "MacOS" / "TouchMe")], text=True).strip()
 if architecture != "arm64":
@@ -141,15 +204,11 @@ macOS의 첫 실행 승인과 업데이트 후 권한 재승인이 필요할 수
 """, encoding="utf-8")
 subprocess.run(["hdiutil", "create", "-volname", "Touch Me", "-srcfolder", str(STAGING),
                 "-format", "UDZO", "-fs", "HFS+", str(IMAGE)], check=True)
-if OUTPUT.exists():
-    history = OUTPUT.parent / "previous-builds"
-    history.mkdir(exist_ok=True)
-    OUTPUT.rename(history / f"touch-me-{VERSION}-{uuid.uuid4()}.dmg")
-IMAGE.rename(OUTPUT)
-checksum = hashlib.sha256()
-with OUTPUT.open("rb") as stream:
-    for chunk in iter(lambda: stream.read(1024 * 1024), b""):
-        checksum.update(chunk)
-digest = checksum.hexdigest()
-OUTPUT.with_suffix(".dmg.sha256").write_text(f"{digest}  {OUTPUT.name}\n", encoding="utf-8")
+try:
+    digest = sha256_file(IMAGE)
+    STAGED_SIDECAR.write_text(f"{digest}  {OUTPUT.name}\n", encoding="utf-8")
+except OSError as error:
+    raise SystemExit(f"Cannot prepare the staged DMG checksum; existing outputs were not changed: {error}. "
+                     f"Staging directory: {WORK}") from error
+promote_pair(IMAGE, STAGED_SIDECAR, OUTPUT, SIDECAR, previous_present)
 print(f"Built local beta DMG: {OUTPUT}")

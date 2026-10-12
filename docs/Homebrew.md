@@ -6,6 +6,27 @@ Beta.7 and the existing Tap update are published and verified. Local app
 installation and upgrade remain outside this publication scope.
 Beta.6 and earlier publication records remain below.
 
+## Current source QA — 2026-10-12
+
+The [QA report](qa/2026-10-12-qa-report.md) records local fixes for TMQA-006/007
+and retains the exact build 25 native acceptance gap. Packaging now completes
+the staged DMG and checksum before changing final paths. A valid previous pair
+is archived together, with original filenames, under
+`dist/previous-builds/touch-me-<VERSION>-<UUID>/`. Missing one prior file or a
+mismatched checksum stops packaging and preserves the evidence.
+
+Ordinary finalization errors roll back completed moves. If rollback also fails,
+the script stops and reports final, staging and archive paths for inspection;
+do not retry or upload until a complete pair is verified. Separate renames do
+not guarantee crash, power-loss or concurrent-run atomicity. Keep the old public
+version/assets; this source fix is not a new release. No public asset, actual
+Tap, installed app or trust setting was changed or revalidated. The beta.7
+audit deferral below remains in force. A subsequent [local native build](qa/2026-10-12-native-build.md)
+passed artifact checks; its DMG digest is
+`cb46fa2fda5211504d04d9b7536de5883ad566cf514bf2ab02452500a2e5e803`.
+It shares beta.7/build 25's displayed metadata and has different bytes. Keep the
+public Cask/digest unchanged; this local QA candidate is not the published release.
+
 ## Beta.7 release preparation — 2026-10-10
 
 Status: **PUBLISHED**. Prerelease `v0.8.0-beta.7` was published on 2026-10-10

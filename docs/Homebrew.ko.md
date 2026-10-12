@@ -6,6 +6,25 @@ Beta.7과 기존 Tap 갱신을 공개하고 확인했습니다. 로컬 앱 설�
 이번 공개 범위 밖입니다. Beta.6와 이전 배포 기록은 아래에
 보존합니다.
 
+## 현재 source QA — 2026-10-12
+
+[QA 보고서](qa/2026-10-12-qa-report.md)에 TMQA-006/007의 로컬 수정 결과를 기록했으며
+exact build 25의 native acceptance 공백은 유지합니다. 패키징은 최종 경로를 바꾸기
+전에 staging의 DMG와 checksum을 완성합니다. 유효한 이전 쌍은 원래 파일명으로
+`dist/previous-builds/touch-me-<VERSION>-<UUID>/`에 함께 보관합니다. 이전 파일 중
+하나가 없거나 checksum이 불일치하면 증거를 보존하고 중단합니다.
+
+최종 반영 중 일반 오류가 발생하면 완료한 이동을 되돌립니다. Rollback도 실패하면
+추가 이동을 중단하고 최종 경로, staging과 archive 경로를 표시합니다. 완전한 쌍을
+확인하기 전에는 재시도하거나 upload하지 마세요. 별도 rename은 crash, 전원 손실과
+동시 실행의 atomicity를 보장하지 않습니다. 기존 공개 version과 asset을 유지하며
+이번 source 수정은 새 release가 아닙니다. Public asset, 실제 Tap, 설치 앱과 trust
+설정을 변경하거나 새로 검증하지 않았으며 아래 beta.7 audit 보류도 유지합니다. 이후
+[로컬 native build](qa/2026-10-12-native-build.md)의 산출물 검사는 통과했습니다. 로컬 DMG의
+digest는 `cb46fa2fda5211504d04d9b7536de5883ad566cf514bf2ab02452500a2e5e803`이며
+beta.7/build 25와 표시 metadata가 같지만 bytes는 다릅니다. Public Cask/digest는
+유지하며 로컬 QA 후보를 공개 release로 취급하지 않습니다.
+
 ## Beta.7 release 준비 — 2026-10-10
 
 상태는 **PUBLISHED**입니다. Prerelease `v0.8.0-beta.7`을 2026-10-10

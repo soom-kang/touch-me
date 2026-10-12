@@ -20,6 +20,19 @@ Online audit is `BLOCKED`: the user chose to preserve existing trust and defer t
 
 Historical 2026-10-09 publication: [beta.6 build 24](https://github.com/soom-kang/touch-me/releases/tag/v0.8.0-beta.6) contained completed QA records with no runtime-code changes since beta.5 at that release. Public DMG/checksum, Tap and online audit checks passed; artifact identities are in the [release notes](docs/releases/v0.8.0-beta.6.md). The [beta.5 build 23 acceptance](docs/qa/beta5-native-acceptance.md) is regression evidence only. At the 2026-10-09 publication checkpoint, beta.6 installation, GUI, Gatekeeper, real-device use and Homebrew upgrade were `NOT_RUN`, and the installed beta.5 app was retained.
 
+## Current QA — 2026-10-12
+
+The [current source QA report](docs/qa/2026-10-12-qa-report.md) records local fixes
+for TMQA-006/007. Retry and Start now confirm pending file cleanup before
+proceeding. Packaging prepares a complete DMG/checksum pair and restores the
+previous pair when finalization fails; an incomplete prior pair is preserved
+and rejected. The modified checkout passes Swift 38 and packaging 22 tests.
+One local app and DMG have since been built; native signature/image checks and
+read-only inner-app comparison passed. See the [local native build record](docs/qa/2026-10-12-native-build.md).
+Published beta.7/build 25 and the installed app are unchanged. The local candidate
+has the same displayed version/build and different hashes; GUI/device acceptance
+remains `NOT_RUN` under the agreed preservation-only scope.
+
 ## Check your setup first
 
 The app targets one connected P16KT on an Apple Silicon Mac. Recorded hardware checks used an Apple M4 Max, macOS 26.7.1 and a direct USB-C connection:

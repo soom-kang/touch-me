@@ -413,6 +413,7 @@ public final class ProofMapper {
         defer { journal.close() }
         guard let record = try journal.load() else {
             _ = try journal.loadReconnectGuard()
+            try journal.confirmNoActiveRecord()
             return
         }
         if try P16KTDeviceMode.attachmentHasEnded(record.identity) {

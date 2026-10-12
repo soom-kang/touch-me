@@ -20,6 +20,18 @@ Beta `0.8.0-beta.7`은 **P16KT에서 확인한 USB/HID profile**을 요구합니
 
 2026-10-09 공개 기록: QA 완료 문서를 포함한 [beta.6 build 24](https://github.com/soom-kang/touch-me/releases/tag/v0.8.0-beta.6)를 공개했고 당시 beta.5 이후 실행 코드 변경은 없었습니다. Public DMG·checksum, Tap과 online audit 검사는 통과했고 산출물 식별은 [release notes](docs/releases/v0.8.0-beta.6.md)에 있습니다. [Beta.5 build 23 acceptance](docs/qa/beta5-native-acceptance.md)는 회귀 근거로만 인용합니다. 2026-10-09 공개 checkpoint에서 beta.6 설치·GUI·Gatekeeper·실기기 사용·Homebrew upgrade는 `NOT_RUN`이었으며 당시 설치된 beta.5 앱을 보존했습니다.
 
+## 현재 QA — 2026-10-12
+
+[현재 source QA 보고서](docs/qa/2026-10-12-qa-report.md)에 TMQA-006/007의 로컬
+수정 결과를 기록했습니다. 재시도와 Start는 남은 파일 정리를 확인한 뒤 진행하며,
+패키징은 완전한 DMG/checksum 쌍을 준비하고 최종 반영 실패 시 이전 쌍을 복구합니다.
+불완전한 이전 쌍은 보존하고 중단합니다. 수정한 checkout의 Swift 38개와 packaging
+22개 tests는 통과했습니다. 이후 로컬 앱과 DMG를 각각 1개 생성했고 native 서명,
+이미지 검사와 읽기 전용 inner-app 비교를 통과했습니다. 자세한 결과는
+[로컬 native build 기록](docs/qa/2026-10-12-native-build.md)에 있습니다. 공개 beta.7/build 25와
+설치 앱은 바뀌지 않았습니다. 로컬 후보는 같은 version/build 표기와 다른 hash를
+사용하며 합의한 상태 보존 범위에서 GUI/실기기 acceptance는 `NOT_RUN`입니다.
+
 ## 먼저 사용 환경을 확인하세요
 
 Apple Silicon Mac에서 P16KT 한 대를 연결하는 환경을 대상으로 합니다. 실기기에서 확인한 조합은 Apple M4 Max, macOS 26.7.1과 USB-C 직접 연결입니다:

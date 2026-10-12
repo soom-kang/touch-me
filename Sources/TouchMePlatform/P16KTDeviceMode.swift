@@ -160,7 +160,11 @@ final class P16KTDeviceMode {
     func attachRecovery(_ journal: DeviceModeRecoveryJournal, collection: HIDCollection) throws {
         self.journal = journal
         attachment = try Self.recoveryIdentity(collection)
-        guard let record = try journal.load(), let attachment else { return }
+        guard let record = try journal.load() else {
+            try journal.confirmNoActiveRecord()
+            return
+        }
+        guard let attachment else { throw DeviceModeRecoveryJournalError.identityChanged }
         try verifyAttachment()
         let current = try transaction.read()
         switch try journal.recoveryAction(for: record, identity: attachment, current: current) {

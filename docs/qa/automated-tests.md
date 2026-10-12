@@ -3,6 +3,30 @@
 Ticket: TMQA-005. Tests added here are not a claim that native tests passed.
 No CI service, external dependency, device driver, or permission change is added.
 
+## Current checkout check — 2026-10-12
+
+On macOS 26.7.1/arm64 with Apple Swift 6.4 and Python 3.9.6, the modified checkout
+on `65a8e71` passed `bash scripts/test.sh` (25 Platform + 13 Core tests, with App
+compilation) and `python3 -m unittest discover -s Tests/PackagingTests -v`
+(22 tests), once each after the fixes. Earlier baseline 37/18 and Linux results
+remain historical snapshots, not these modified-source results.
+
+The [current QA report](2026-10-12-qa-report.md) records source-fixed TMQA-006/007.
+One existing-target Swift regression test checks predecessor unlink/sync failure,
+lease reacquisition, another sync failure, successful confirmation and new-record
+preservation. Four packaging tests check staged checksum failure, four rename
+failure boundaries, incomplete/mismatched prior pairs and rollback failure;
+the existing success case now checks distinct new bytes and the archived pair.
+All use existing seams/fixtures; no runner, dependency or test target was added.
+The [isolated fault evidence](2026-10-12-fault-evidence.md) preserves the pre-fix
+counterexamples. No native I/O is exercised. TMQA-005's App lifecycle decision
+matrix remains unexecuted; helper PASS does not replace model/native acceptance.
+The later [local native build](2026-10-12-native-build.md) passed app/DMG artifact
+checks, read-only inner-app comparison and normal detach. Suites were reused
+without another run because all 43 tracked inputs stayed unchanged. `--scan`
+executed in its CLI context with exit 3/no visible devices; no journal or
+preference writes. GUI/device acceptance remains `NOT_RUN` by user agreement.
+
 ## Beta.7 release boundary — 2026-10-10
 
 Beta.7 was **PUBLISHED** on 2026-10-10 at 14:25:14 KST (05:25:14 UTC).

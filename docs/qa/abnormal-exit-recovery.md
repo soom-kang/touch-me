@@ -21,6 +21,30 @@ Fresh installation, permission off/on, lock/sleep, full logout/login and removal
 remain `NOT_RUN`; reboot, reconnection, power loss and other panels remain
 outside the verified recovery scope.
 
+## Pending-cleanup fix — 2026-10-12
+
+[TMQA-006](2026-10-12-qa-report.md#tmqa-006--preserve-pending-predecessor-cleanup-after-directory-sync-failure)
+records the baseline fault path: predecessor recovery could unlink its record,
+fail directory sync, then lose the pending cleanup when its lease closed.
+The modified checkout now calls `confirmNoActiveRecord()` under a verified lease
+before an empty-record Retry succeeds, and after exclusive open before an
+empty-record Start proceeds. The helper rechecks that no active record exists
+and completes directory sync; failure remains blocking. It adds no device I/O,
+record format change or guessed mode write. Inactive predecessor Quit remains
+allowed and does not establish cleanup completion.
+The [equivalent journal check](2026-10-12-fault-evidence.md#journal-check)
+reproduced the lifetime gap with synthetic identities and no native I/O.
+Physical power-loss replay and device-mode failure are not demonstrated.
+The new-owner unlink/sync failure, reacquired-lease retry and new-record rejection
+pass in the existing journal suite; the complete Swift run passed 38 tests,
+including App compilation. The same-nonce recovery rules below remain in force;
+the empty-record barrier only confirms durable file absence. The later
+[local candidate build](2026-10-12-native-build.md) passed native artifact checks;
+its `--scan` bypasses recovery/model initialization, so no actual GUI recovery,
+device-mode or power-loss acceptance was added. All 7 existing recovery-file
+hashes remained unchanged. Historical build 23's bounded PASS is retained.
+Do not delete records or force a mode write to work around an unresolved error.
+
 ## Beta.7 release boundary — 2026-10-10
 
 Beta.7 was **PUBLISHED** on 2026-10-10 at 14:25:14 KST (05:25:14 UTC).

@@ -6,6 +6,20 @@
 
 이 Workflow에 따라 arm64 앱을 빌드하고 번들을 확인한 뒤 개인용 디스크 이미지를 만드세요. 기존 스크립트는 Apple의 로컬 도구와 Python 3를 사용합니다. 추가 dependency 설치와 산출물 공개는 수행하지 않습니다.
 
+## 현재 QA checkpoint — 2026-10-12
+
+`65a8e71` 위의 수정한 checkout에서 `bash scripts/test.sh`(App 컴파일과 38개 tests)와
+기존 packaging suite(22개)를 macOS 26.7.1/arm64에서 각각 한 번 실행해 통과했습니다.
+TMQA-006은 journal lease 아래에서 빈 기록의 directory sync를 확인하며,
+TMQA-007은 완전한 DMG/checksum 쌍을 staging에 준비하고 최종 반영 실패 시 복구합니다.
+기존 test target에서 해당 실패 경계를 확인했습니다. 합의한 결정과 한계는
+[QA 보고서와 로컬 티켓](docs/qa/2026-10-12-qa-report.md)에 기록합니다. 이후
+[로컬 native build](docs/qa/2026-10-12-native-build.md)에서 앱과 DMG를 각각 1개 생성하고
+서명/이미지, 읽기 전용 inner-app 비교와 정상 detach를 확인했습니다. 첫 native 이미지
+생성은 실패했으며 같은 staging을 재사용해 재시도하고 마무리했습니다. 앱과 package
+staging을 다시 빌드하지 않았습니다. `--scan`의 CLI 환경에는 장치/화면이 보이지
+않았습니다. GUI, 설치, commit/push와 공개는 수행하지 않았으며 아래 기록은 과거 근거로 유지합니다.
+
 ## 개발 환경 준비하기
 
 Apple Silicon Mac, macOS 26 이상, 패키지의 Swift 6.0 manifest와 호환되는 Swift 도구, Python 3가 필요합니다. 프로젝트 폴더에서 명령을 실행하세요. 빌드에는 터치 모니터 연결이 필요하지 않습니다.

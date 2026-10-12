@@ -30,13 +30,14 @@ class PackagingTests(unittest.TestCase):
         self.binary.write_bytes(b"NOT a Mach-O: packaging test fixture")
         self.app = self.root / "dist" / "Touch Me.app"
         self.native_calls = []
+        self.image_bytes = b"NOT a DMG: test fixture"
 
     def native(self, command, **kwargs):
         self.native_calls.append(command)
         if command[0] == "ditto":
             shutil.copytree(command[1], command[2])
         elif command[0] == "hdiutil":
-            pathlib.Path(command[-1]).write_bytes(b"NOT a DMG: test fixture")
+            pathlib.Path(command[-1]).write_bytes(self.image_bytes)
         elif command[0] != "codesign":
             raise AssertionError(f"Unexpected native command: {command[0]}")
         return subprocess.CompletedProcess(command, 0)
@@ -114,6 +115,21 @@ class PackagingTests(unittest.TestCase):
         link = next((self.root / ".build" / "dmg").glob("*/contents/Applications"))
         self.assertTrue(link.is_symlink())
         self.assertEqual(str(link.readlink()), "/Applications")
+        previous_image = image.read_bytes()
+        previous_sidecar = image.with_suffix(".dmg.sha256").read_bytes()
+        self.image_bytes = b"NOT a DMG: second fixture version"
+        self.run_script("package-dmg.py")
+        self.assertNotEqual(image.read_bytes(), previous_image)
+        self.assertEqual(image.with_suffix(".dmg.sha256").read_text(),
+                         f"{hashlib.sha256(image.read_bytes()).hexdigest()}  {image.name}\n")
+        archives = list((self.root / "dist" / "previous-builds").iterdir())
+        self.assertEqual(len(archives), 1)
+        archived_image = archives[0] / image.name
+        archived_sidecar = archived_image.with_suffix(".dmg.sha256")
+        self.assertEqual(archived_image.read_bytes(), previous_image)
+        self.assertEqual(archived_sidecar.read_bytes(), previous_sidecar)
+        self.assertEqual(archived_sidecar.read_text(),
+                         f"{hashlib.sha256(archived_image.read_bytes()).hexdigest()}  {archived_image.name}\n")
 
     def test_non_arm64_architecture_rejected(self):
         self.bundle()
@@ -209,6 +225,123 @@ class PackagingTests(unittest.TestCase):
         with self.assertRaises(subprocess.CalledProcessError):
             self.run_script("package-dmg.py", native=fail)
         self.assertEqual(image.read_bytes(), before)
+
+    def test_staged_checksum_failure_preserves_existing_pair(self):
+        self.bundle()
+        self.run_script("package-dmg.py")
+        image = next((self.root / "dist").glob("*.dmg"))
+        sidecar = image.with_suffix(".dmg.sha256")
+        before = (image.read_bytes(), sidecar.read_bytes())
+        self.image_bytes = b"NOT a DMG: second fixture version"
+        original_write = pathlib.Path.write_text
+
+        def denied_checksum(path, *args, **kwargs):
+            if path.name == sidecar.name and path != sidecar:
+                raise PermissionError("fixture: staged checksum denied")
+            return original_write(path, *args, **kwargs)
+
+        with patch.object(pathlib.Path, "write_text", denied_checksum), \
+             self.assertRaisesRegex(SystemExit, "Cannot prepare the staged DMG checksum"):
+            self.run_script("package-dmg.py")
+        self.assertEqual((image.read_bytes(), sidecar.read_bytes()), before)
+        self.assertFalse((self.root / "dist" / "previous-builds").exists())
+
+    def test_finalization_rename_failures_restore_existing_pair(self):
+        self.bundle()
+        self.run_script("package-dmg.py")
+        image = next((self.root / "dist").glob("*.dmg"))
+        sidecar = image.with_suffix(".dmg.sha256")
+        before = (image.read_bytes(), sidecar.read_bytes())
+        self.image_bytes = b"NOT a DMG: second fixture version"
+        original_rename = pathlib.Path.rename
+        history = self.root / "dist" / "previous-builds"
+
+        for boundary in ("archive_sidecar", "archive_image", "promote_image", "promote_sidecar"):
+            with self.subTest(boundary=boundary):
+                failed = False
+
+                def denied_rename(path, target):
+                    nonlocal failed
+                    target = pathlib.Path(target)
+                    matches = {
+                        "archive_sidecar": path == sidecar and target.parent.parent == history,
+                        "archive_image": path == image and target.parent.parent == history,
+                        "promote_image": target == image and path != image,
+                        "promote_sidecar": target == sidecar and path != sidecar,
+                    }[boundary]
+                    if matches and not failed:
+                        failed = True
+                        raise PermissionError(f"fixture: {boundary} denied")
+                    return original_rename(path, target)
+
+                with patch.object(pathlib.Path, "rename", denied_rename), \
+                     self.assertRaisesRegex(SystemExit, "previous output state was restored"):
+                    self.run_script("package-dmg.py")
+                self.assertTrue(failed)
+                self.assertEqual((image.read_bytes(), sidecar.read_bytes()), before)
+
+    def test_incomplete_or_mismatched_previous_pair_is_preserved(self):
+        self.bundle()
+        self.run_script("package-dmg.py")
+        image = next((self.root / "dist").glob("*.dmg"))
+        sidecar = image.with_suffix(".dmg.sha256")
+        original_pair = (image.read_bytes(), sidecar.read_bytes())
+
+        for state in ("missing_sidecar", "missing_image", "mismatched_checksum"):
+            with self.subTest(state=state):
+                image.write_bytes(original_pair[0])
+                sidecar.write_bytes(original_pair[1])
+                if state == "missing_sidecar":
+                    sidecar.unlink()
+                elif state == "missing_image":
+                    image.unlink()
+                else:
+                    sidecar.write_text(f"{'0' * 64}  {image.name}\n")
+                before = tuple(path.read_bytes() if path.exists() else None for path in (image, sidecar))
+                self.native_calls.clear()
+                with self.assertRaisesRegex(SystemExit, "Cannot replace the previous DMG/checksum pair"):
+                    self.run_script("package-dmg.py")
+                after = tuple(path.read_bytes() if path.exists() else None for path in (image, sidecar))
+                self.assertEqual(after, before)
+                self.assertEqual(self.native_calls, [])
+                self.assertFalse((self.root / "dist" / "previous-builds").exists())
+
+    def test_rollback_failure_preserves_files_and_reports_recovery_paths(self):
+        self.bundle()
+        self.run_script("package-dmg.py")
+        image = next((self.root / "dist").glob("*.dmg"))
+        sidecar = image.with_suffix(".dmg.sha256")
+        previous_pair = (image.read_bytes(), sidecar.read_bytes())
+        self.image_bytes = b"NOT a DMG: second fixture version"
+        original_rename = pathlib.Path.rename
+        staging_root = self.root / ".build" / "dmg"
+        promotion_failed = False
+        rollback_failed = False
+
+        def denied_rename(path, target):
+            nonlocal promotion_failed, rollback_failed
+            target = pathlib.Path(target)
+            if target == sidecar and path.parent.parent == staging_root:
+                promotion_failed = True
+                raise PermissionError("fixture: sidecar promotion denied")
+            if promotion_failed and path == image and target.parent.parent == staging_root:
+                rollback_failed = True
+                raise PermissionError("fixture: image rollback denied")
+            return original_rename(path, target)
+
+        with patch.object(pathlib.Path, "rename", denied_rename), \
+             self.assertRaisesRegex(SystemExit, "Rollback failed") as raised:
+            self.run_script("package-dmg.py")
+        self.assertTrue(promotion_failed and rollback_failed)
+        archive = next((self.root / "dist" / "previous-builds").iterdir())
+        staged_image = pathlib.Path(next(call[-1] for call in reversed(self.native_calls) if call[0] == "hdiutil"))
+        self.assertEqual((archive / image.name).read_bytes(), previous_pair[0])
+        self.assertEqual((archive / sidecar.name).read_bytes(), previous_pair[1])
+        self.assertEqual(image.read_bytes(), self.image_bytes)
+        self.assertFalse(sidecar.exists())
+        self.assertTrue(staged_image.with_suffix(".dmg.sha256").is_file())
+        for path in (image, sidecar, archive, staged_image.parent):
+            self.assertIn(str(path), str(raised.exception))
 
 
 if __name__ == "__main__":

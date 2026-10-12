@@ -197,6 +197,48 @@ struct DeviceModeRecoveryJournalTests {
         }
     }
 
+    @Test func predecessorRemovalSyncFailureRequiresConfirmedAbsenceBeforeRetrySucceeds() throws {
+        let directory = directory()
+        defer { try? FileManager.default.removeItem(at: directory) }
+        let first = try DeviceModeRecoveryJournal.acquire(directory: directory, owner: oldOwner)
+        let record = try first.persistBeforeEnable(identity: identity, original: (0, 0))
+        first.close()
+
+        var failSync = true
+        var syncs = 0
+        let sync: (Int32) throws -> Void = { _ in
+            syncs += 1
+            if failSync { throw Failure.directorySync }
+        }
+        let predecessor = try DeviceModeRecoveryJournal.acquire(directory: directory, owner: newOwner,
+            ownerLookup: { _ in nil }, directorySync: sync)
+        #expect(try predecessor.recoveryAction(for: record, identity: identity, current: (2, 0)) == .restoreOriginal)
+        #expect(throws: Failure.self) {
+            try predecessor.removeAfterReadback(record, identity: self.identity, current: (0, 0))
+        }
+        #expect(!predecessor.hasOwnedActiveRecord)
+        #expect(try predecessor.load() == nil)
+        predecessor.close()
+
+        let retry = try DeviceModeRecoveryJournal.acquire(directory: directory, owner: newOwner,
+            ownerLookup: { _ in nil }, directorySync: sync)
+        defer { retry.close() }
+        #expect(throws: Failure.self) { try retry.confirmNoActiveRecord() }
+        #expect(syncs == 2)
+        #expect(try retry.load() == nil)
+        failSync = false
+        try retry.confirmNoActiveRecord()
+        #expect(syncs == 3)
+        #expect(try retry.load() == nil)
+
+        // A record installed after an earlier absence observation is preserved.
+        let newer = try retry.persistBeforeEnable(identity: identity, original: (0, 0))
+        let syncsBeforeRejection = syncs
+        #expect(throws: DeviceModeRecoveryJournalError.self) { try retry.confirmNoActiveRecord() }
+        #expect(syncs == syncsBeforeRejection)
+        #expect(try retry.load() == newer)
+    }
+
     @Test func endedAttachmentsArchiveOwnedAndProvenDeadRecordsBeforeFreshEnable() throws {
         for previousProcess in [false, true] {
             let directory = directory()
