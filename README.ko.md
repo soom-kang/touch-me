@@ -10,20 +10,21 @@ Touch Me는 ZEUSLAP 터치 모니터를 Mac에서 활용할 수 있도록 만든
 
 터치 입력을 선택한 화면의 좌표에 맞춰 전달해 탭과 더블 클릭, 한 손가락 드래그, 두 손가락 스크롤을 사용할 수 있습니다. 앱에서 대상 화면을 선택하고 확인한 뒤 매핑을 시작하며, 메뉴 막대에서 매핑을 중지하거나 설정을 바꿀 수 있습니다.
 
-Beta `0.8.0-beta.9`는 **P16KT에서 확인한 USB/HID profile**을 요구합니다. 장치 식별자와 HID(Human Interface Device) 입력 구조가 다르면 매핑을 시작하지 않습니다. 다른 ZEUSLAP 모델까지 지원한다고 보장하지 않으므로 아래 환경을 먼저 확인해 주세요.
+Beta `0.8.0-beta.10`는 **P16KT에서 확인한 USB/HID profile**을 요구합니다. 장치 식별자와 HID(Human Interface Device) 입력 구조가 다르면 매핑을 시작하지 않습니다. 다른 ZEUSLAP 모델까지 지원한다고 보장하지 않으므로 아래 환경을 먼저 확인해 주세요.
 
-[Beta.9/build 27](https://github.com/soom-kang/touch-me/releases/tag/v0.8.0-beta.9)은
-**PUBLISHED**입니다. 공개 시각은 2026-10-14 00:17:31 KST
-(2026-10-13 15:17:31 UTC)이며 public DMG/checksum과 Tap `65d13988`을
-release 기록과 대조했습니다. 정상 Homebrew beta.8 → beta.9 in-place upgrade
-한 번에서 설치 bytes·strict 인증서/DR·바깥 디렉터리 보존을 확인했습니다.
-사용자가 최초 승인 뒤 앱 GUI의 두 권한 모두 Allowed임을 확인했고 정상 Quit과
-native PID 부재도 확인했습니다. 공개 beta.9 → beta.10 권한 유지는 `NOT_RUN`입니다.
-[Beta.9 release notes](docs/releases/v0.8.0-beta.9.md)를 확인하세요.
+[Beta.10/build 28](https://github.com/soom-kang/touch-me/releases/tag/v0.8.0-beta.10)은
+**PUBLISHED**입니다. 공개 시각은 2026-10-14 01:14:28 KST
+(2026-10-13 16:14:28 UTC)입니다. 공개 DMG·checksum과 release source/tag의
+입력 43개를 대조했습니다. Tap Cask 공개 revision은 `27fd12ee`입니다.
+정상 Homebrew beta.9 → beta.10 in-place upgrade 한 번에서 설치 파일·strict
+인증서/DR·바깥 디렉터리와 기존 환경설정·복구 상태 보존을 확인했습니다.
+사용자가 재승인 없이 B10 GUI의 두 권한 모두 Allowed임을 확인했습니다.
+**PASS_USER_REPORTED_ON_THIS_MAC**이며 native process 식별도 확인했습니다.
+[Beta.10 release notes](docs/releases/v0.8.0-beta.10.md)를 확인하세요.
 
-Beta.10/build 28은 **READY_FOR_PUBLICATION; NOT_PUBLISHED**입니다. Native
-산출물과 동등한 Cask 규칙 검사는 통과했고 공개 beta.9 → beta.10 upgrade·
-권한 유지는 `NOT_RUN`입니다. [Beta.10 초안](docs/releases/v0.8.0-beta.10.md).
+Beta.9는 최초 ad hoc → 장기 인증서 전환의 A baseline입니다. 사용자가 두 권한
+모두 Allowed임을 확인한 뒤 정상 Quit했고 native PID 부재도 확인했습니다.
+[Beta.9 checkpoint](docs/releases/v0.8.0-beta.9.md)는 별도로 보존합니다.
 
 2026-10-12 공개 checkpoint: [Beta.8/build 26](https://github.com/soom-kang/touch-me/releases/tag/v0.8.0-beta.8)을 2026-10-12 10:41:21 KST(01:41:21 UTC)에 **PUBLISHED**로 공개했습니다. 공개 DMG/checksum bytes는 검사한 release와 일치하며 공개·로컬 Tap revision `47a3e433`도 검증한 Cask와 같습니다. 새 앱과 DMG를 각각 한 번 생성하고 native 산출물 검사를 통과했습니다. 기존 Swift 38개와 packaging 22개 PASS는 재사용합니다. Build 26 GUI·실기기 사용·설치·Homebrew upgrade·Gatekeeper는 `NOT_RUN`입니다. [Beta.8 release notes](docs/releases/v0.8.0-beta.8.md)를 확인하세요.
 
@@ -69,13 +70,13 @@ Apple Silicon Mac에서 P16KT 한 대를 연결하는 환경을 대상으로 합
 
 ## 설치하고 첫 매핑 시작하기
 
-공개한 beta.9/build 27을 Homebrew로 설치하거나 DMG에서 복사할 수 있습니다. 어느 쪽으로 설치하든 권한과 대상 화면 설정은 같습니다.
+공개한 beta.10/build 28을 Homebrew로 설치하거나 DMG에서 복사할 수 있습니다. 어느 쪽으로 설치하든 권한과 대상 화면 설정은 같습니다.
 
 ### Homebrew로 설치하기
 
 수동 설치한 `/Applications/Touch Me.app`이 이미 있다면 **로그인 시 Touch Me 열기**를 끄고 **매핑 중지**를 선택하세요. 연속 연결의 모드 복구나 종료가 확인된 연결의 기록 보존을 확인한 뒤 정상 종료하고 기존 앱을 Applications 밖으로 옮겨 보존하세요. 복구에 실패하면 설치를 멈추세요. 강제 덮어쓰기 없이 기존 앱과 환경설정을 보존하는 방법은 [Homebrew 설치 안내](docs/Homebrew.ko.md#공개-후-설치업데이트제거)에 정리했습니다.
 
-Tap의 Cask가 공개 beta.9 산출물과 checksum을 가리키는지 확인한 뒤 설치하세요:
+Tap의 Cask가 공개 beta.10 산출물과 checksum을 가리키는지 확인한 뒤 설치하세요:
 
 ```bash
 brew install --cask soom-kang/touch-me/touch-me
@@ -83,7 +84,7 @@ brew install --cask soom-kang/touch-me/touch-me
 
 ### DMG로 설치하기
 
-[beta.9 release](https://github.com/soom-kang/touch-me/releases/tag/v0.8.0-beta.9)에서 `touch-me-0.8.0-beta.9-arm64.dmg`와 `.sha256` 파일을 받으세요. Version/build `0.8.0-beta.9`/27, [release notes](docs/releases/v0.8.0-beta.9.md)의 checksum과 인증서 fingerprint를 확인한 뒤 이미지를 열어 **Touch Me.app**을 **Applications**로 복사하세요. 복사를 마치면 이미지를 추출합니다. 이전 로컬 QA·서명 후보는 별도 산출물입니다.
+[beta.10 release](https://github.com/soom-kang/touch-me/releases/tag/v0.8.0-beta.10)에서 `touch-me-0.8.0-beta.10-arm64.dmg`와 `.sha256` 파일을 받으세요. Version/build `0.8.0-beta.10`/28, [release notes](docs/releases/v0.8.0-beta.10.md)의 checksum과 인증서 fingerprint를 확인한 뒤 이미지를 열어 **Touch Me.app**을 **Applications**로 복사하세요. 복사를 마치면 이미지를 추출합니다. 이전 로컬 QA·서명 후보는 별도 산출물입니다.
 
 Beta는 maintainer self-signed 인증서로 서명했으며 Developer ID와 공증은 없습니다. 인증서 trust를 추가하지 마세요. macOS가 다운로드한 앱의 첫 실행을 차단하면 출처와 checksum을 확인한 뒤 [Apple의 수동 실행 승인 안내](https://support.apple.com/en-us/102445)를 따르세요. 승인 항목이 보이더라도 앱 실행을 보장하지는 않습니다.
 
@@ -153,13 +154,12 @@ Beta는 maintainer self-signed 인증서로 서명했으며 Developer ID와 공�
 
 업데이트하거나 제거하기 전에는 **매핑 중지 → 안전한 정리 확인 → 정상 종료**를 수행하세요. 안전한 정리는 연속 연결의 모드 복구나 종료가 확인된 연결의 기록 보존입니다. 복구나 기록 처리에 실패하면 기록과 오류를 보존하고 복구 재시도를 마칠 때까지 진행하지 마세요. 기록을 삭제하거나 이전 모드를 새 연결에 쓰지 않습니다. 업데이트 뒤에는 두 권한의 상태를 확인하고 필요한 항목만 허용하세요.
 
-공개 beta.9는 장기 인증서로 서명했습니다. 정상 beta.8 → beta.9 upgrade를
-통과했고 최초 전환 뒤 두 권한이 Allowed임을 사용자가 확인했습니다. 공개
-beta.9 → beta.10 권한 유지와 서명 identity가 없는 수신 Mac은 미검증입니다.
-[서명 기록](Workflow.ko.md#공개-서명-검증--2026-10-13)에 이전 Probe와 구분해
-결과를 기록합니다. 권한이 없으면 설치한 Touch Me의 필요한 항목만 허용하고
-**다시 조회**를 누르세요. 기존 허용 항목을 유지하고 필요하면 정상 종료한 뒤
-같은 앱을 다시 여세요.
+공개 beta.9와 beta.10은 같은 장기 인증서로 서명했습니다. 최초 A9 전환 뒤
+사용자는 두 권한 모두 Allowed임을 확인했습니다. 정상 beta.9 → beta.10
+upgrade는 통과했고 사용자가 재승인 없이 B10의 두 권한 모두 Allowed임을
+확인했습니다. 이 Mac의 같은 사용자·설치 경로에서 확인한 권한 유지 PASS이며
+GUI 값은 사용자 보고입니다.
+서명 identity가 없는 수신 Mac은 미검증입니다.
 
 제거할 때는 **로그인 시 Touch Me 열기**도 꺼 주세요. 직접 설치한 앱은 안전한 정리와 종료를 마친 뒤 휴지통으로 옮기고 Homebrew로 설치한 앱은 [업데이트와 제거 안내](docs/Homebrew.ko.md#공개-후-설치업데이트제거)를 따르세요. 이 절차는 저장한 환경설정을 삭제하지 않습니다.
 
@@ -173,11 +173,12 @@ beta.9 → beta.10 권한 유지와 서명 identity가 없는 수신 Mac은 미�
 
 - [개발 Workflow](Workflow.ko.md): 모듈별 역할, 로컬 빌드와 패키징, 변경에 맞는 검증
 - [Homebrew 배포](docs/Homebrew.ko.md): Tap과 release 절차, 설치 충돌, 업데이트와 제거
-- [beta.9 release notes](docs/releases/v0.8.0-beta.9.md): 서명·공개·upgrade와 권한 baseline 결과
+- [beta.10 release notes](docs/releases/v0.8.0-beta.10.md): 공개·upgrade와 권한 유지 검증 기록
+- [beta.9 release notes](docs/releases/v0.8.0-beta.9.md): 최초 인증서 전환의 허용 baseline
 - 과거 release notes: [beta.4](docs/releases/v0.8.0-beta.4.md), [beta.5](docs/releases/v0.8.0-beta.5.md), [beta.6](docs/releases/v0.8.0-beta.6.md), [beta.7](docs/releases/v0.8.0-beta.7.md), [beta.8](docs/releases/v0.8.0-beta.8.md)
 - [편집 가능한 구조 다이어그램](docs/assets/architecture.ko.html)
 
-공개 beta.9/build 27 산출물은 `dist/touch-me-0.8.0-beta.9-arm64.dmg`입니다. Native 검사와 public bytes 비교를 통과했고 정확한 source/tag·다운로드 식별은 release notes에 기록합니다. 로컬 빌드 버전은 `VERSION`에서 읽습니다.
+공개 beta.10/build 28 산출물은 `dist/touch-me-0.8.0-beta.10-arm64.dmg`입니다. Native 검사와 public bytes 비교를 통과했고 정확한 source/tag·다운로드 식별은 release notes에 기록합니다. 로컬 빌드 버전은 `VERSION`에서 읽습니다.
 
 ## 기록된 검증 결과
 

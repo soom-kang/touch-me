@@ -2,16 +2,31 @@
 
 # Publish the Touch Me Homebrew beta
 
-Beta.9/build 27 and the Tap update are **PUBLISHED**. A normal beta.8 → beta.9
-in-place upgrade passed. Both A9 GUI permissions are user-reported Allowed, followed by normal Quit and native PID absence.
+Beta.10/build 28 and its Tap Cask are **PUBLISHED**. A normal beta.9 → beta.10
+in-place upgrade passed. Both new B10 permissions remained Allowed without
+reapproval: **PASS_USER_REPORTED_ON_THIS_MAC**.
 
-## Beta.10 preparation — 2026-10-14
+## Beta.10 publication and upgrade — 2026-10-14
 
-Beta.10/build 28 is **READY_FOR_PUBLICATION; NOT_PUBLISHED**. Native artifact
-and equivalent Homebrew Cask-rule checks passed using the same permanent
-certificate as A9. Public download, Tap publication, upgrade and retention are
-`NOT_RUN`. Keep the beta.9 install guide until verified beta.10 publication.
-[Beta.10 draft](releases/v0.8.0-beta.10.md).
+Beta.10/build 28 is **PUBLISHED** at 01:14:28 KST (2026-10-13 16:14:28 UTC).
+Release source/tag `8aaebe4530ece3e0b6309c3be0df3c2d57e4d07f` matches all
+43 frozen inputs; anonymous public DMG/sidecar bytes match the native candidate.
+The Cask publication Tap is `27fd12ee7e39ec383919fd5333120afc55768ea4`.
+Later README-only Tap updates are separate checkpoints.
+One normal beta.9 → beta.10 upgrade exited 0 at 01:19:31 KST
+(2026-10-13 16:19:31 UTC). Installed five-file equality, strict certificate/DR,
+receipt, outer device/inode and preference/recovery preservation passed.
+The immediate App Management preflight passed in the actual `brew` host;
+selected-Cask/whole-Tap trust stayed true/false.
+
+Fresh B10 PID `60924` matches the public app path/hash and beta.10/build 28.
+The user confirmed both permissions Allowed without reapproval in its own
+GUI: **PASS_USER_REPORTED_ON_THIS_MAC**. No Start or privacy change was invoked.
+Native provenance and state checks passed; GUI flags are user-reported and the
+result covers this Mac, user and installation path. Fresh Gatekeeper, receiving-Mac and device
+acceptance remain `NOT_RUN`; online audit stays `BLOCKED`. Equivalent Cask
+rules passed with existing compatible `spoom 1.8.9`, not the exact locked
+toolchain. [Beta.10 release notes](releases/v0.8.0-beta.10.md) hold exact results.
 
 ## Beta.9 publication and upgrade — 2026-10-14
 
@@ -33,8 +48,9 @@ also matched after launch.
 The user confirmed A9 GUI beta.9/build 27 with both permissions Allowed after
 initial approval; before flags remain unknown. Restarted PID `35272` matched
 the public path/hash, then normal Quit and native absence passed. No Start was
-invoked. Public beta.9 → beta.10 retention, fresh Gatekeeper, receiving-Mac
-and physical-device acceptance remain `NOT_RUN`.
+invoked. At this A9 checkpoint, beta.9 → beta.10 retention was `NOT_RUN`; see
+the [beta.10 result](#beta10-publication-and-upgrade--2026-10-14). Fresh Gatekeeper,
+receiving-Mac and physical-device acceptance remain `NOT_RUN`.
 
 Cask Ruby syntax and equivalent Homebrew style rules passed (one file, no
 offenses) using an existing compatible dependency; exact locked-toolchain
@@ -72,7 +88,7 @@ is trusted and the whole Tap is untrusted; neither state was changed. No trust
 bypass variables were used. Build 26 GUI/device, installation, upgrade,
 Gatekeeper and login/lock/sleep/crash acceptance are **NOT_RUN**. At that
 checkpoint installation guidance targeted beta.8; the current guide below
-targets beta.9. These results retain their historical publication scope.
+targets beta.10. These results retain their historical publication scope.
 
 The installed app, recovery files, preferences and prior local artifacts match
 their inventories. Target trust/developer settings also match, but the shared
@@ -344,7 +360,7 @@ Homebrew 7.0.8 was inspected on 2026-10-07 and its relevant contracts were reche
 
 ## Install, update and remove after publication
 
-These instructions target published certificate-signed beta.9 and its verified Tap Cask. The recorded normal beta.8 → beta.9 upgrade passed; the A9 allowed baseline is user-reported and normal Quit/native absence passed. Earlier release checkpoints retain their original installation limits. Fully qualified installation scopes trust to the selected Cask rather than the whole Tap. [Tap Trust](https://docs.brew.sh/Tap-Trust)
+These instructions target published certificate-signed beta.10 and its verified Tap Cask. Normal beta.9 → beta.10 in-place upgrade passed; both GUI permissions remained Allowed without reapproval on this Mac (`PASS_USER_REPORTED_ON_THIS_MAC`). Earlier release checkpoints retain their original installation limits. Fully qualified installation scopes trust to the selected Cask rather than the whole Tap. [Tap Trust](https://docs.brew.sh/Tap-Trust)
 
 ```bash
 brew install --cask soom-kang/touch-me/touch-me
@@ -354,9 +370,9 @@ If `/Applications/Touch Me.app` was installed manually, first turn off **Launch 
 
 This beta uses a fixed maintainer self-signed certificate, without Developer ID or notarization. Do not add certificate trust. Verify the release source and checksum before attempting first launch. When macOS offers the official approval path, use **System Settings → Privacy & Security → Open Anyway** and confirm the prompt yourself. Managed settings or a damage/malware alert may prevent that path; stop and investigate. This procedure does not promise Gatekeeper acceptance. [Apple's first-launch guidance](https://support.apple.com/en-us/102445)
 
-Check **Input Monitoring** and **Accessibility** in System Settings and enable only required Touch Me items, then refresh. The initial ad hoc → certificate transition may need one manual approval; subsequent public beta.9 → beta.10 retention is untested. The Cask's signing caveat explains this limit. It grants no permissions and does not change quarantine.
+Check **Input Monitoring** and **Accessibility** in System Settings and enable only required Touch Me items, then refresh. The initial ad hoc → certificate transition may need one manual approval; public beta.9 → beta.10 retained both permissions without reapproval on this Mac, user and path (`PASS_USER_REPORTED_ON_THIS_MAC`). The Cask's signing caveat explains this limit. It grants no permissions and does not change quarantine.
 
-Published beta.9 uses the permanent certificate; the [probe pilot](../Workflow.md#accessibility-signing-pilot--2026-10-12)
+Public beta.9 and beta.10 use the same permanent certificate; the [probe pilot](../Workflow.md#accessibility-signing-pilot--2026-10-12)
 remains separate evidence. If a required permission is unavailable, allow the
 installed Touch Me manually, then refresh. Keep already allowed items and
 existing recovery state. Quit normally and reopen the same app if needed.
@@ -392,12 +408,12 @@ The release owner records the source revision, tag, build number, DMG SHA-256, H
 
 A later Developer ID release needs separately approved signing/notarization preparation and validation of the final downloaded, installed app. Keep credential access outside this runbook and record that release's verification separately from this self-signed beta.
 
-Beta.9 uses the prepared permanent maintainer identity. Preserve it for future
+Beta.9 and beta.10 use the same permanent maintainer identity. Preserve it for future
 versions and validate downloaded/installed upgrades separately. Keep the trial
 certificate out of releases. Certificate or DR changes may require reapproval;
 self-signing gives no notarization or Gatekeeper guarantee. Preserve published
-beta.8 assets and dated caveat records; retain current transition guidance
-until the public beta.9 → beta.10 test is complete.
+beta.8 assets, dated caveat records and initial-transition guidance. This Mac’s
+PASS does not guarantee other Macs or every future update will retain permission.
 The [pilot record](../Workflow.md#accessibility-signing-pilot--2026-10-12) explains
 Apple's advice against shipping self-signed apps and the user's experimental
 choice for this personal beta Tap.

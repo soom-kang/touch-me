@@ -2,16 +2,31 @@
 
 # Touch Me Homebrew beta 배포
 
-Beta.9/build 27과 Tap 갱신은 **PUBLISHED**입니다. 정상 beta.8 → beta.9
-in-place upgrade는 통과했으며 A9 GUI의 두 권한 Allowed는 사용자 보고이며 정상 Quit과 native PID 부재도 확인했습니다.
+Beta.10/build 28과 Tap Cask는 **PUBLISHED**이며 정상 beta.9 → beta.10
+in-place upgrade는 통과했습니다. 재승인 없이 새 B10의 두 권한 모두 Allowed:
+**PASS_USER_REPORTED_ON_THIS_MAC**입니다.
 
-## Beta.10 준비 — 2026-10-14
+## Beta.10 공개와 upgrade — 2026-10-14
 
-Beta.10/build 28은 **READY_FOR_PUBLICATION; NOT_PUBLISHED**입니다. A9와
-같은 장기 인증서로 native 산출물·동등한 Homebrew Cask 규칙 검사를 통과했습니다.
-공개 다운로드·Tap 공개·upgrade·권한 유지는 `NOT_RUN`입니다. Beta.10 공개를
-확인하기 전까지 아래 beta.9 설치 안내를 유지합니다.
-[Beta.10 초안](releases/v0.8.0-beta.10.md).
+Beta.10/build 28을 01:14:28 KST(2026-10-13 16:14:28 UTC)에 **PUBLISHED**로
+공개했습니다. Release source/tag `8aaebe4530ece3e0b6309c3be0df3c2d57e4d07f`의
+입력 43개와 익명 public DMG·sidecar bytes를 native 후보와 대조했습니다.
+Cask 공개 Tap은 `27fd12ee7e39ec383919fd5333120afc55768ea4`이며 이후 README만
+바꾼 Tap 갱신은 별도 checkpoint입니다. 정상 beta.9 → beta.10 upgrade 한 번을
+01:19:31 KST(2026-10-13 16:19:31 UTC)에 exit 0으로 마쳤습니다. 설치 파일 5개,
+strict 인증서·DR, receipt, 바깥 device·inode와 환경설정·복구 상태 보존을
+확인했습니다. 직전 App Management 조건은 실제 `brew` host에서 통과했고
+선택 Cask/전체 Tap trust는 true/false를 유지했습니다.
+
+새 B10 PID `60924`의 공개 앱 경로·hash와 beta.10/build 28을 확인했습니다.
+사용자가 앱 GUI의 두 권한 모두 재승인 없이 Allowed임을 확인했습니다.
+**PASS_USER_REPORTED_ON_THIS_MAC**이며 Start나 권한 변경은 실행하지
+않았습니다. Native process·상태 검사는 통과했고 GUI 값은 사용자 보고입니다.
+범위는 이 Mac의 같은 사용자·설치 경로입니다. Fresh Gatekeeper·수신 Mac·실기기
+acceptance는 `NOT_RUN`이고 online audit는 `BLOCKED`입니다. 동등한 Cask
+규칙은 설치된 호환 `spoom 1.8.9`로 통과했으며 정확한 locked toolchain의
+PASS는 아닙니다. 전체 결과는 [beta.10 release notes](releases/v0.8.0-beta.10.md)에
+기록합니다.
 
 ## Beta.9 공개와 upgrade — 2026-10-14
 
@@ -33,8 +48,9 @@ false는 그대로입니다. 실행 뒤 환경설정·저장 매핑·복구 hash
 사용자가 최초 승인 뒤 A9 GUI beta.9/build 27의 두 권한 모두 Allowed임을
 확인했습니다. 개별 before 값은 미확인입니다. 재실행 PID `35272`는 공개
 경로·hash와 같았고 정상 Quit과 native 부재도 확인했습니다. Start는 실행하지
-않았습니다. 공개 beta.9 → beta.10 권한 유지, fresh Gatekeeper·수신 Mac·
-실기기 acceptance는 `NOT_RUN`입니다.
+않았습니다. 이 A9 checkpoint에서 공개 beta.9 → beta.10 권한 유지는 `NOT_RUN`이었습니다.
+최신 결과는 [beta.10 기록](#beta10-공개와-upgrade--2026-10-14)에 있습니다.
+Fresh Gatekeeper·수신 Mac·실기기 acceptance는 `NOT_RUN`입니다.
 
 Ruby 문법과 동등한 Homebrew style 규칙은 설치된 호환 dependency로 통과했습니다
 (파일 1개, offenses 없음). 정확한 locked toolchain의 PASS는 아니며 online
@@ -68,7 +84,7 @@ Cask 갱신 전 공개 bytes를 비교하며 불완전한 로컬 출력은 점�
 Online audit는 승인된 보류로 **BLOCKED**입니다. Trust나 developer 설정을
 변경하는 명령과 trust 우회 변수는 사용하지 않았습니다. Build 26 GUI·실기기,
 설치·upgrade·Gatekeeper와 로그인·잠금·절전·crash acceptance는 **NOT_RUN**입니다.
-당시 설치 안내는 beta.8 Cask를 대상으로 했으며 현재 아래 안내는 beta.9
+당시 설치 안내는 beta.8 Cask를 대상으로 했으며 현재 아래 안내는 beta.10
 대상입니다. 이 결과는 과거 배포 범위를 유지합니다.
 
 설치 앱·복구 기록·환경설정·기존 산출물과 대상 trust/developer 상태는 baseline에
@@ -336,7 +352,7 @@ Audit에는 설치된 Cask 이름을 사용합니다. Homebrew 7.0.9는 `.rb` �
 
 ## 공개 후 설치·업데이트·제거
 
-다음은 인증서로 서명한 공개 beta.9와 확인한 Tap Cask의 설치 안내입니다. 정상 beta.8 → beta.9 upgrade는 통과했으며 A9 GUI의 두 권한 Allowed는 사용자 보고이며 정상 Quit과 native PID 부재도 확인했습니다. 과거 release 구간은 당시 설치 검증 범위를 유지합니다. 전체 이름으로 설치하면 Tap 전체 대신 선택한 Cask에 trust가 적용됩니다. [Tap Trust](https://docs.brew.sh/Tap-Trust)
+다음은 인증서로 서명한 공개 beta.10과 확인한 Tap Cask의 설치 안내입니다. 정상 beta.9 → beta.10 in-place upgrade는 통과했고 이 Mac에서 재승인 없이 두 GUI 권한을 유지했습니다(`PASS_USER_REPORTED_ON_THIS_MAC`). 과거 release 구간은 당시 설치 검증 범위를 유지합니다. 전체 이름으로 설치하면 Tap 전체 대신 선택한 Cask에 trust가 적용됩니다. [Tap Trust](https://docs.brew.sh/Tap-Trust)
 
 ```bash
 brew install --cask soom-kang/touch-me/touch-me
@@ -346,9 +362,9 @@ brew install --cask soom-kang/touch-me/touch-me
 
 이 beta는 고정한 maintainer self-signed 인증서로 서명했으며 Developer ID와 공증은 없습니다. 인증서 trust를 추가하지 않습니다. 출처와 checksum을 확인한 뒤 첫 실행을 시도하세요. macOS가 공식 승인 경로를 제공하면 **시스템 설정 → 개인정보 보호 및 보안 → 확인 없이 열기**에서 사용자가 직접 승인합니다. 관리 환경이나 손상·악성 경고로 진행할 수 없으면 중단하고 원인을 확인합니다. 이 절차는 Gatekeeper 승인을 보장하지 않습니다. [Apple 첫 실행 안내](https://support.apple.com/en-us/102445)
 
-시스템 설정의 **입력 모니터링**과 **손쉬운 사용**에서 필요한 Touch Me 항목만 허용한 뒤 앱을 새로 조회합니다. 최초 ad hoc → 인증서 전환에는 수동 승인이 한 번 필요할 수 있으며 공개 beta.9 → beta.10 권한 유지는 미검증입니다. Cask의 서명 caveat는 이 한계를 안내하며 권한을 부여하거나 quarantine을 변경하지 않습니다.
+시스템 설정의 **입력 모니터링**과 **손쉬운 사용**에서 필요한 Touch Me 항목만 허용한 뒤 앱을 새로 조회합니다. 최초 ad hoc → 인증서 전환에는 수동 승인이 한 번 필요할 수 있으며 공개 beta.9 → beta.10은 이 Mac의 같은 사용자·경로에서 재승인 없이 두 권한을 유지했습니다(`PASS_USER_REPORTED_ON_THIS_MAC`). Cask의 서명 caveat는 이 한계를 안내하며 권한을 부여하거나 quarantine을 변경하지 않습니다.
 
-공개 beta.9는 장기 인증서로 서명했으며 [Probe 시험](../Workflow.ko.md#손쉬운-사용-서명-시험--2026-10-12)은
+공개 beta.9와 beta.10은 같은 장기 인증서로 서명했으며 [Probe 시험](../Workflow.ko.md#손쉬운-사용-서명-시험--2026-10-12)은
 별도 근거입니다. 필요한 권한이 없으면 설치한 Touch Me를 사용자가 허용한 뒤
 새로 조회하세요. 이미 허용된 항목과 복구 기록을 유지하고 필요하면 정상 종료한
 뒤 같은 앱을 다시 여세요.
@@ -384,12 +400,12 @@ Release 담당자는 `Asia/Seoul` 기준 날짜와 함께 source revision, tag, 
 
 향후 Developer ID 배포는 별도 승인한 서명·공증 준비와 최종 다운로드·설치 앱의 검증이 필요합니다. Credential 접근 절차는 이 문서에 넣지 않고 해당 release의 검증을 이번 self-signed beta와 구분해 기록합니다.
 
-Beta.9는 준비한 장기 maintainer identity를 사용합니다. 이후 버전에도 같은
+Beta.9와 beta.10은 같은 장기 maintainer identity를 사용합니다. 이후 버전에도 같은
 identity를 유지하고 다운로드·설치 upgrade를 별도로 확인합니다. 시험 인증서는
 release에 사용하지 않습니다. 인증서나 DR이 바뀌면 재승인이 필요할 수 있으며
 self-signed 서명은 공증이나 Gatekeeper를 보장하지 않습니다. 공개 beta.8 asset과
-과거 caveat 기록을 보존하고 공개 beta.9 → beta.10 시험을 마칠 때까지 현재
-전환 안내를 유지합니다.
+과거 caveat 기록과 최초 전환 안내를 보존합니다. 이 Mac의 PASS가 다른
+Mac이나 모든 향후 update의 권한 유지를 보장하지는 않습니다.
 [시험 기록](../Workflow.ko.md#손쉬운-사용-서명-시험--2026-10-12)에는 self-signed
 배포를 권하지 않는 Apple 안내와 이 개인 beta Tap에서 합의한 실험적 선택을
 정리했습니다.

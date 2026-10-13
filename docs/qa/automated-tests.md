@@ -3,16 +3,39 @@
 Ticket: TMQA-005. Tests added here are not a claim that native tests passed.
 No CI service, external dependency, device driver, or permission change is added.
 
-## Beta.10 native candidate — 2026-10-14
+## Public beta.10 retention — 2026-10-14
 
-**READY_FOR_PUBLICATION; NOT_PUBLISHED**. Build/package one each exited 0 for
-beta.10/build 28. Native app/DMG and bidirectional same-certificate A9/B10 DR
-checks passed with different cdhash; B10 was not launched. Equivalent Cask rules
-passed using existing compatible `spoom 1.8.9`, not the exact locked toolchain.
-Nonfatal CLT search-path warnings were retained without toolchain changes.
-[Release draft](../releases/v0.8.0-beta.10.md) records hashes and frozen43 inputs.
-Public download, beta.9 → beta.10 upgrade/retention, fresh Gatekeeper, receiver
-and device acceptance remain `NOT_RUN`. No runtime/test infrastructure changed.
+**PUBLISHED; IN_PLACE_UPGRADE_PASS; PASS_USER_REPORTED_ON_THIS_MAC**.
+Release source/tag `8aaebe4530ece3e0b6309c3be0df3c2d57e4d07f`/`v0.8.0-beta.10`
+match all 43 frozen inputs; public DMG/sidecar equality passed. The Cask publication
+Tap is `27fd12ee7e39ec383919fd5333120afc55768ea4`. One normal beta.9 → beta.10
+upgrade exited 0 at 2026-10-14 01:19:31 KST (2026-10-13 16:19:31 UTC).
+Installed five-file equality, strict certificate/DR, receipt and outer
+device/inode preservation passed; selected-Cask/whole-Tap trust stayed true/false.
+
+A9 PID `35272` had both GUI permissions Allowed after initial approval and quit
+normally. New B10 PID `60924` matched the exact public installed path/hash and
+beta.10/build 28. The user confirmed Accessibility and Input Monitoring both
+Allowed without reapproval. Native provenance was reconfirmed at 01:27:59 KST
+and state preservation at 01:28:03 KST (2026-10-13 16:27:59/16:28:03 UTC).
+Preferences/saved mapping/guard/recovery hashes remained unchanged;
+`resumeMapping=false`, active 0, valid guard 1, archives 5. No Start or privacy
+change was invoked. GUI flags are user-reported; this PASS covers this Mac,
+user and installation path. Automated GUI reading failed once with a closed
+native pipe; native process checks are not direct GUI permission readings.
+
+The first post-upgrade assertion compared prerelease with numeric
+`CFBundleShortVersionString`; verification continued after correcting the field
+to `TouchMeReleaseVersion`. No second upgrade was run; the initial failure is
+retained. Native build/package one each and app/DMG checks passed. Same-certificate
+A9↔B10 DR passed bidirectionally with different executable bytes/cdhash. Nonfatal
+CLT warnings were retained. Equivalent Cask rules passed with existing compatible
+`spoom 1.8.9`, not the exact locked toolchain; online audit remains **BLOCKED**.
+Fresh Gatekeeper, receiving Mac without signing identity or added trust and
+physical-device acceptance remain **NOT_RUN**. No runtime/test infrastructure
+changed or source suites repeated. [Release details](../releases/v0.8.0-beta.10.md)
+and [Workflow](../../Workflow.md#beta10-publication-and-upgrade--2026-10-14) retain
+exact artifacts and scope. Older records below are their dated checkpoints.
 
 ## Public signed beta.9 — 2026-10-14
 
@@ -50,9 +73,10 @@ process-only load path. Exact locked-toolchain validation did not pass; online
 audit stays **BLOCKED**. No suite was repeated or runtime feature/test
 infrastructure added for these artifact/publication checks.
 
-Public beta.9 → beta.10 retention, fresh Gatekeeper, physical-device acceptance
-and a receiving Mac without installed signing identity or added trust are
-**NOT_RUN**. Existing source-test and probe results below retain their scopes.
+At this A9 checkpoint, beta.9 → beta.10 retention was **NOT_RUN**; the later
+[beta.10 result](#public-beta10-retention--2026-10-14) supersedes that status.
+Fresh Gatekeeper, physical-device acceptance and a receiving Mac without
+installed signing identity or added trust remain **NOT_RUN**. Existing source-test and probe results below retain their scopes.
 Keep receipts, preferences and recovery; retain the confirmed A9 allowed state before measuring B.
 
 ## Current checkout check — 2026-10-12

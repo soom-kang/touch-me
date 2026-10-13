@@ -10,20 +10,21 @@ Touch Me is a macOS menu bar app built to help you use ZEUSLAP touch-enabled mon
 
 It maps touch input to the display you select, enabling taps, double-clicks, one-finger dragging and two-finger scrolling. Choose and confirm the target display in the app, then start mapping. Use the menu bar to stop mapping or change settings.
 
-Beta `0.8.0-beta.9` requires the **USB/HID profile verified on the P16KT**. Mapping won't start if the device identifiers or HID (Human Interface Device) input layout differ. Support for other ZEUSLAP models isn't guaranteed, so check the setup below first.
+Beta `0.8.0-beta.10` requires the **USB/HID profile verified on the P16KT**. Mapping won't start if the device identifiers or HID (Human Interface Device) input layout differ. Support for other ZEUSLAP models isn't guaranteed, so check the setup below first.
 
-[Beta.9/build 27](https://github.com/soom-kang/touch-me/releases/tag/v0.8.0-beta.9)
-is **PUBLISHED** — 2026-10-14 00:17:31 KST (2026-10-13 15:17:31 UTC). Verified
-public DMG/checksum bytes and Tap `65d13988` match the recorded release. One
-normal Homebrew beta.8 → beta.9 in-place upgrade passed with installed bytes,
-strict certificate/DR and outer-directory preservation verified. The user
-confirmed both permissions Allowed in its own GUI after initial approval.
-Normal Quit and native PID absence passed. Public beta.9 → beta.10 retention is `NOT_RUN`. See the
-[beta.9 release notes](docs/releases/v0.8.0-beta.9.md).
+[Beta.10/build 28](https://github.com/soom-kang/touch-me/releases/tag/v0.8.0-beta.10)
+is **PUBLISHED** — 2026-10-14 01:14:28 KST (2026-10-13 16:14:28 UTC).
+Public DMG/checksum bytes and all 43 release-source/tag inputs match.
+The published Tap Cask revision is `27fd12ee`. One normal Homebrew beta.9 →
+beta.10 in-place upgrade passed with installed files, strict certificate/DR,
+outer-directory and existing preference/recovery state preservation verified.
+The user confirmed both B10 GUI permissions Allowed without reapproval:
+**PASS_USER_REPORTED_ON_THIS_MAC**, with native process provenance verified.
+See the [beta.10 release notes](docs/releases/v0.8.0-beta.10.md).
 
-Beta.10/build 28 is **READY_FOR_PUBLICATION; NOT_PUBLISHED**. Native artifact
-and equivalent Cask-rule checks passed; public beta.9 → beta.10 upgrade and
-retention remain `NOT_RUN`. [Beta.10 draft](docs/releases/v0.8.0-beta.10.md).
+Beta.9 is the initial ad hoc → permanent-certificate A baseline. The user
+confirmed both permissions Allowed, then normal Quit and native PID absence
+passed. Its [beta.9 checkpoint](docs/releases/v0.8.0-beta.9.md) is retained.
 
 Historical 2026-10-12 publication: [Beta.8/build 26](https://github.com/soom-kang/touch-me/releases/tag/v0.8.0-beta.8) was **PUBLISHED** on 2026-10-12 at 10:41:21 KST (01:41:21 UTC). Public DMG/checksum bytes match the inspected release. The public and installed Tap revision `47a3e433` matches the verified Cask. One new app and DMG passed native artifact checks; the existing 38 Swift and 22 packaging test results are reused. Build 26 GUI, real-device use, installation, Homebrew upgrade and Gatekeeper are `NOT_RUN`. See the [beta.8 release notes](docs/releases/v0.8.0-beta.8.md).
 
@@ -68,13 +69,13 @@ Other panels, Intel Macs and older macOS versions have no recorded validation. S
 
 ## Install and start your first mapping session
 
-Install the published beta.9/build 27 through Homebrew or its DMG. Both installation routes use the same permission and target-display setup.
+Install the published beta.10/build 28 through Homebrew or its DMG. Both installation routes use the same permission and target-display setup.
 
 ### Install with Homebrew
 
 If you already have a manually installed `/Applications/Touch Me.app`, turn off **Open Touch Me at login** and select **Stop mapping**. Confirm restoration on the continuous connection or safe preservation of a verified ended-connection record, then quit normally and move the old app outside Applications to keep it. Stop installation if restoration fails. The [Homebrew installation guide](docs/Homebrew.md#install-update-and-remove-after-publication) explains how to preserve the app and preferences without forcing an overwrite.
 
-Install the verified beta.9 Cask:
+Install the verified beta.10 Cask:
 
 ```bash
 brew install --cask soom-kang/touch-me/touch-me
@@ -82,7 +83,7 @@ brew install --cask soom-kang/touch-me/touch-me
 
 ### Install from the DMG
 
-Download `touch-me-0.8.0-beta.9-arm64.dmg` and its `.sha256` file from the [beta.9 release](https://github.com/soom-kang/touch-me/releases/tag/v0.8.0-beta.9). Confirm version/build `0.8.0-beta.9`/27, checksum and certificate fingerprint in the [release notes](docs/releases/v0.8.0-beta.9.md), then open the image and drag **Touch Me.app** to **Applications**. Eject after copying. Earlier local QA/signing candidates are separate artifacts.
+Download `touch-me-0.8.0-beta.10-arm64.dmg` and its `.sha256` file from the [beta.10 release](https://github.com/soom-kang/touch-me/releases/tag/v0.8.0-beta.10). Confirm version/build `0.8.0-beta.10`/28, checksum and certificate fingerprint in the [release notes](docs/releases/v0.8.0-beta.10.md), then open the image and drag **Touch Me.app** to **Applications**. Eject after copying. Earlier local QA/signing candidates are separate artifacts.
 
 The beta uses a maintainer self-signed certificate, without Developer ID or notarization. Do not add certificate trust. If macOS blocks the downloaded app's first launch, verify its source and checksum before following [Apple's manual approval guidance](https://support.apple.com/en-us/102445). An available approval option doesn't guarantee the app can run.
 
@@ -152,13 +153,12 @@ Don't treat reopening the app or a later successful Stop as proof that the pre-c
 
 Before updating or removing the app, follow **Stop mapping → confirm safe cleanup → normal Quit**. Safe cleanup restores the continuous connection or preserves a record only after its connection is proven ended. If restoration or record handling fails, preserve the record and error and use Retry restore before proceeding. Never delete the record or apply its old mode to a new connection. After an update, check both privacy permission states and allow only required items.
 
-Published beta.9 uses the permanent signing certificate. The normal beta.8 →
-beta.9 upgrade passed, and the user reported both permissions Allowed after the
-initial transition. Public beta.9 → beta.10 retention and an identity-free
-receiving Mac remain untested. The [signing record](Workflow.md#public-signing-validation--2026-10-13)
-keeps these results separate from the earlier probe. If authorization is
-missing, allow only required items for the installed Touch Me, then **Refresh**.
-Keep already allowed permissions; quit normally and reopen the same app if needed.
+Public beta.9 and beta.10 use the same permanent signing certificate. The user
+confirmed both permissions Allowed after A9's initial transition. The normal
+beta.9 → beta.10 upgrade passed; the user confirmed both B10 permissions
+Allowed without reapproval on this Mac, user and installation path. This is a
+user-reported retention PASS.
+A receiving Mac without the signing identity remains untested.
 
 Turn off **Open Touch Me at login** before removal. After safe cleanup and Quit, move a manually installed app to Trash. For a Homebrew installation, follow the [update and removal guide](docs/Homebrew.md#install-update-and-remove-after-publication). These steps preserve saved preferences.
 
@@ -172,11 +172,12 @@ For local builds or distribution details, read these documents:
 
 - [Build workflow](Workflow.md): module responsibilities, local builds, packaging and checks for each change
 - [Homebrew distribution](docs/Homebrew.md): Tap and release procedure, installation conflicts, updates and removal
-- [Beta.9 release notes](docs/releases/v0.8.0-beta.9.md): signing, publication, upgrade and permission-baseline results
+- [Beta.10 release notes](docs/releases/v0.8.0-beta.10.md): publication, upgrade and permission-retention verification
+- [Beta.9 release notes](docs/releases/v0.8.0-beta.9.md): initial certificate-transition baseline
 - Historical release notes: [beta.4](docs/releases/v0.8.0-beta.4.md), [beta.5](docs/releases/v0.8.0-beta.5.md), [beta.6](docs/releases/v0.8.0-beta.6.md), [beta.7](docs/releases/v0.8.0-beta.7.md), [beta.8](docs/releases/v0.8.0-beta.8.md)
 - [Editable architecture diagram](docs/assets/architecture.html)
 
-The published beta.9/build 27 artifact is `dist/touch-me-0.8.0-beta.9-arm64.dmg`. Native and public-byte checks passed; exact source/tag and download identities are in its release notes. Local builds read their version from `VERSION`.
+The published beta.10/build 28 artifact is `dist/touch-me-0.8.0-beta.10-arm64.dmg`. Native and public-byte checks passed; exact source/tag and download identities are in its release notes. Local builds read their version from `VERSION`.
 
 ## Recorded validation
 

@@ -6,22 +6,55 @@
 
 이 Workflow에 따라 arm64 앱을 빌드하고 번들을 확인한 뒤 개인용 디스크 이미지를 만드세요. 기존 스크립트는 Apple의 로컬 도구와 Python 3를 사용합니다. 추가 dependency 설치와 산출물 공개는 수행하지 않습니다.
 
-## Beta.10 준비 — 2026-10-14
+## Beta.10 공개와 upgrade — 2026-10-14
 
-상태는 **READY_FOR_PUBLICATION; NOT_PUBLISHED**입니다. Beta.10/build 28
-빌드·패키징 각 한 번은 exit 0입니다. Native 앱·DMG, 같은 인증서의 A9↔B10
-DR과 다른 cdhash 검사를 통과했고 B10은 실행하지 않았습니다. 동등한 Homebrew
-Cask 규칙은 설치된 호환 `spoom 1.8.9`로 통과했으며 정확한 locked toolchain의
-PASS는 아닙니다. 비치명적인 CLT search-path 경고를 유지하고 toolchain은
-바꾸지 않았습니다. [Beta.10 초안](docs/releases/v0.8.0-beta.10.md)과
-[입력 43개](docs/releases/v0.8.0-beta.10-inputs.json)에 로컬 식별을 기록합니다.
-Source/tag/Tap 식별은 미확정이며 공개 다운로드, beta.9 → beta.10 upgrade·
-권한 유지, fresh Gatekeeper·수신 Mac·실기기 acceptance는 `NOT_RUN`입니다.
-설치 안내는 공개 beta.9 기준을 유지합니다.
+상태는 **PUBLISHED; IN_PLACE_UPGRADE_PASS;
+RETENTION_PASS_USER_REPORTED_ON_THIS_MAC**입니다. Beta.10/build 28을 01:14:28 KST
+(2026-10-13 16:14:28 UTC)에 공개했습니다. Release source/tag
+`8aaebe4530ece3e0b6309c3be0df3c2d57e4d07f`/`v0.8.0-beta.10`과 annotated tag
+`51db567d54bd80987d5375a91e55cd80ba7f0f50`은
+[동결한 입력 43개](docs/releases/v0.8.0-beta.10-inputs.json)와 같습니다.
+익명 public DMG·sidecar bytes는 native 후보와 일치합니다. Cask 공개 Tap revision은
+`27fd12ee7e39ec383919fd5333120afc55768ea4`입니다. 이후 문서만 수정한 commit은
+이 release 식별과 구분합니다. [Release notes](docs/releases/v0.8.0-beta.10.md)에
+정확한 산출물 hash와 결과를 기록합니다.
+
+정상 Homebrew beta.9 → beta.10 upgrade 한 번을 01:19:31 KST
+(2026-10-13 16:19:31 UTC)에 exit 0으로 마쳤습니다. 설치 파일 5개, strict
+인증서·DR, receipt와 바깥 디렉터리 보존을 확인했습니다. Device `16777232`,
+inode `109845586`은 같습니다. 직전 App Management 조건은 실제 native
+`brew` host에서 통과했고 선택 Cask/전체 Tap trust는 `true`/`false`를 유지했습니다.
+새 B10 PID `60924`의 `/Applications/Touch Me.app/Contents/MacOS/TouchMe`
+경로, version/build와 실행 파일 hash는 공개 후보와 같습니다. 실행 후 읽기 전용
+검사에서 환경설정·저장 매핑·guard·복구 manifest hash를 보존했습니다.
+`resumeMapping=false`, active 0개, 유효 guard 1개와 archive 5개입니다.
+사용자가 beta.10/build 28 GUI에서 재승인 없이 손쉬운 사용·입력 모니터링
+모두 Allowed임을 확인했습니다. 결과는 **PASS_USER_REPORTED_ON_THIS_MAC**입니다.
+01:27:59 KST에 같은 PID·경로·hash를, 01:28:03 KST에 상태 보존을 native로
+재확인했습니다(2026-10-13 16:27:59/16:28:03 UTC). A9 → B10에서 Start나 권한
+변경은 실행하지 않았습니다. 이 Mac의 같은 사용자·설치 경로에 한정한 결과이며
+GUI 값은 사용자 보고입니다. 자동 조회 한 번은 native pipe가 닫혀 실패했습니다.
+Native 검사는 process 식별과 상태 보존을 확인한 것이며 GUI 권한 직접 조회는
+아닙니다.
+
+Upgrade 후 첫 assertion은 prerelease를 숫자 `CFBundleShortVersionString`
+(`0.8.0`)과 비교해 중단됐습니다. 전체 버전의 `TouchMeReleaseVersion`으로
+바로잡고 검증만 이어갔으며 upgrade를 다시 실행하지 않았습니다. 최초 실패는
+기록에 남겼습니다. 빌드·패키징 각 한 번은 exit 0이며 앱·내부 앱 strict 서명,
+정확한 인증서·DR, 서로 다른 cdhash와 양방향 A9↔B10 DR, DMG 무결성·sidecar,
+metadata, 읽기 전용 파일 5개, 양국어 안내와 정상 detach 검사를 통과했습니다.
+바깥 DMG는 code signing하지 않았습니다. 비치명적인 CLT search-path 경고를
+유지하고 toolchain은 바꾸지 않았습니다. 동등한 Cask 규칙은 설치된 호환
+`spoom 1.8.9`로 통과했으며 정확한 locked toolchain의 PASS는 아닙니다.
+Online audit는 합의한 trust 보존 범위에 따라 **BLOCKED**입니다. Fresh
+Gatekeeper, 서명 identity 설치·추가 trust가 없는 수신 Mac과 실기기 acceptance는
+**NOT_RUN**입니다. 기존 source tests와 과거 공개 checkpoint의 범위는 유지합니다.
+로컬 근거는 `.build/releases/beta10-e3d38685ae/`에 있으며 운영자 개인 경로와
+secret은 공개 문서에서 제외합니다.
 
 ## 공개 서명 검증 — 2026-10-13
 
-현재 상태는 **PUBLISHED; IN_PLACE_UPGRADE_PASS;
+A9 checkpoint의 상태는 **PUBLISHED; IN_PLACE_UPGRADE_PASS;
 A9_BASELINE_PASS_USER_REPORTED**입니다. Beta.9/build 27을 2026-10-14
 00:17:31 KST(2026-10-13 15:17:31 UTC)에 공개했습니다. Source/tag
 `0414617c860451e0c7b2200294b0eeca651f9ad9`/`v0.8.0-beta.9`은
@@ -68,9 +101,9 @@ exit 2로 중단됐고 설치된 호환 버전 `1.8.9`의 load path를 해당 pr
 정확한 locked toolchain의 PASS는 아니며 online audit는 기존 합의에 따라
 **BLOCKED**입니다.
 
-공개 beta.9 A → beta.10 B 권한 유지는 **NOT_RUN**입니다. 승인된 다음 단계는
-확인한 A의 허용 상태와 같은 장기 인증서·정상 in-place B upgrade를
-사용하고 권한을 바꾸기 전에 새 GUI process를 측정하는 것입니다. Fresh
+이 A9 checkpoint에서 beta.9 → beta.10 권한 유지는 **NOT_RUN**이었습니다.
+이후 공개·upgrade와 새 GUI 확인 결과는
+[beta.10 기록](#beta10-공개와-upgrade--2026-10-14)에 기록합니다. Fresh
 Gatekeeper, 실기기 acceptance와 서명 identity 설치·추가 trust가 없는 수신 Mac도
 **NOT_RUN**입니다. Receipt, 환경설정, 복구, trust·developer 설정과 이전 공개
 산출물을 보존합니다. 아래 구간은 당시 checkpoint를 유지합니다. 로컬 근거는

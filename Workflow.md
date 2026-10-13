@@ -6,22 +6,56 @@
 
 Use this workflow to build the arm64 app, inspect its bundle and create a personal disk image. The existing scripts use Apple's local tools and Python 3. They do not install additional dependencies or publish artifacts.
 
-## Beta.10 preparation — 2026-10-14
+## Beta.10 publication and upgrade — 2026-10-14
 
-Status: **READY_FOR_PUBLICATION; NOT_PUBLISHED**. One build/package each exited
-0 for beta.10/build 28. Native app/DMG, same-certificate bidirectional A9↔B10 DR
-and different cdhash checks passed; B10 was not launched. Equivalent Homebrew
-Cask rules passed with existing compatible `spoom 1.8.9`, not the exact locked
-toolchain. Nonfatal CLT search-path warnings are retained; no toolchain changes.
-The [beta.10 draft](docs/releases/v0.8.0-beta.10.md) and
-[43-input manifest](docs/releases/v0.8.0-beta.10-inputs.json) hold exact local
-identities. Source/tag/Tap identifiers are not yet assigned. Public download,
-beta.9 → beta.10 upgrade/retention, fresh Gatekeeper and receiver/device
-acceptance are `NOT_RUN`; public beta.9 remains the installation guide.
+Status: **PUBLISHED; IN_PLACE_UPGRADE_PASS;
+RETENTION_PASS_USER_REPORTED_ON_THIS_MAC**. Beta.10/build 28 was published at 01:14:28 KST
+(2026-10-13 16:14:28 UTC). Release source/tag
+`8aaebe4530ece3e0b6309c3be0df3c2d57e4d07f`/`v0.8.0-beta.10`, annotated tag
+`51db567d54bd80987d5375a91e55cd80ba7f0f50`, match all
+[43 frozen inputs](docs/releases/v0.8.0-beta.10-inputs.json). Anonymous public
+DMG/sidecar bytes match the native candidate. The published Cask Tap revision is
+`27fd12ee7e39ec383919fd5333120afc55768ea4`; later documentation-only commits
+are separate from these release identities. [Release notes](docs/releases/v0.8.0-beta.10.md)
+retain exact artifact hashes and results.
+
+One normal Homebrew beta.9 → beta.10 upgrade exited 0 at 01:19:31 KST
+(2026-10-13 16:19:31 UTC). Installed five-file equality, strict certificate/DR,
+receipt and outer-directory preservation passed: device `16777232`, inode
+`109845586`. The immediate App Management preflight passed in the same native
+`brew` host. Selected-Cask/whole-Tap trust stayed `true`/`false`. After fresh B10
+PID `60924` launched from `/Applications/Touch Me.app/Contents/MacOS/TouchMe`,
+its version/build and executable hash matched the public candidate. Read-only
+postlaunch checks kept preference, saved mapping, guard and recovery manifest
+hashes unchanged: `resumeMapping=false`, active 0, valid guard 1, archives 5.
+The user confirmed its own beta.10/build 28 GUI showed both Accessibility and
+Input Monitoring Allowed without reapproval: **PASS_USER_REPORTED_ON_THIS_MAC**.
+Native checks reconfirmed the same PID/path/hash at 01:27:59 KST and unchanged
+state at 01:28:03 KST (2026-10-13 16:27:59/16:28:03 UTC). No Start or privacy
+change was invoked for A9 → B10. This result is limited to this Mac, user and
+installation path; GUI flags are user-reported. Automated GUI reading failed
+once with a closed native pipe; native checks establish process provenance and
+state preservation, not a direct GUI permission reading.
+
+The initial post-upgrade assertion compared the prerelease label with numeric
+`CFBundleShortVersionString` (`0.8.0`). Correcting it to `TouchMeReleaseVersion`
+allowed verification to finish; the upgrade was not rerun and the original
+failure is retained. Native build/package one each exited 0; strict app/inner
+signature, exact certificate/DR, different cdhash with bidirectional A9↔B10 DR,
+DMG integrity/sidecar, metadata, five read-only files, bilingual notes and normal
+detach passed. The outer DMG was not code signed. Nonfatal CLT search-path
+warnings were retained without toolchain changes. Equivalent Cask rules passed
+with existing compatible `spoom 1.8.9`, not the exact locked toolchain.
+Online audit remains **BLOCKED** under the agreed trust-preserving deferral.
+Fresh Gatekeeper, receiving Mac without signing identity or added trust and
+physical-device acceptance remain **NOT_RUN**. Existing source-test and older
+publication checkpoints retain their scopes. Local evidence is under
+`.build/releases/beta10-e3d38685ae/`; private operator paths and secrets are
+excluded from public records.
 
 ## Public signing validation — 2026-10-13
 
-Current status: **PUBLISHED; IN_PLACE_UPGRADE_PASS;
+A9 checkpoint: **PUBLISHED; IN_PLACE_UPGRADE_PASS;
 A9_BASELINE_PASS_USER_REPORTED**. Beta.9/build 27 was published on
 2026-10-14 at 00:17:31 KST (2026-10-13 15:17:31 UTC).
 Source/tag `0414617c860451e0c7b2200294b0eeca651f9ad9`/`v0.8.0-beta.9`
@@ -68,10 +102,9 @@ initial exit 2 for missing locked `spoom 1.8.10`, then existing compatible
 additional Cask-rule exclusions were used. Exact locked-toolchain validation
 did not pass; online audit remains **BLOCKED** under the existing deferral.
 
-Public beta.9 A → beta.10 B retention is **NOT_RUN**. The approved next step
-uses the confirmed allowed A baseline, then the same permanent certificate and a
-normal in-place B upgrade with no privacy changes before measuring its new
-GUI process. Fresh Gatekeeper, physical-device acceptance and a receiving Mac
+At this A9 checkpoint, beta.9 → beta.10 retention was **NOT_RUN**. The later
+publication, upgrade and new-GUI result are in the
+[beta.10 record](#beta10-publication-and-upgrade--2026-10-14). Fresh Gatekeeper, physical-device acceptance and a receiving Mac
 without installed signing identity or added trust are **NOT_RUN**. Preserve
 Homebrew receipts, preferences, recovery, trust/developer settings and earlier
 publications. Older sections retain their dated checkpoints. Local evidence
