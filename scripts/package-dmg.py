@@ -2,6 +2,7 @@
 """Package the local app and installation notes. No publishing or credentials."""
 from pathlib import Path
 from xml.parsers.expat import ExpatError
+import argparse
 import hashlib
 import plistlib
 import re
@@ -9,6 +10,14 @@ import subprocess
 import uuid
 
 ROOT = Path(__file__).resolve().parent.parent
+
+parser = argparse.ArgumentParser(description=__doc__)
+parser.add_argument("--expected-certificate", help="Exact 64-character embedded leaf certificate SHA-256 fingerprint")
+args = parser.parse_args()
+if args.expected_certificate is not None:
+    if not re.fullmatch(r"[0-9a-fA-F]{64}", args.expected_certificate):
+        parser.error("--expected-certificate must contain exactly 64 hexadecimal characters (SHA-256)")
+    args.expected_certificate = args.expected_certificate.lower()
 
 
 def sha256_file(path):
@@ -112,6 +121,59 @@ if license_resource.read_text(encoding="utf-8") != (ROOT / "LICENSE").read_text(
     raise SystemExit("The app's project license does not match LICENSE; rebuild the app")
 previous_present = validate_previous_pair(OUTPUT, SIDECAR)
 subprocess.run(["codesign", "--verify", "--strict", str(APP)], check=True)
+WORK.mkdir(parents=True)
+prefix = WORK / "signing-certificate-"
+signature = subprocess.run(
+    ["codesign", "--display", "--verbose=4", "--requirements", "-",
+     "--extract-certificates=" + str(prefix), str(APP)],
+    check=True, capture_output=True, text=True)
+leaf = Path(str(prefix) + "0")
+if "Signature=adhoc" in signature.stderr:
+    if args.expected_certificate is not None or leaf.exists():
+        raise SystemExit("An ad hoc app cannot satisfy --expected-certificate; existing DMG was preserved")
+    signing_label = "Ad hoc"
+    signing_label_ko = "Ad hoc"
+    signing_guidance = (
+        "This beta uses ad hoc signing without a Developer ID signature or Apple\n"
+        "notarization. macOS may require first-launch approval and renewed privacy\n"
+        "permissions after an update. Check both permissions before starting mapping.")
+    signing_guidance_ko = (
+        "이 beta는 Developer ID 서명과 Apple 공증 없이 ad hoc 서명을 사용합니다.\n"
+        "macOS의 첫 실행 승인과 업데이트 후 권한 재승인이 필요할 수 있습니다.\n"
+        "매핑을 시작하기 전에 두 권한을 확인하세요.")
+else:
+    if args.expected_certificate is None:
+        raise SystemExit("A certificate-signed app requires --expected-certificate (SHA-256); existing DMG was preserved")
+    try:
+        certificate = leaf.read_bytes()
+    except OSError as error:
+        raise SystemExit(f"Cannot read the embedded signing certificate; existing DMG was preserved: {error}") from error
+    if hashlib.sha256(certificate).hexdigest() != args.expected_certificate:
+        raise SystemExit("The embedded signing certificate does not match --expected-certificate; existing DMG was preserved")
+    requirement = re.fullmatch(
+        r'designated => identifier "' + re.escape(info["CFBundleIdentifier"]) +
+        r'" and certificate leaf = H"([0-9a-fA-F]{40})"', signature.stdout.strip())
+    if requirement is None or requirement.group(1).lower() != hashlib.sha1(certificate).hexdigest():
+        raise SystemExit("Expected the default identifier-and-certificate requirement; existing DMG was preserved")
+    signing_label = "Certificate-signed"
+    signing_label_ko = "인증서 서명"
+    signing_guidance = (
+        f"Certificate SHA-256: {args.expected_certificate}\n"
+        "This beta uses a pinned signing certificate. This packaging workflow does not\n"
+        "provide Developer ID signing or Apple notarization. Moving from an ad hoc app\n"
+        "may require privacy reapproval. Keeping the same certificate and identifier\n"
+        "supports permission continuity; verify both permissions after updating.\n"
+        "Homebrew upgrade and use on another Mac still require validation. These scripts\n"
+        "do not change certificate trust. Do not add system-wide trust to complete an update.")
+    signing_guidance_ko = (
+        f"Certificate SHA-256: {args.expected_certificate}\n"
+        "이 beta는 지정한 인증서로 서명했습니다. 이 패키징 절차는 Developer ID\n"
+        "서명이나 Apple 공증을 제공하지 않습니다. 기존 ad hoc 앱에서 처음 전환할\n"
+        "때는 개인정보 보호 권한을 다시 허용해야 할 수 있습니다. 업데이트에도 같은\n"
+        "인증서와 번들 ID를 사용하고 두 권한을 확인하세요. Homebrew로 업데이트하거나\n"
+        "다른 Mac에서 사용할 때는 별도 검증이 필요합니다. 빌드 스크립트는 인증서\n"
+        "신뢰 설정을 바꾸지 않습니다. 업데이트를 위해 시스템 전체의 신뢰 설정을\n"
+        "추가하지 마세요.")
 architecture = subprocess.check_output(["lipo", "-archs", str(APP / "Contents" / "MacOS" / "TouchMe")], text=True).strip()
 if architecture != "arm64":
     raise SystemExit("This personal image is for the arm64 app only")
@@ -119,10 +181,10 @@ if architecture != "arm64":
 STAGING.mkdir(parents=True)
 subprocess.run(["ditto", str(APP), str(STAGING / "Touch Me.app")], check=True)
 (STAGING / "Applications").symlink_to("/Applications")
-(STAGING / "Install.txt").write_text(f"""Touch Me {VERSION} · Ad hoc beta candidate
+(STAGING / "Install.txt").write_text(f"""Touch Me {VERSION} · {signing_label} beta candidate
 
 1. Drag Touch Me.app to Applications, eject the image, and open the installed app.
-   macOS may block this ad hoc build. If you trust the source, follow Apple's
+   macOS may block this {signing_label.lower()} build. If you trust the source, follow Apple's
    approval procedure in System Settings > Privacy & Security > Open Anyway:
    https://support.apple.com/en-us/102445
 2. Allow Touch Me in System Settings > Privacy & Security > Input Monitoring
@@ -156,16 +218,14 @@ connected and use Retry restore. The same USB port alone does not authorize an
 old-mode write on a new connection.
 To uninstall, disable launch at login, stop mapping, quit, and move the app to Trash.
 Resolve pending restoration or record handling before quitting or removing it.
-This beta uses ad hoc signing without a Developer ID signature or Apple
-notarization. macOS may require first-launch approval and renewed privacy
-permissions after an update. Check both permissions before starting mapping.
+{signing_guidance}
 Open License in the app menu to read the project MIT license.
 
-Touch Me {VERSION} · Ad hoc beta 후보
+Touch Me {VERSION} · {signing_label_ko} beta 후보
 
 1. Touch Me.app을 Applications로 끌어 복사합니다.
 2. DMG를 추출하고 Applications에서 Touch Me를 엽니다.
-   macOS가 ad hoc 빌드 실행을 차단할 수 있습니다. 출처를 신뢰하는 경우
+   macOS가 {signing_label_ko} 빌드 실행을 차단할 수 있습니다. 출처를 신뢰하는 경우
    시스템 설정 > 개인정보 보호 및 보안 > 확인 없이 열기에서 Apple의 승인
    절차를 따릅니다: https://support.apple.com/en-us/102445
 3. 시스템 설정의 입력 모니터링과 손쉬운 사용에서 Touch Me를 허용합니다.
@@ -196,9 +256,7 @@ Touch Me {VERSION} · Ad hoc beta 후보
 현재 연속 연결의 원복에 실패하면 연결을 유지한 채 ‘복구 재시도’를 누릅니다.
 같은 USB 포트에 돌아왔다는 이유만으로 옛 모드를 새 연결에 쓰지 않습니다.
 삭제할 때는 로그인 시작을 끄고 매핑을 중지한 뒤 앱을 종료하고 휴지통으로 옮깁니다.
-이 beta는 Developer ID 서명과 Apple 공증 없이 ad hoc 서명을 사용합니다.
-macOS의 첫 실행 승인과 업데이트 후 권한 재승인이 필요할 수 있습니다.
-매핑을 시작하기 전에 두 권한을 확인하세요.
+{signing_guidance_ko}
 남은 원복이나 기록 처리를 해결한 뒤 종료하거나 삭제합니다.
 프로젝트 MIT 라이선스는 앱 메뉴의 ‘라이선스’에서 확인합니다.
 """, encoding="utf-8")

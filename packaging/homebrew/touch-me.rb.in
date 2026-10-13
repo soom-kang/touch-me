@@ -1,8 +1,8 @@
 # Pre-publication draft. Copy to the approved Tap's Casks/touch-me.rb only after
 # the versioned release asset and this exact checksum are publicly verified.
 cask "touch-me" do
-  version "0.8.0-beta.8"
-  sha256 "d5b2b99085893a781928fbb7f8793e6c88505d05c32394c75c2ad57a9c7d8fb1"
+  version "0.8.0-beta.9"
+  sha256 "1ef60494e4191437493f3941dba096fcc514d916b28f8380c6a71e1a579b27db"
 
   url "https://github.com/soom-kang/touch-me/releases/download/v#{version}/touch-me-#{version}-arm64.dmg"
   name "Touch Me"
@@ -19,9 +19,12 @@ cask "touch-me" do
   app "Touch Me.app"
 
   caveats do
-    unsigned_accessibility
     <<~EOS
-      This beta is ad hoc signed and is not notarized.
+      This beta uses a fixed maintainer signing certificate, without Developer ID or notarization.
+      The first transition from ad hoc signing may require privacy permission reapproval.
+      Permission continuity still requires a signed Homebrew upgrade test.
+      Use App Management for the terminal running Homebrew to support in-place upgrades.
+      Check Input Monitoring and Accessibility after upgrading; do not add certificate trust.
       Verify the release source and checksum before first launch.
       For Apple's manual approval guidance, see:
         https://support.apple.com/en-us/102445

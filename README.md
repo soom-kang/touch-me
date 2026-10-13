@@ -14,7 +14,14 @@ Beta `0.8.0-beta.8` requires the **USB/HID profile verified on the P16KT**. Mapp
 
 [Beta.8/build 26](https://github.com/soom-kang/touch-me/releases/tag/v0.8.0-beta.8) was **PUBLISHED** on 2026-10-12 at 10:41:21 KST (01:41:21 UTC). Public DMG/checksum bytes match the inspected release. The public and installed Tap revision `47a3e433` matches the verified Cask. One new app and DMG passed native artifact checks; the existing 38 Swift and 22 packaging test results are reused. Build 26 GUI, real-device use, installation, Homebrew upgrade and Gatekeeper are `NOT_RUN`. See the [beta.8 release notes](docs/releases/v0.8.0-beta.8.md).
 
-The release includes the TMQA-006 recovery-cleanup fix and TMQA-007 packaging fix described below. It keeps the arm64/macOS 26+ target, ad hoc signature and existing device-mode and preference formats.
+Beta.9/build 27 is **READY_FOR_PUBLICATION; NOT_PUBLISHED**: its local app and DMG
+passed native artifact checks under the permanent signing certificate. The
+approved public beta.9 A → beta.10 B Homebrew route still has permission
+retention `NOT_RUN`; the first transition may need manual privacy approval.
+Use the beta.8 instructions below until verified beta.9 publication. See the
+[beta.9 candidate record](docs/releases/v0.8.0-beta.9.md).
+
+Published beta.8 includes the TMQA-006 recovery-cleanup fix and TMQA-007 packaging fix described below. It keeps the arm64/macOS 26+ target, ad hoc signature and existing device-mode and preference formats.
 
 Online audit remains `BLOCKED` under the agreed deferral. No trust/developer modification commands or bypass variables were used. Target trust settings match their baseline; the shared store has a [separate observation limit](docs/releases/v0.8.0-beta.8.md#preserved-state-and-observation-limit).
 
@@ -138,6 +145,14 @@ Force Quit, a crash or power loss can't run normal cleanup. Public beta.4 and th
 Don't treat reopening the app or a later successful Stop as proof that the pre-crash mode was restored. If device behavior is unexpected, stop mapping, put upgrades and removal on hold, and keep the error details. Don't force an assumed mode value onto the device. See the [abnormal-exit verification notes](docs/qa/abnormal-exit-recovery.md) for the verification scope.
 
 Before updating or removing the app, follow **Stop mapping → confirm safe cleanup → normal Quit**. Safe cleanup restores the continuous connection or preserves a record only after its connection is proven ended. If restoration or record handling fails, preserve the record and error and use Retry restore before proceeding. Never delete the record or apply its old mode to a new connection. After an ad hoc update, check both privacy permissions again.
+
+Published beta.8 still uses ad hoc signing, so updates can require Accessibility
+reapproval. A separate self-signed probe retained authorization across one A→B
+replacement on this Mac; actual Touch Me/Homebrew upgrade and other recipients
+remain untested. See the [signing pilot](Workflow.md#accessibility-signing-pilot--2026-10-12).
+If authorization is missing, allow the installed Touch Me in **Accessibility**
+and select **Refresh**. Preserve permissions that are already allowed. If the
+status does not update, quit normally and reopen the same installed app.
 
 Turn off **Open Touch Me at login** before removal. After safe cleanup and Quit, move a manually installed app to Trash. For a Homebrew installation, follow the [update and removal guide](docs/Homebrew.md#install-update-and-remove-after-publication). These steps preserve saved preferences.
 

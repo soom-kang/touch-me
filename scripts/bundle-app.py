@@ -1,14 +1,30 @@
 #!/usr/bin/env python3
-"""Bundle the local executable. No credentials or external dependencies."""
+"""Bundle the local executable with ad hoc or a pinned signing certificate."""
+import argparse
+import hashlib
 import plistlib
 import re
 import shutil
 import subprocess
-import sys
 import uuid
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parent.parent
+
+parser = argparse.ArgumentParser(description=__doc__)
+parser.add_argument("executable", nargs="?", help="Release executable; defaults to the existing build locations")
+parser.add_argument("--signing-mode", choices=("ad-hoc", "self-signed"), default="ad-hoc")
+parser.add_argument("--signing-identity", help="Exact 40-character certificate SHA-1 fingerprint for codesign")
+parser.add_argument("--keychain", help="Absolute path to the existing dedicated signing Keychain")
+args = parser.parse_args()
+if args.signing_mode == "self-signed":
+    if not args.signing_identity or not re.fullmatch(r"[0-9a-fA-F]{40}", args.signing_identity):
+        parser.error("self-signed mode requires --signing-identity with exactly 40 hexadecimal characters")
+    if not args.keychain or not Path(args.keychain).is_absolute() or not Path(args.keychain).is_file():
+        parser.error("self-signed mode requires --keychain with an absolute path to an existing file")
+    args.signing_identity = args.signing_identity.lower()
+elif args.signing_identity is not None or args.keychain is not None:
+    parser.error("--signing-identity and --keychain require --signing-mode self-signed")
 
 
 def read_release_version():
@@ -26,8 +42,8 @@ def read_release_version():
 RELEASE_VERSION, SHORT_VERSION = read_release_version()
 APP = ROOT / "dist" / "Touch Me.app"
 STAGING_APP = ROOT / ".build" / "bundles" / str(uuid.uuid4()) / "Touch Me.app"
-if len(sys.argv) > 1:
-    EXECUTABLE = Path(sys.argv[1]).resolve()
+if args.executable:
+    EXECUTABLE = Path(args.executable).resolve()
 else:
     candidates = [ROOT / ".build" / "out" / "Products" / "Release" / "TouchMe",
                   ROOT / ".build" / "arm64-apple-macosx" / "release" / "TouchMe"]
@@ -75,9 +91,31 @@ if icon.is_file():
 with (STAGING_APP / "Contents" / "Info.plist").open("wb") as stream:
     plistlib.dump(info, stream, sort_keys=True)
 (resources / "Licenses.txt").write_text(license_text, encoding="utf-8")
-# Ad hoc signing is local packaging only; it does not prove public distribution.
-subprocess.run(["codesign", "--sign", "-", "--identifier", info["CFBundleIdentifier"], str(STAGING_APP)], check=True)
+sign_command = ["codesign", "--sign", args.signing_identity or "-",
+                "--identifier", info["CFBundleIdentifier"]]
+if args.signing_mode == "self-signed":
+    sign_command.extend(["--keychain", args.keychain, "--timestamp=none"])
+subprocess.run(sign_command + [str(STAGING_APP)], check=True)
 subprocess.run(["codesign", "--verify", "--strict", str(STAGING_APP)], check=True)
+if args.signing_mode == "self-signed":
+    prefix = STAGING_APP.parent / "signing-certificate-"
+    signature = subprocess.run(
+        ["codesign", "--display", "--verbose=4", "--requirements", "-",
+         "--extract-certificates=" + str(prefix), str(STAGING_APP)],
+        check=True, capture_output=True, text=True)
+    try:
+        certificate = Path(str(prefix) + "0").read_bytes()
+    except OSError as error:
+        raise SystemExit(f"Cannot read the embedded signing certificate; existing app was preserved: {error}") from error
+    if hashlib.sha1(certificate).hexdigest() != args.signing_identity:
+        raise SystemExit("The embedded signing certificate does not match --signing-identity; existing app was preserved")
+    requirement = re.fullmatch(
+        r'designated => identifier "' + re.escape(info["CFBundleIdentifier"]) +
+        r'" and certificate leaf = H"([0-9a-fA-F]{40})"', signature.stdout.strip())
+    if ("Signature=adhoc" in signature.stderr or requirement is None or
+            requirement.group(1).lower() != args.signing_identity):
+        raise SystemExit("Expected the default identifier-and-certificate requirement; existing app was preserved")
+    print(f"Signing certificate SHA-256: {hashlib.sha256(certificate).hexdigest()}")
 APP.parent.mkdir(parents=True, exist_ok=True)
 if APP.exists():
     history = APP.parent / "previous-builds"

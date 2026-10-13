@@ -4,6 +4,7 @@ Run: python3 -m unittest discover -s Tests/PackagingTests -v
 The mock image and executable are intentionally not installable artifacts.
 """
 import contextlib
+import hashlib
 import io
 import pathlib
 import plistlib
@@ -31,28 +32,59 @@ class PackagingTests(unittest.TestCase):
         self.app = self.root / "dist" / "Touch Me.app"
         self.native_calls = []
         self.image_bytes = b"NOT a DMG: test fixture"
+        self.certificate_bytes = b"NOT a certificate: packaging fixture"
+        self.identity = hashlib.sha1(self.certificate_bytes).hexdigest()
+        self.certificate_digest = hashlib.sha256(self.certificate_bytes).hexdigest()
+        self.keychain = self.root / "fixture.keychain"
+        self.keychain.write_bytes(b"NOT a Keychain: packaging fixture")
+        self.certificate_signed = False
+        self.requirement_override = None
+        self.ignored_certificate_signing = False
 
     def native(self, command, **kwargs):
         self.native_calls.append(command)
+        stdout = stderr = ""
         if command[0] == "ditto":
             shutil.copytree(command[1], command[2])
         elif command[0] == "hdiutil":
             pathlib.Path(command[-1]).write_bytes(self.image_bytes)
-        elif command[0] != "codesign":
+        elif command[0] == "codesign":
+            if "--sign" in command:
+                self.certificate_signed = (command[command.index("--sign") + 1] != "-"
+                                           and not self.ignored_certificate_signing)
+            elif "--display" in command:
+                if self.certificate_signed:
+                    prefix = next(arg.split("=", 1)[1] for arg in command
+                                  if arg.startswith("--extract-certificates="))
+                    pathlib.Path(prefix + "0").write_bytes(self.certificate_bytes)
+                    stdout = (self.requirement_override or
+                              'designated => identifier "io.github.soom-kang.touchme" '
+                              f'and certificate leaf = H"{self.identity}"\n')
+                    stderr = "Signature size=1024\nAuthority=Packaging test fixture\n"
+                else:
+                    stdout = 'designated => cdhash H"' + "0" * 40 + '"\n'
+                    stderr = "Signature=adhoc\n"
+        else:
             raise AssertionError(f"Unexpected native command: {command[0]}")
-        return subprocess.CompletedProcess(command, 0)
+        return subprocess.CompletedProcess(command, 0, stdout=stdout, stderr=stderr)
 
-    def run_script(self, name, *, architecture="arm64", native=None):
+    def run_script(self, name, *, architecture="arm64", native=None, arguments=()):
         script = self.root / "scripts" / name
         args = [str(script)] + ([str(self.binary)] if name == "bundle-app.py" else [])
+        args.extend(arguments)
         with patch.object(sys, "argv", args), \
              patch("subprocess.run", side_effect=native or self.native), \
              patch("subprocess.check_output", return_value=architecture), \
-             contextlib.redirect_stdout(io.StringIO()):
+             contextlib.redirect_stdout(io.StringIO()), \
+             contextlib.redirect_stderr(io.StringIO()):
             runpy.run_path(str(script), run_name="__main__")
 
-    def bundle(self):
-        self.run_script("bundle-app.py")
+    def bundle(self, arguments=()):
+        self.run_script("bundle-app.py", arguments=arguments)
+
+    def signing_arguments(self, identity=None):
+        return ["--signing-mode", "self-signed", "--signing-identity", identity or self.identity,
+                "--keychain", str(self.keychain)]
 
     def info(self):
         return plistlib.loads((self.app / "Contents" / "Info.plist").read_bytes())
@@ -101,9 +133,62 @@ class PackagingTests(unittest.TestCase):
         before = (self.app / "Contents" / "Info.plist").read_bytes()
         def fail(command, **kwargs):
             raise subprocess.CalledProcessError(1, command)
-        with self.assertRaises(subprocess.CalledProcessError):
-            self.run_script("bundle-app.py", native=fail)
-        self.assertEqual((self.app / "Contents" / "Info.plist").read_bytes(), before)
+        for arguments in ((), self.signing_arguments()):
+            with self.subTest(arguments=arguments), self.assertRaises(subprocess.CalledProcessError):
+                self.run_script("bundle-app.py", native=fail, arguments=arguments)
+            self.assertEqual((self.app / "Contents" / "Info.plist").read_bytes(), before)
+
+    def test_self_signed_identity_selection(self):
+        self.bundle(self.signing_arguments())
+        signing = next(call for call in self.native_calls if "--sign" in call)
+        self.assertEqual(signing[signing.index("--sign") + 1], self.identity)
+        self.assertEqual(signing[signing.index("--keychain") + 1], str(self.keychain))
+        self.assertIn("--timestamp=none", signing)
+        self.assertTrue(self.app.is_dir())
+
+    def test_self_signed_arguments_rejected_before_signing(self):
+        cases = (["--signing-mode", "self-signed"],
+                 self.signing_arguments("Certificate display name"),
+                 self.signing_arguments()[:-1] + ["relative.keychain"],
+                 self.signing_arguments()[:-1] + [str(self.root / "missing.keychain")])
+        for arguments in cases:
+            with self.subTest(arguments=arguments), self.assertRaises(SystemExit):
+                self.bundle(arguments)
+        self.assertEqual(self.native_calls, [])
+
+    def test_self_signed_identity_mismatch_preserves_existing_app(self):
+        self.bundle()
+        before = (self.app / "Contents" / "Info.plist").read_bytes()
+        for failure in ("certificate", "requirement", "ad_hoc_fallback"):
+            with self.subTest(failure=failure):
+                self.requirement_override = ('designated => identifier "io.github.soom-kang.touchme"\n'
+                                             if failure == "requirement" else None)
+                self.ignored_certificate_signing = failure == "ad_hoc_fallback"
+                arguments = self.signing_arguments("0" * 40 if failure == "certificate" else None)
+                with self.assertRaises(SystemExit):
+                    self.bundle(arguments)
+                self.assertEqual((self.app / "Contents" / "Info.plist").read_bytes(), before)
+
+    def test_install_notes_and_package_certificate_pin(self):
+        self.bundle()
+        self.run_script("package-dmg.py")
+        ad_hoc_notes = next((self.root / ".build/dmg").glob("*/contents/Install.txt")).read_text()
+        self.assertIn("Ad hoc beta", ad_hoc_notes)
+        image = next((self.root / "dist").glob("*.dmg"))
+        before = (image.read_bytes(), image.with_suffix(".dmg.sha256").read_bytes())
+        self.bundle(self.signing_arguments())
+        for arguments in ((), ["--expected-certificate", "0" * 64]):
+            with self.subTest(arguments=arguments), self.assertRaises(SystemExit):
+                self.run_script("package-dmg.py", arguments=arguments)
+            self.assertEqual((image.read_bytes(), image.with_suffix(".dmg.sha256").read_bytes()), before)
+        self.run_script("package-dmg.py", arguments=["--expected-certificate", self.certificate_digest])
+        signed_notes = next(path.read_text() for path in (self.root / ".build/dmg").glob("*/contents/Install.txt")
+                            if "Ad hoc beta" not in path.read_text())
+        self.assertIn(self.certificate_digest, signed_notes)
+        self.assertIn("Developer ID", signed_notes)
+        self.bundle()
+        with self.assertRaises(SystemExit):
+            self.run_script("package-dmg.py", arguments=["--expected-certificate", self.certificate_digest])
 
     def test_package_checksum_and_applications_link(self):
         import hashlib

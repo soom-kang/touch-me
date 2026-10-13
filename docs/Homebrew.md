@@ -5,6 +5,30 @@
 Beta.8 and the existing Tap update are **PUBLISHED**. The installed app and its
 state are preserved. Local app installation and upgrade were not performed.
 
+## Beta.9 preparation — 2026-10-13
+
+The native beta.9/build 27 candidate is **READY_FOR_PUBLICATION; NOT_PUBLISHED**.
+One app build and one package run passed native app/DMG verification. The source
+Cask's version/URL/SHA-256 match this local candidate, and Ruby syntax passed;
+Equivalent Homebrew Cask style rules passed (one file, no offenses) with an
+existing compatible dependency; the exact locked toolchain was not available.
+Online audit remains `BLOCKED` under the approved trust-preserving deferral.
+Exact source/Tap commit approval is pending. Public download
+comparison, Tap publication and installation/upgrade are `NOT_RUN`. Apply the
+Cask only after verified publication, keeping the beta.8 guidance below current.
+
+The approved route is public beta.9 A → beta.10 B, signed with the same permanent
+certificate and upgraded normally through Homebrew. Initial ad hoc migration
+may require manual privacy approval. App Management preflight passed in the
+planned `brew` host with installed bytes and outer directory unchanged; actual
+in-place upgrade and permission retention remain `NOT_RUN`.
+
+The [beta.9 candidate record](releases/v0.8.0-beta.9.md) contains exact local
+hashes and remaining checks. Preserve Homebrew ownership/receipts, preferences,
+recovery records, existing trust/developer settings and previous publications.
+Record each new artifact and its normal in-place upgrade before claiming
+retention.
+
 ## Beta.8 publication — 2026-10-12
 
 Prerelease `v0.8.0-beta.8`, build 26, was published at 10:41:21 KST
@@ -319,7 +343,23 @@ The ad hoc beta is not notarized. Verify the release source and checksum before 
 
 Grant **Input Monitoring** and **Accessibility** in System Settings, then refresh the app. Ad hoc updates can require renewed privacy approval; check both permissions before mapping. The Cask's `unsigned_accessibility` caveat highlights Accessibility reapproval. It neither grants permissions nor changes quarantine.
 
-For an update, first **Stop mapping → normal Quit** and confirm safe cleanup of the connection or its proven ended record. Then:
+Published beta.8 remains ad hoc signed. The separate [self-signed pilot](../Workflow.md#accessibility-signing-pilot--2026-10-12)
+passed one same-Mac probe replacement; it did not test Touch Me or Homebrew
+upgrade and has not changed the release or Cask. If Accessibility is unavailable,
+reallow the installed Touch Me manually, then refresh. Keep already allowed
+permissions; quit normally and reopen the same installed app if needed.
+
+For an update, first **Stop mapping → normal Quit** and confirm safe cleanup of the connection or its proven ended record.
+
+Permission retention also depends on the upgrade method. Homebrew's
+uninstall/reinstall fallback can remove macOS app metadata; in-place content
+replacement avoids that deletion step. Before a separately approved upgrade, check **App
+Management** for the terminal application that will run `brew`. Prefer that
+permission; Homebrew also supports Full Disk Access. No additional permission
+was granted in this investigation. Stable signing and the actual in-place
+upgrade both need validation. [Homebrew FAQ](https://docs.brew.sh/FAQ#why-do-my-cask-apps-lose-their-dock-position--launchpad-position--permission-settings-when-i-run-brew-upgrade)
+
+Run the update only after those checks:
 
 ```bash
 brew update
@@ -339,3 +379,15 @@ Removal preserves app preferences. There is no `zap` routine, automatic process 
 The release owner records the source revision, tag, build number, DMG SHA-256, Homebrew version, executed commands and outcomes with an `Asia/Seoul` date. Keep artifact, Homebrew audit, GUI, real-device and login-launch results separate. Preserve the historical build 8–12 evidence in [Workflow](../Workflow.md#choose-the-minimum-checks); it does not prove behavior for a later candidate. Never include credentials or raw personal data.
 
 A later Developer ID release needs separately approved signing/notarization preparation and validation of the final downloaded, installed app. Keep credential access outside this runbook and record that release's verification separately from this ad hoc beta.
+
+A self-signed candidate also needs a permanent maintainer identity and separate
+downloaded/installed upgrade acceptance. Keep the trial certificate out of
+releases. Certificate or DR changes may require manual reapproval, and
+self-signing provides no notarization or Gatekeeper guarantee. Do not replace
+the published beta.8 asset or remove its caveat based on probe results.
+The [pilot record](../Workflow.md#accessibility-signing-pilot--2026-10-12) explains
+Apple's advice against shipping self-signed apps and the user's experimental
+choice for this personal beta Tap.
+The [local build options](../Workflow.md#build-and-inspect-the-app) keep ad hoc
+as the default and require explicit certificate fingerprints for self-signed
+builds and packaging. They do not prepare credentials or activate a release.

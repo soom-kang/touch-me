@@ -3,6 +3,39 @@
 Ticket: TMQA-005. Tests added here are not a claim that native tests passed.
 No CI service, external dependency, device driver, or permission change is added.
 
+## Public signed beta.9 preparation — 2026-10-13
+
+The native beta.9/build 27 candidate is **READY_FOR_PUBLICATION; NOT_PUBLISHED**.
+One build and one package invocation exited 0. Native strict signature, exact
+permanent certificate/DR, metadata, arm64, license/icon, DMG integrity/sidecar,
+five read-only inner-app file comparisons, inner signature/certificate/DR,
+bilingual notes, Applications shortcut and normal detach passed. Installed
+bytes/outer directory, the prior app archive and earlier images were preserved;
+42 build/package inputs remained unchanged. The outer DMG was not code signed
+by the packager, and the candidate was not launched.
+[Workflow](../../Workflow.md#public-signing-validation--2026-10-13) and the
+[beta.9 candidate record](../releases/v0.8.0-beta.9.md) retain hashes and evidence.
+Cask Ruby syntax and equivalent Homebrew Cask style rules passed (one file,
+no offenses). The initial style attempt exited 2 for missing locked
+`spoom 1.8.10`; a process-only load path for existing compatible `1.8.9` passed.
+No gem/configuration/trust write or additional Cask-rule exclusion was used.
+Exact locked-toolchain validation did not pass; online audit stays `BLOCKED`
+under the existing deferral. Exact commit approval is pending.
+
+The approved route is public beta.9 A → beta.10 B with the same certificate,
+each followed by normal Homebrew upgrade. The App Management write/delete probe
+passed in the planned `brew` host with installed bytes/outer directory unchanged.
+Read-only preflight found no app process, `resumeMapping=false`, active record 0,
+valid reconnect guard 1 and archives 5; records were preserved.
+
+Public download/Tap publication, installation/upgrade, beta.9 GUI permission
+acceptance and public A → B retention are **NOT_RUN**, as are a receiving Mac
+without installed signing identity or added trust, and Gatekeeper. Initial
+ad hoc migration may require manual reapproval. Preserve receipts, preferences,
+recovery and trust settings; do not reset them to pass. Earlier source tests and
+probe results below retain their exact scopes. No suite was repeated for this
+artifact-only check, and no runtime feature or test infrastructure was added.
+
 ## Current checkout check — 2026-10-12
 
 On macOS 26.7.1/arm64 with Apple Swift 6.4 and Python 3.9.6, the modified checkout
@@ -26,6 +59,96 @@ checks, read-only inner-app comparison and normal detach. Suites were reused
 without another run because all 43 tracked inputs stayed unchanged. `--scan`
 executed in its CLI context with exit 3/no visible devices; no journal or
 preference writes. GUI/device acceptance remains `NOT_RUN` by user agreement.
+
+## Accessibility signing pilot — 2026-10-12
+
+The temporary native [signing pilot](../../Workflow.md#accessibility-signing-pilot--2026-10-12)
+is **PROBE_RETENTION_PASS**. Different A/B executables passed strict signature
+and cross-DR checks under the same trial certificate; the same-ID ad hoc control
+failed the pinned requirement. These are signature checks, not native TCC
+negative controls. After A was manually allowed, a new B process reported
+`AXIsProcessTrusted()==true` at 14:27:51 KST without permission changes during
+replacement. The live app path and outer directory inode were preserved.
+
+The initial temporary-app approval difficulty and its LaunchServices lookup
+limit are retained in Workflow. No permanent probe, test target or dependency
+was added. This result covers this Mac, user and path; the trial identity was
+in a dedicated Keychain during acceptance without added trust settings. A receiver
+with no installed signing certificate/private key or added certificate trust,
+native signed Touch Me build/package and real Homebrew upgrade are **NOT_RUN**.
+After retention acceptance, approved registration of a same-signature B cleanup
+copy made the Probe row visible. That copy was not launched. Manual user removal
+is **PASS_USER_REMOVAL_UI_CONFIRMED**: fresh Accessibility UI shows no Probe row
+and the actual Touch Me entry ON. The guarded cleanup copy and empty parent were
+removed, with no Probe process remaining. The user separately approved deleting
+the trial Keychain. Exact-path, sole-certificate fingerprint and non-default
+Keychain checks preceded successful scoped deletion; the file is absent. Key
+cleanup is **DELETED_WITH_USER_APPROVAL**. Original temporary app, public
+certificate and evidence are retained. This later
+registration and cleanup are separate from retention PASS. Existing Core/Platform
+tests cannot establish TCC retention.
+
+At the signing-source checkpoint, `python3 -m unittest discover -s Tests/PackagingTests -v`
+passed all 26 tests (the previous 22 plus four focused signing cases).
+`bash -n scripts/build-app.sh` and combined native `codesign` inspection of the
+signed probe and ad hoc control passed. The restricted executor could not read
+the extracted certificate output; native Mac inspection passed without trust
+changes or fallback. Packaging tests use native-tool doubles and do not prove
+native bundle/DMG signing. Core/Platform/App code is unchanged, so Swift tests
+were not repeated. Actual signed Touch Me artifacts and installed-app/Homebrew
+acceptance were **NOT_RUN** at that checkpoint; later native artifacts are
+recorded separately below.
+
+## Release identity backup and restore — 2026-10-12
+
+The permanent identity is **GENERATED** and same-Mac restore is
+**RESTORE_SIGNING_PASS**. [Workflow](../../Workflow.md#release-signing-identity-preparation--2026-10-12)
+records its public certificate parameters, fingerprints and distinct source/
+restored cdhash values. Native password-protected PKCS#12 export/import are
+`USER_REPORTED`; backup presence, `0600` and parent `0700` are directly verified.
+New dummy bytes signed through the temporary restore Keychain passed strict
+verification, exact certificate matching and both DR directions, proving the
+restored private key is usable. Neither app was launched and no explicit user,
+admin or system certificate trust was added. The permanent Keychain's `0600`,
+300-second timeout, sleep lock and non-default status passed direct checks.
+
+This is identity recovery on the same Mac, not Touch Me or TCC acceptance.
+Independent storage is **NOT_AVAILABLE**, and off-Mac restore is **NOT_RUN**.
+Temporary restore Keychain cleanup is **DELETED_WITH_USER_APPROVAL** after
+exact-path, sole-certificate SHA-1/SHA-256 and non-default guards. Its file and
+search-list entry are absent. At the 17:34:45 KST preparation checkpoint, the
+original release Keychain was locked and preserved, and the encrypted backup
+was retained. Native signed
+Touch Me build/DMG packaging, installation, Homebrew upgrade, a receiving Mac
+without separately installed signing identity or added trust, Gatekeeper and
+publication were **NOT_RUN**. The [later local candidate](../../Workflow.md#local-certificate-signed-touch-me-candidate--2026-10-12)
+has native artifact verification only. No repository source or tests changed for this
+identity-only check, and Touch Me was not built; earlier 26-test source results
+remain separate.
+
+## Local certificate-signed candidate — 2026-10-12
+
+One actual Touch Me build and one DMG packaging invocation exited 0. Native
+strict signature, permanent certificate SHA-1/SHA-256 and pinned DR, arm64,
+version/build, license/icon, `hdiutil verify` and checksum checks passed.
+Read-only mounted inner bytes/signature/certificate/DR, bilingual installation
+notes, Applications shortcut and normal detach also passed. Previous local
+app/images and the installed app were preserved. The candidate was never
+launched and no explicit certificate trust was added. The outer DMG was not
+code signed by the packager; its integrity/checksum and inner app signature were
+verified. [Workflow](../../Workflow.md#local-certificate-signed-touch-me-candidate--2026-10-12)
+records the exact local signer and hashes.
+After validation, the permanent Keychain was locked with `0600`,
+300-second/sleep lock and non-default status verified; the encrypted backup
+remained `0600` (`keychain-final-state.json`).
+
+This is **NATIVE_ARTIFACT_PASS**, not permission-retention acceptance. The local
+candidate and published ad hoc beta.8 share version/build but have different
+signatures and bytes. Actual Accessibility/Input Monitoring retention,
+installation/Homebrew upgrade, receiving Mac without separately installed
+identity or added trust, Gatekeeper, signed publication and push remain
+**NOT_RUN**. The previously verified scripts and runtime source were unchanged;
+this native phase required no source/test changes or suite repeat.
 
 ## Beta.7 release boundary — 2026-10-10
 

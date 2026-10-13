@@ -6,6 +6,54 @@
 
 Use this workflow to build the arm64 app, inspect its bundle and create a personal disk image. The existing scripts use Apple's local tools and Python 3. They do not install additional dependencies or publish artifacts.
 
+## Public signing validation — 2026-10-13
+
+The native beta.9/build 27 candidate is **READY_FOR_PUBLICATION; NOT_PUBLISHED**.
+One app build and one package invocation exited 0. Native verification completed
+at 23:46:41 KST (14:46:41 UTC): strict app signature, exact permanent certificate/
+DR, metadata, arm64, license/icon, DMG integrity and checksum, five read-only
+inner-app file comparisons, bilingual installation notes, Applications shortcut
+and normal detach all passed. The outer DMG was not code signed by the packager.
+The [beta.9 candidate record](docs/releases/v0.8.0-beta.9.md) records the exact
+hashes and [43-input manifest](docs/releases/v0.8.0-beta.9-inputs.json). The 42
+build/package inputs remained unchanged; the finalized Cask metadata is the
+manifest's separate publication input. The Cask version/URL/digest match the
+local DMG and Ruby syntax passed. Equivalent Homebrew Cask style rules passed
+for one file with no offenses. The first attempt exited 2 because locked
+`spoom 1.8.10` was missing; existing compatible `1.8.9` was loaded through a
+process-only path. No gem/configuration/trust changes or additional Cask-rule
+exclusions were used. This is not an exact locked-toolchain PASS. Online audit
+remains **BLOCKED** under the existing trust-preserving deferral. Exact
+source/Tap commit approval is pending; neither commit is assigned yet.
+
+The user approved public beta.9 A → beta.10 B with the same
+[permanent certificate](#release-signing-identity-preparation--2026-10-12), each
+followed by normal Homebrew upgrade. Verify native metadata before each
+prerelease, compare anonymous public bytes after publication, then publish the
+reviewed Cask before upgrading. Initial ad hoc migration may require a manual
+permission grant. For B, make no privacy changes before measuring the new GUI
+process at the same installed path. Keep mapping stopped during permission
+measurement and quit normally. Signing continuity and outer-directory
+preservation are separate checks.
+
+Homebrew's vendored-Ruby App Management write/delete preflight passed in the
+planned `brew` host. Read-only runtime preflight found no TouchMe process,
+`resumeMapping=false`, active record 0, a valid `disconnected-unchanged` guard
+with matching archive, and five valid archives. The guard is retained; no old
+Stop is needed solely to remove it. Passive files do not prove physical mode
+or durable cleanup, and GUI launch still performs normal discovery. Installed
+app bytes/outer directory, the prior local app archive and earlier images were
+preserved through artifact validation; the candidate was not launched.
+
+Preserve prior assets/tags, Homebrew ownership/receipts, preferences, recovery
+and trust/developer settings. Public download/Tap publication, installation/
+upgrade, beta.9 GUI permission acceptance and public A → B retention are
+**NOT_RUN**. Receiving-Mac verification without installed signing identity or
+added trust, and Gatekeeper acceptance are also **NOT_RUN**. Records dated
+2026-10-12 retain their checkpoints. Local evidence is in
+`.build/releases/beta9-e62595b427/native-app-verification.json` and
+`native-artifact-verification.json`; private operator data is not published.
+
 ## Beta.8 release — 2026-10-12
 
 Status: **PUBLISHED**. Prerelease `v0.8.0-beta.8`, build 26, was published at
@@ -41,6 +89,209 @@ their inventories. Target trust/developer settings also match, but the shared
 trust-store raw hash changed; its cause and actor are unverified. No restoration
 was attempted. See the [preservation limit](docs/releases/v0.8.0-beta.8.md#preserved-state-and-observation-limit).
 
+## Accessibility signing pilot — 2026-10-12
+
+Status: **PROBE_RETENTION_PASS; NO SIGNED TOUCH ME RELEASE**. The published
+beta.8/build 26, its ad hoc signature, public assets and Cask remain unchanged.
+The app checks `AXIsProcessTrusted()`; it does not reset or grant authorization.
+Ad hoc signatures identify a rebuild by its changed code hash. A stable signing
+identity gives updates a consistent designated requirement (DR).
+[Apple DTS on TCC identity](https://developer.apple.com/forums/thread/678816)
+
+The inspected beta.7/build 25 candidate and installed beta.8/build 26 share the
+same Bundle ID and each passed strict verification, but both cross-DR checks
+failed. Their changed ad hoc identities are directly verified; whether a
+particular Homebrew upgrade also removed permission metadata remains unverified.
+
+The approved experiment used a temporary AppKit app with a separate probe
+identifier and no Touch Me, HID, preference or recovery code. A and B had
+different executable bytes, the same self-signed trial certificate and the same
+certificate-pinned DR. Both strict signature checks and A↔B requirement checks
+passed; an ad hoc control with the same identifier failed A's requirement.
+These controls check signatures, not native TCC rejection.
+
+The verified DR uses identifier
+`io.github.soom-kang.touchme.permission-probe.a3d14357a8564d82a728df0d19f008fc`
+and `certificate leaf = H"<certificate SHA-1>"`, with the fingerprint below:
+
+| Frozen signature evidence | Value |
+| --- | --- |
+| Certificate SHA-1 / DR leaf pin | `fd7559b266965ecd48f540e3a7038570e3f1a38d` |
+| A executable SHA-256 | `cbd031967862542ef9206439d49af765eefce134a886c30de88b08ab6f0a7d7a` |
+| B executable SHA-256 | `38559bccce57061d6bcd0afba9196f5558c46b692a4d254736aabca4747a0ca6` |
+
+| Native observation | Result |
+| --- | --- |
+| Initial A, PID 503 | Accessibility false |
+| New A after manual approval, PID 6588 | True at 14:27:02 KST (05:27:02 UTC) |
+| A→B replacement, new B PID 8347 | True at 14:27:51 KST (05:27:51 UTC), without permission changes during replacement |
+| Replacement identity | Same live bundle path and outer directory inode; different executable hashes |
+| Certificate trust | No additional user, admin or system trust settings |
+
+Initial approval needed retries: a TCC allowed entry was observed while the
+temporary app's LaunchServices URL lookup failed and its Settings row was not
+visible. A later new A process reported true. No explicit LaunchServices registry
+repair preceded the retention test, so the cause of that initial difficulty remains unverified.
+Local evidence is retained in `probe-result.json`, `signature-evidence.json` and
+`replacement-evidence.json` under `/private/tmp/touch-me-permission-probe-q7qkss10/`.
+
+After A→B acceptance, public `LSRegisterURL(url, false)` on the live probe path
+returned status 0, but its bundle-ID URL lookup remained empty. The user then
+approved a same-signature B copy under `.build/permission-probe-cleanup/`.
+Registering that path returned status 0 and the expected URL; reopening System
+Settings displayed the allowed Probe row. The cleanup copy was not launched.
+The user manually removed the Probe entry. Fresh Accessibility UI confirmed
+its absence and the actual Touch Me entry still ON. After exact Bundle ID and
+B executable hash checks, the cleanup copy and empty parent were removed;
+no Probe process remained. Cleanup is **PASS_USER_REMOVAL_UI_CONFIRMED**, observed
+at 14:48:37 KST (05:48:37 UTC). This registration and cleanup followed retention
+acceptance and are not part of that PASS. The user then approved deleting only
+the trial Keychain. Its exact path and sole public certificate fingerprint were
+checked, and it was confirmed not to be the default Keychain. The scoped
+`security delete-keychain` succeeded and the file is absent. The original
+temporary app, public certificate and evidence remain; key cleanup is
+**DELETED_WITH_USER_APPROVAL**. See local
+`registration-cleanup-evidence.json` and the updated `probe-result.json`.
+
+This PASS covers this Mac, user and path. The dedicated trial Keychain and
+private key were present during acceptance and were deleted afterward. Tests on
+a receiving Mac without a separately installed signing certificate/private key
+or added certificate trust, and the actual Touch Me/Homebrew upgrade, remain
+**NOT_RUN**. The trial identity is not a release
+identity. Probe permission cleanup is complete. Permanent maintainer identity
+preparation is now verified below; native signed Touch Me build/package and real
+upgrade still need their separately approved execution. Changing from the published ad hoc identity
+may require one manual reapproval; later retention is still subject to native
+acceptance. Self-signing does not establish Developer ID, notarization or
+Gatekeeper approval.
+
+Apple advises against shipping self-signed apps: a matching certificate can show
+the same source across versions, but does not authenticate the maintainer to a
+recipient. The user chose the free self-signed experiment for the personal
+Homebrew beta Tap with these limits. No signed release is published.
+[Apple Code Signing Tasks](https://developer.apple.com/library/archive/documentation/Security/Conceptual/CodeSigningGuide/Procedures/Procedures.html)
+
+At the pilot checkpoint, source checks passed `python3 -m unittest discover -s Tests/PackagingTests -v`
+(26 tests: the previous 22 plus four focused signing cases) and
+`bash -n scripts/build-app.sh`. Combined native `codesign` inspection passed on
+the signed probe and an ad hoc control. Certificate extraction was unavailable
+in the restricted executor; native Mac inspection passed without adding trust
+or falling back to ad hoc. Mock packaging checks and probe inspection do not
+establish a native signed Touch Me app or DMG. The later [local candidate checks](#local-certificate-signed-touch-me-candidate--2026-10-12)
+are recorded separately. Swift tests were not repeated
+because Core, Platform and App code were unchanged.
+
+## Release signing identity preparation — 2026-10-12
+
+Status: **GENERATED; RESTORE_SIGNING_PASS**. The permanent self-signed identity
+is separate from the deleted trial identity. Public certificate metadata:
+
+| Field | Value |
+| --- | --- |
+| CN | `Touch Me Release Signing` |
+| Key / signature | `RSA 4096` / `sha256WithRSAEncryption` |
+| Validity | `3650 days`; `2026-10-12T08:01:07Z` → `2036-10-09T08:01:07Z` |
+| Certificate SHA-1 | `e7491a0b49d0784093d48b2bb30b298df3a924f9` |
+| Certificate SHA-256 | `f58a3ca4f6dcfda8f04192c5170288b3a5ffb286acbcae147ead120892002819` |
+
+The user completed password-protected PKCS#12 export and import through native
+dialogs (`USER_REPORTED`). Backup file presence, mode `0600` and parent directory
+mode `0700` passed direct checks. The private backup payload was not read or
+copied by the agent. FileVault is enabled. Independent storage is
+**NOT_AVAILABLE**; a local encrypted file does not cover loss of this Mac.
+
+In the dedicated Keychain, select **My Certificates** and the identity with its
+linked private key, then **File → Export Items** to export an encrypted `.p12`.
+A certificate-only `.cer` is not an identity backup. Restore the existing
+identity; recreating the same CN produces a different identity. A Keychain file
+copy alone is insufficient backup evidence: macOS 26.4 and later can require
+protected entropy to unlock it. [Apple TN3137](https://developer.apple.com/documentation/technotes/tn3137-on-mac-keychains)
+
+A separate temporary restore Keychain signed new inert dummy bytes with the
+restored private key. Both source and restored dummies passed strict signature,
+exact embedded certificate SHA-1/SHA-256 and bidirectional DR checks. They share
+identifier `io.github.soom-kang.touchme.release-identity-check.e404eb4a952a4a0abe693c35eff316ff`
+and the certificate-leaf hash pin above, while their cdhash values differ:
+
+| Dummy | cdhash |
+| --- | --- |
+| Source | `84142f0e4e0ad9f7248a6a33e45e1d3433a93a47` |
+| Restored | `c16afb96b34262ea9bcbc3095ad5dc145ec82303` |
+
+Neither app was launched. No explicit certificate trust entries were added in
+the user, admin or system domains. The restore proof completed at 17:28:37 KST
+(08:28:37 UTC) on this Mac; restore on another Mac is **NOT_RUN**. The permanent
+Keychain is outside Git; its `0600`, 300-second timeout, sleep lock and non-default
+status passed direct checks. Passwords and private paths stay outside these
+docs. Temporary restore Keychain cleanup is **DELETED_WITH_USER_APPROVAL**.
+Exact-path, sole-certificate SHA-1/SHA-256 and non-default guards passed before
+scoped deletion. Its file and search-list entry are absent. At that cleanup
+checkpoint, the original release Keychain was preserved and locked, and the
+encrypted backup was retained. Cleanup
+completed at 17:34:45 KST (08:34:45 UTC), recorded in local
+`restore-cleanup-result.json`.
+
+At the 17:34:45 KST identity-preparation checkpoint, native signed Touch Me
+build, DMG packaging, installation, Homebrew upgrade,
+testing on a receiving Mac without separately installed signing identity or
+added trust, Gatekeeper and signed-release publication were **NOT_RUN**.
+The later [local candidate checks](#local-certificate-signed-touch-me-candidate--2026-10-12)
+cover build/package artifacts only. Installed acceptance and push/publication
+retain their separate approval gates.
+Public beta.8 remains the existing ad hoc release. Evidence JSON files remain
+local outside Git:
+`certificate-public-metadata.json`, `source-signing-result.json`,
+`backup-export-result.json` and `restore-verification-result.json`; the export
+record retains its export-time `restore=NOT_RUN` snapshot; the final restore
+outcome is in the later `restore-verification-result.json`.
+
+## Local certificate-signed Touch Me candidate — 2026-10-12
+
+Status: **NATIVE_ARTIFACT_PASS; LOCAL CANDIDATE ONLY**. One build and one
+packaging invocation each exited 0 on macOS 26.7.1 (`25G241`), Apple Silicon,
+Apple Swift 6.4. Source HEAD `0e73df845d3b796fdcb7693ce7d4999dd38d5093`
+plus the approved 11-file working diff produced the candidate. Inputs stayed
+unchanged through build and packaging; this subsequent evidence documentation
+does not change the binary. The prior local beta.7/build 25 became build 26.
+
+This candidate shares `0.8.0-beta.8`/26 with the published ad hoc release, but
+uses the prepared permanent certificate and different executable/DMG bytes.
+Version/build alone cannot distinguish them. Keep the published assets and Cask unchanged.
+
+| Candidate identity | Value |
+| --- | --- |
+| Release / build / target | `0.8.0-beta.8` / `26`; `io.github.soom-kang.touchme`, `arm64` |
+| Embedded certificate SHA-1 | `e7491a0b49d0784093d48b2bb30b298df3a924f9` |
+| Embedded certificate SHA-256 | `f58a3ca4f6dcfda8f04192c5170288b3a5ffb286acbcae147ead120892002819` |
+| Executable SHA-256 | `2b6b432ec94a06609fe9deba1521ac4e9736a54159933193bca44e76b2051069` |
+| DMG size / SHA-256 | `525417 bytes`; `f481cb21f7c34a5d5e99a0620bf7b25c2c4ca8056058b54f3384108d299fb919` |
+
+Strict native app verification, the exact embedded certificate, identifier plus
+certificate-leaf DR, arm64, version/build metadata and license/icon checks
+passed. The app cdhash is `b35b3a8024952ba60f78fead2d3399b91ba49308`.
+The DMG passed native `hdiutil verify`, sidecar `shasum` and read-only mounted
+inner-app byte comparison, strict signature, certificate and DR checks.
+Bilingual `Install.txt`, the Applications shortcut and normal detach passed.
+The outer DMG itself was not code signed by the packager; these results cover
+the inner app signature and image integrity/checksum.
+
+The old local app was archived with matching bytes. Earlier beta.7 images and
+the installed app stayed unchanged. No explicit user, admin or system
+certificate trust was added, and the candidate app was never launched.
+Verification completed at 17:59:56 KST (08:59:56 UTC). Afterward, the permanent
+Keychain was locked; its `0600`, 300-second/sleep lock and non-default status,
+plus the encrypted backup's `0600`, were verified in local `keychain-final-state.json`.
+Local evidence remains
+outside Git under `.build/signing-validation/2026-10-12-5eb15eb5df/` in
+`native-app-verification.json`, `native-artifact-verification.json` and
+`environment.json`; private operator locations are excluded from this record.
+
+Accessibility and Input Monitoring retention, installation/Homebrew upgrade,
+a receiving Mac without separately installed signing identity or added trust,
+Gatekeeper, signed-release publication and push remain **NOT_RUN**. Artifact
+PASS does not establish the permission-retention goal. Those actions retain
+their separate approval gates.
+
 ## Source QA baseline before beta.8 — 2026-10-12
 
 The modified checkout on `65a8e71` passed `bash scripts/test.sh` (38 tests,
@@ -66,9 +317,9 @@ The app keeps these identifiers and versions:
 | --------------------- | ------------------------------------------------- |
 | App and executable    | `Touch Me.app` / `TouchMe`                        |
 | Bundle identifier     | `io.github.soom-kang.touchme`                     |
-| Release version       | `0.8.0-beta.8`, read from `VERSION`               |
+| Release version       | `0.8.0-beta.9`, read from `VERSION`               |
 | Bundle version        | `0.8.0` plus an incrementing numeric build number |
-| Full release metadata | `TouchMeReleaseVersion=0.8.0-beta.8`              |
+| Full release metadata | `TouchMeReleaseVersion=0.8.0-beta.9`              |
 | Target                | `arm64`, macOS 26 or later                        |
 
 Keep the identifier and saved-preference format stable when changing documentation or packaging. Changing the signing identity or installation path can require permission checks in the installed app.
@@ -222,7 +473,30 @@ Build the release executable and bundle it with icons and the project license. I
 bash scripts/build-app.sh
 ```
 
-The script creates `dist/Touch Me.app`, increments the previous local bundle's build number and preserves the previous app under `dist/previous-builds`. It applies an ad hoc signature and verifies it with `codesign --verify --strict`.
+The script creates `dist/Touch Me.app`, increments the previous local bundle's build number and preserves the previous app under `dist/previous-builds`. Its default remains `--signing-mode ad-hoc`; both modes run `codesign --verify --strict`.
+
+For an approved self-signed candidate, replace the placeholders with the
+permanent certificate's 40-character SHA-1 fingerprint and an existing absolute
+Keychain path. Use the same certificate for successive builds; the trial
+identity from the pilot is excluded. The [permanent identity and backup check](#release-signing-identity-preparation--2026-10-12)
+is ready; running the actual Touch Me build still requires its separate approval:
+
+```bash
+bash scripts/build-app.sh --signing-mode self-signed \
+  --signing-identity '<40-character certificate SHA-1>' \
+  --keychain '/absolute/path/to/signing.keychain-db'
+```
+
+`python3 scripts/bundle-app.py [executable]` accepts the same options. The
+bundler verifies the embedded certificate fingerprint and exact default DR:
+the app identifier plus the leaf certificate hash. Invalid options, signing or
+verification failures stop without falling back to ad hoc and before replacing
+the previous app. These scripts do not create, import, unlock or modify Keychain
+or certificate trust settings. `--keychain` limits identity lookup; certificate
+chain construction can still search the existing Keychain search list. The mode
+uses `--timestamp=none`; it does not add a custom expiration requirement. Preserve
+the certificate and private key securely. Rotation changes the pinned identity
+and may require manual reapproval.
 
 Check the bundle metadata and license resource before making a disk image:
 
@@ -232,7 +506,7 @@ cat 'dist/Touch Me.app/Contents/Resources/Licenses.txt'
 cmp Resources/TouchMe.icns 'dist/Touch Me.app/Contents/Resources/TouchMe.icns'
 ```
 
-`Licenses.txt` contains the project `LICENSE`. A missing license file stops bundling. Ad hoc signature verification confirms local bundle integrity; it does not establish Developer ID signing or notarization.
+`Licenses.txt` contains the project `LICENSE`. A missing license file stops bundling. Strict signature verification confirms local bundle integrity; neither ad hoc nor self-signed mode establishes Developer ID signing, notarization or permission retention in the installed app.
 
 ## Create the personal disk image
 
@@ -242,7 +516,23 @@ Package the signed app, an Applications shortcut and bilingual installation note
 python3 scripts/package-dmg.py
 ```
 
-The script verifies the app's identifier, release metadata against `VERSION`, license-resource presence, signature and arm64 architecture. A stale bundle stops packaging instead of receiving a new release filename. It creates these outputs:
+For a self-signed bundle, use the 64-character SHA-256 fingerprint printed by
+the bundler after certificate verification:
+
+```bash
+python3 scripts/package-dmg.py \
+  --expected-certificate '<64-character certificate SHA-256>'
+```
+
+The packager requires that fingerprint for a certificate-signed app, verifies
+its embedded certificate and pinned DR, and rejects it for an ad hoc app.
+Generated bilingual `Install.txt` labels the observed signing class as ad hoc
+or certificate-signed; the fingerprint and DR checks do not prove that the
+certificate is cryptographically self-signed. It does
+not promise Gatekeeper approval or remove the need for initial migration and
+native upgrade acceptance.
+
+The script verifies the app's identifier, release metadata against `VERSION`, license-resource presence, signature and arm64 architecture. A stale bundle or signing mismatch stops packaging before replacing the previous DMG. It creates these outputs:
 
 | Output                                        | Purpose                   |
 | --------------------------------------------- | ------------------------- |

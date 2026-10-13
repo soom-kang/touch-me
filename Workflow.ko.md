@@ -6,6 +6,53 @@
 
 이 Workflow에 따라 arm64 앱을 빌드하고 번들을 확인한 뒤 개인용 디스크 이미지를 만드세요. 기존 스크립트는 Apple의 로컬 도구와 Python 3를 사용합니다. 추가 dependency 설치와 산출물 공개는 수행하지 않습니다.
 
+## 공개 서명 검증 — 2026-10-13
+
+Native beta.9/build 27 후보는 **READY_FOR_PUBLICATION; NOT_PUBLISHED**입니다.
+앱 빌드와 패키징을 각각 한 번 실행해 exit 0으로 마쳤습니다. 23:46:41 KST
+(14:46:41 UTC)에 strict 앱 서명, 정확한 장기 인증서·DR, metadata, arm64,
+라이선스·아이콘, DMG 무결성·checksum, 읽기 전용 내부 앱 파일 5개 비교,
+양국어 설치 안내, Applications 바로가기와 정상 detach를 확인했습니다.
+바깥 DMG 자체에는 packager가 code signing을 하지 않았습니다.
+[Beta.9 후보 기록](docs/releases/v0.8.0-beta.9.md)에 정확한 hash와
+[입력 43개 manifest](docs/releases/v0.8.0-beta.9-inputs.json)를 기록합니다.
+빌드·패키징 입력 42개는 유지됐으며 최종 Cask metadata는 별도 공개 입력으로
+manifest에 포함합니다. Cask version·URL·digest는 로컬 DMG와 일치하고 Ruby
+문법 검사는 통과했습니다. 동등한 Homebrew Cask style 규칙은 파일 1개,
+offenses 없음으로 통과했습니다. 첫 실행은 lock의 `spoom 1.8.10`이 없어
+exit 2로 중단됐으며 설치된 호환 버전 `1.8.9`를 해당 process의 load path로
+사용했습니다. Gem 설치, 설정·trust 변경이나 추가 Cask 규칙 제외는 없었습니다.
+정확한 locked toolchain의 PASS는 아니며 online audit는 기존 trust 보존 합의에
+따라 **BLOCKED**입니다. 정확한 source·Tap commit 승인은 대기 중이며 commit
+식별은 아직 확정하지 않았습니다.
+
+사용자는 같은 [장기 인증서](#release-signing-identity-준비--2026-10-12)로
+공개 beta.9 A → beta.10 B를 서명하고 정상 Homebrew upgrade하는 경로를
+승인했습니다. Native metadata 검증 뒤 각 prerelease를 공개하고 익명 public
+bytes를 비교한 뒤 검토한 Cask를 Tap에 반영합니다. 처음 ad hoc에서 전환할
+때는 수동 권한 승인이 필요할 수 있습니다. B에서는 권한을 바꾸기 전에 같은
+설치 경로의 새 GUI process를 측정합니다. 측정 중에는 매핑을 시작하지 않고
+정상 종료합니다. 서명 유지와 바깥 디렉터리 보존은 별도로 확인합니다.
+
+실제 `brew` 실행 host에서 Homebrew vendored Ruby 쓰기·삭제 probe로
+App Management 사전 검사를 통과했습니다. 읽기 전용 runtime 점검에서
+TouchMe process 없음, `resumeMapping=false`, active record 0개, archive와
+일치하는 유효한 `disconnected-unchanged` guard 1개와 유효한 archive 총 5개를
+확인했습니다. Guard는 보존하며 이를 지우려고 기존 앱을 다시 실행해 Stop할
+필요는 없습니다. 파일 검사로 물리 모드나 durable cleanup을 입증한 것은
+아니며 GUI 실행은 정상 장치 조회를 수행합니다. 산출물 검증 중 설치 앱
+bytes·바깥 디렉터리, 이전 로컬 앱 archive와 이미지는 유지됐고 후보는
+실행하지 않았습니다.
+
+이전 asset·tag, Homebrew 소유권·receipt, 환경설정, 복구와 trust·developer
+설정을 보존합니다. 공개 다운로드·Tap 공개, 설치·upgrade, beta.9 GUI 권한
+확인과 공개 A → B 권한 유지는 **NOT_RUN**입니다. 서명 identity 설치·추가
+trust가 없는 수신 Mac과 Gatekeeper도 **NOT_RUN**입니다. 2026-10-12 기록은
+당시 checkpoint를 유지합니다. 로컬 근거는
+`.build/releases/beta9-e62595b427/native-app-verification.json`과
+`native-artifact-verification.json`에 있으며 비공개 운영자 정보는 공개하지
+않습니다.
+
 ## Beta.8 release — 2026-10-12
 
 상태는 **PUBLISHED**입니다. Prerelease `v0.8.0-beta.8`, build 26을
@@ -38,6 +85,201 @@ Developer 변경 명령은 실행하지 않았습니다. Build 26 GUI·실기기
 일치합니다. 공유 trust-store raw hash는 달라졌으며 원인·변경 주체는 미확인입니다.
 복구 조작은 하지 않았습니다. [보존 한계](docs/releases/v0.8.0-beta.8.md#상태-보존과-관측-한계)를 확인하세요.
 
+## 손쉬운 사용 서명 시험 — 2026-10-12
+
+상태는 **PROBE_RETENTION_PASS; 서명한 Touch Me release는 미공개**입니다.
+공개 beta.8/build 26의 ad hoc 서명, public asset과 Cask는 그대로 유지합니다.
+앱은 `AXIsProcessTrusted()`로 권한을 확인하며 승인을 초기화하거나 부여하지
+않습니다. Ad hoc 서명은 재빌드할 때 바뀌는 code hash로 앱을 구분합니다.
+같은 서명 identity를 유지하면 업데이트의 designated requirement(DR)도 유지할
+수 있습니다. [TCC identity에 관한 Apple DTS 설명](https://developer.apple.com/forums/thread/678816)
+
+점검한 beta.7/build 25 후보와 설치된 beta.8/build 26은 Bundle ID가 같고
+각각 strict 검사를 통과했지만 양쪽 cross-DR 검사는 실패했습니다.
+Ad hoc identity가 바뀐 것은 직접 확인했으며 특정 Homebrew upgrade에서
+권한 metadata도 삭제됐는지는 아직 확인하지 않았습니다.
+
+승인된 시험은 별도 identifier를 가진 임시 AppKit 앱으로 진행했습니다.
+Touch Me, HID, 환경설정이나 복구 코드는 사용하지 않았습니다. A와 B는 실행
+파일 bytes가 다르지만 같은 self-signed 시험 인증서와 인증서에 고정한 DR을
+사용했습니다. Strict 서명 검사와 A↔B requirement 검사를 통과했고 같은
+identifier의 ad hoc control은 A의 requirement를 만족하지 못했습니다.
+이 control은 서명 검사 결과이며 native TCC 거부를 검증한 것은 아닙니다.
+
+확인한 DR은 identifier
+`io.github.soom-kang.touchme.permission-probe.a3d14357a8564d82a728df0d19f008fc`와
+`certificate leaf = H"<certificate SHA-1>"`을 사용하며 fingerprint는 아래와 같습니다:
+
+| 동결한 서명 근거 | 값 |
+| --- | --- |
+| Certificate SHA-1 / DR leaf pin | `fd7559b266965ecd48f540e3a7038570e3f1a38d` |
+| A executable SHA-256 | `cbd031967862542ef9206439d49af765eefce134a886c30de88b08ab6f0a7d7a` |
+| B executable SHA-256 | `38559bccce57061d6bcd0afba9196f5558c46b692a4d254736aabca4747a0ca6` |
+
+| Native 관측 | 결과 |
+| --- | --- |
+| 최초 A, PID 503 | 손쉬운 사용 false |
+| 수동 승인 후 새 A, PID 6588 | 14:27:02 KST(05:27:02 UTC)에 true |
+| A→B 교체 후 새 B, PID 8347 | 교체 중 권한 설정을 바꾸지 않고 14:27:51 KST(05:27:51 UTC)에 true |
+| 교체 식별 | 같은 live bundle 경로와 바깥 디렉터리 inode 유지; 실행 파일 hash는 다름 |
+| 인증서 trust | User, admin, system trust 설정을 추가하지 않음 |
+
+최초 승인에는 재시도가 필요했습니다. TCC allowed 기록은 보였지만 임시 앱의
+LaunchServices URL lookup이 실패했고 시스템 설정에 Probe 항목이 보이지
+않았습니다. 이후 새 A process가 true를 반환했습니다. 권한 유지 시험 전에는
+명시적인 LaunchServices registry 보정을 하지 않아 최초 문제의 원인은 미확인입니다. 로컬 근거는
+`/private/tmp/touch-me-permission-probe-q7qkss10/`의 `probe-result.json`,
+`signature-evidence.json`, `replacement-evidence.json`에 보존했습니다.
+
+A→B 수용 시험 후 live Probe 경로에 public `LSRegisterURL(url, false)`를
+실행해 status 0을 받았지만 Bundle ID의 URL 조회 결과는 비어 있었습니다.
+이후 사용자가 승인한 동일 서명의 B 복사본을 `.build/permission-probe-cleanup/`에
+준비했습니다. 이 경로의 등록은 status 0과 예상한 URL을 반환했고 시스템
+설정을 다시 열자 허용된 Probe 항목이 표시됐습니다. 정리용 복사본은 실행하지
+않았습니다. 사용자가 Probe 항목을 수동 제거한 뒤 새 손쉬운 사용 UI에서
+항목이 없고 실제 Touch Me 항목은 ON인 것을 확인했습니다. 정확한 Bundle ID와
+B 실행 파일 hash를 확인한 뒤 정리용 복사본과 빈 부모 디렉터리를 제거했으며
+Probe process도 남지 않았습니다. 14:48:37 KST(05:48:37 UTC)의 정리 관측은
+**PASS_USER_REMOVAL_UI_CONFIRMED**입니다. 등록과 정리는 권한 유지 검증 후에
+수행했으므로 앞선 PASS의 일부가 아닙니다. 이후 사용자가 시험 Keychain만
+삭제하도록 승인했습니다. 정확한 경로와 공개 인증서 fingerprint를 대조하고
+기본 Keychain이 아님을 확인한 뒤 해당 경로의 `security delete-keychain`을
+실행했습니다. 삭제가 성공했으며 파일이 없는 것을 확인했습니다. 원래 임시
+앱, 공개 인증서와 근거는 보존했고 key 정리는 **DELETED_WITH_USER_APPROVAL**입니다. 로컬
+`registration-cleanup-evidence.json`과 갱신한 `probe-result.json`에 기록했습니다.
+
+이 PASS는 현재 Mac, 사용자와 경로에 한정됩니다. 수용 시험 당시에는 전용
+시험 Keychain과 private key가 있었으며 시험 후 삭제했습니다. 인증서와
+private key를 Keychain에 별도로 설치하지 않고 인증서 trust도 추가하지 않은
+수신 Mac의 시험과 실제 Touch Me/Homebrew
+upgrade는 **NOT_RUN**입니다. 시험 identity는 release에
+사용하지 않습니다. Probe 권한 항목 정리는 완료했습니다.
+장기 maintainer identity 준비는 아래에서 검증했습니다. Native 서명 Touch Me
+빌드와 패키징, 실제 upgrade는 각각 승인된 실행 범위가 필요합니다. 공개 ad hoc identity에서
+전환할 때는 수동 재승인이 한 번 필요할 수 있으며 이후 권한 유지도 native
+acceptance로 확인해야 합니다. Self-signed 서명은 Developer ID, 공증이나
+Gatekeeper 승인의 근거가 되지 않습니다.
+
+Apple은 self-signed 앱의 배포를 권하지 않습니다. 같은 인증서로 버전 간
+출처가 같다는 것은 확인할 수 있지만 수신자가 maintainer의 신원을 확인할
+수는 없습니다. 사용자는 이 한계를 전제로 개인 Homebrew beta Tap의 무료
+self-signed 시험을 선택했습니다. 서명한 release는 공개하지 않았습니다.
+[Apple Code Signing Tasks](https://developer.apple.com/library/archive/documentation/Security/Conceptual/CodeSigningGuide/Procedures/Procedures.html)
+
+Pilot checkpoint의 source 검사는 `python3 -m unittest discover -s Tests/PackagingTests -v`
+(기존 22개와 좁은 서명 사례 4개, 총 26개)와 `bash -n scripts/build-app.sh`를
+통과했습니다. 서명한 Probe와 ad hoc control의 native `codesign` 통합 조회도
+통과했습니다. 제한된 executor에서는 인증서 추출 결과를 읽을 수 없었으며
+native Mac 조회는 trust 추가나 ad hoc 전환 없이 통과했습니다. Mock packaging
+검사와 Probe 조회로 native 서명 Touch Me 앱이나 DMG를 검증했다고 볼 수는
+없습니다. 이후 [로컬 후보 검사](#로컬-인증서-서명-touch-me-후보--2026-10-12)는 별도로
+기록합니다. Core, Platform과 App 코드는 유지해 Swift tests를 반복하지 않았습니다.
+
+## Release signing identity 준비 — 2026-10-12
+
+상태는 **GENERATED; RESTORE_SIGNING_PASS**입니다. 장기 self-signed identity는
+삭제한 시험 identity와 구분합니다. 공개 인증서 metadata는 다음과 같습니다:
+
+| 항목 | 값 |
+| --- | --- |
+| CN | `Touch Me Release Signing` |
+| Key / signature | `RSA 4096` / `sha256WithRSAEncryption` |
+| 유효 기간 | `3650 days`; `2026-10-12T08:01:07Z` → `2036-10-09T08:01:07Z` |
+| Certificate SHA-1 | `e7491a0b49d0784093d48b2bb30b298df3a924f9` |
+| Certificate SHA-256 | `f58a3ca4f6dcfda8f04192c5170288b3a5ffb286acbcae147ead120892002819` |
+
+사용자는 native 대화상자에서 password로 보호한 PKCS#12 export와 import를
+완료했습니다(`USER_REPORTED`). 백업 파일 존재, `0600`과 부모 디렉터리의
+`0700`은 직접 확인했습니다. Agent는 백업 내용을 읽거나 복사하지
+않았습니다. FileVault는 켜져 있습니다. 독립 저장 장치는 **NOT_AVAILABLE**이며
+같은 Mac의 암호화 파일만으로는 장치 손실에 대비할 수 없습니다.
+
+전용 Keychain의 **My Certificates**에서 private key가 연결된 identity를
+선택하고 **File → Export Items**로 암호화한 `.p12`를 저장하세요. 인증서만
+담은 `.cer`는 identity 백업이 아닙니다. 같은 CN으로 새로 만드는 것은 다른
+identity이므로 기존 identity를 복구해야 합니다. macOS 26.4 이후에는
+Keychain을 열 때 protected entropy가 필요할 수 있어 Keychain 파일 복사만으로
+백업을 검증했다고 볼 수 없습니다. [Apple TN3137](https://developer.apple.com/documentation/technotes/tn3137-on-mac-keychains)
+
+별도 임시 복구 Keychain의 private key로 서로 다른 내용의 dummy 앱을 서명했습니다.
+원본과 복구 dummy 모두 strict 서명, 내장 인증서 SHA-1/SHA-256 일치와 양쪽
+DR 검사를 통과했습니다. Identifier
+`io.github.soom-kang.touchme.release-identity-check.e404eb4a952a4a0abe693c35eff316ff`와
+위 인증서의 leaf hash pin은 같고 cdhash는 다릅니다:
+
+| Dummy | cdhash |
+| --- | --- |
+| Source | `84142f0e4e0ad9f7248a6a33e45e1d3433a93a47` |
+| Restored | `c16afb96b34262ea9bcbc3095ad5dc145ec82303` |
+
+두 앱은 실행하지 않았습니다. User, admin, system domain에 인증서 trust
+항목도 추가하지 않았습니다. 이 Mac의 복구 검증은 17:28:37 KST(08:28:37 UTC)에
+완료했으며 다른 Mac에서의 복구는 **NOT_RUN**입니다. Git 밖의 장기 Keychain은
+`0600`, 300초 후 잠금, sleep 시 잠금과 기본 Keychain이 아님을 직접 확인했습니다.
+Password와 private 경로는 이 문서에 기록하지 않습니다. 임시 복구 Keychain은
+**DELETED_WITH_USER_APPROVAL**로 정리했습니다. 정확한 경로, 유일한 인증서의
+SHA-1/SHA-256과 기본 Keychain이 아님을 확인한 뒤 해당 대상만 삭제했습니다.
+파일과 search-list 항목이 없는 것을 확인했습니다. 당시 원본 release Keychain은
+잠근 채 보존했고 암호화 백업도 유지했습니다. 정리는
+17:34:45 KST(08:34:45 UTC)에 완료했고 로컬 `restore-cleanup-result.json`에 기록했습니다.
+
+17:34:45 KST의 identity 준비 checkpoint에서는 native 서명 Touch Me 빌드,
+DMG 패키징, 설치, Homebrew upgrade, 서명 identity를
+별도로 설치하거나 trust를 추가하지 않은 수신 Mac의 시험, Gatekeeper와
+서명 release 공개는 **NOT_RUN**이었습니다. 이후 [로컬 후보 검사](#로컬-인증서-서명-touch-me-후보--2026-10-12)는
+빌드와 패키징 산출물만 확인했습니다. 설치 수용 시험과 push·공개는 별도 승인
+범위를 유지하며 공개 beta.8은 기존 ad hoc release입니다. 근거 JSON은 Git 밖
+로컬의 다음 파일에 보존합니다:
+`certificate-public-metadata.json`, `source-signing-result.json`,
+`backup-export-result.json`, `restore-verification-result.json`.
+`backup-export-result.json`은 export 시점의 `restore=NOT_RUN` snapshot을
+그대로 보존합니다. 최종 복구 결과는 이후 생성한 `restore-verification-result.json`에 있습니다.
+
+## 로컬 인증서 서명 Touch Me 후보 — 2026-10-12
+
+상태는 **NATIVE_ARTIFACT_PASS; 로컬 후보 전용**입니다. macOS 26.7.1(`25G241`),
+Apple Silicon과 Apple Swift 6.4에서 빌드와 패키징을 각각 한 번 실행해 exit 0으로
+마쳤습니다. Source HEAD `0e73df845d3b796fdcb7693ce7d4999dd38d5093`와 승인된
+11개 파일의 working diff로 후보를 만들었습니다. 빌드와 패키징 중 입력은
+유지됐으며 이후 결과를 기록한 문서 수정은 binary를 바꾸지 않습니다.
+이전 로컬 beta.7/build 25를 기준으로 build 26을 생성했습니다.
+
+이 후보는 공개 ad hoc release와 `0.8.0-beta.8`/26이 같지만 준비한 장기
+인증서로 서명했고 실행 파일과 DMG bytes는 다릅니다. Version/build만으로
+구분하지 말고 공개 asset과 Cask는 그대로 유지하세요.
+
+| 후보 식별 | 값 |
+| --- | --- |
+| Release / build / target | `0.8.0-beta.8` / `26`; `io.github.soom-kang.touchme`, `arm64` |
+| Embedded certificate SHA-1 | `e7491a0b49d0784093d48b2bb30b298df3a924f9` |
+| Embedded certificate SHA-256 | `f58a3ca4f6dcfda8f04192c5170288b3a5ffb286acbcae147ead120892002819` |
+| Executable SHA-256 | `2b6b432ec94a06609fe9deba1521ac4e9736a54159933193bca44e76b2051069` |
+| DMG size / SHA-256 | `525417 bytes`; `f481cb21f7c34a5d5e99a0620bf7b25c2c4ca8056058b54f3384108d299fb919` |
+
+Native strict 앱 검사, 내장 인증서 일치, identifier와 certificate-leaf로
+구성된 DR, arm64, version/build metadata와 라이선스·아이콘 검사를
+통과했습니다. 앱 cdhash는 `b35b3a8024952ba60f78fead2d3399b91ba49308`입니다.
+DMG는 native `hdiutil verify`, sidecar `shasum`과 읽기 전용으로 마운트한
+내부 앱의 bytes 일치, strict 서명, 인증서와 DR 검사를 통과했습니다.
+두 언어의 `Install.txt`, Applications 바로가기와 정상 detach도 확인했습니다.
+Packager는 바깥 DMG 자체에 code signing을 하지 않았습니다. 이 결과는 내부
+앱 서명과 이미지의 무결성·checksum을 확인한 것입니다.
+
+이전 로컬 앱은 같은 bytes로 archive에 보존했습니다. 기존 beta.7 이미지와
+설치 앱도 유지됐습니다. User, admin, system domain에 인증서 trust를
+추가하지 않았고 후보 앱은 실행하지 않았습니다. 산출물 검증은
+17:59:56 KST(08:59:56 UTC)에 완료했습니다. 이후 장기 Keychain을 잠갔고 `0600`,
+300초 후 잠금과 sleep 시 잠금, 기본 Keychain이 아님과 암호화 백업의 `0600`
+유지를 로컬 `keychain-final-state.json`에서 확인했습니다. 로컬 근거는 Git 밖의
+`.build/signing-validation/2026-10-12-5eb15eb5df/`에 있는
+`native-app-verification.json`, `native-artifact-verification.json`,
+`environment.json`에 보존했으며 운영자의 private 경로는 이 문서에 넣지 않습니다.
+
+손쉬운 사용과 입력 모니터링 권한 유지, 설치·Homebrew upgrade, 서명 identity를
+별도로 설치하거나 trust를 추가하지 않은 수신 Mac의 시험, Gatekeeper,
+서명 release 공개와 push는 **NOT_RUN**입니다. 산출물 PASS만으로 권한 유지
+목표를 검증했다고 볼 수 없으며 해당 작업은 별도 승인 범위를 유지합니다.
+
 ## Beta.8 이전 source QA 기준 기록 — 2026-10-12
 
 `65a8e71` 위의 수정한 checkout에서 `bash scripts/test.sh`(App 컴파일과 38개 tests)와
@@ -62,9 +304,9 @@ Apple Silicon Mac, macOS 26 이상, 패키지의 Swift 6.0 manifest와 호환되
 | --------------------- | ------------------------------------ |
 | 앱과 실행 파일        | `Touch Me.app` / `TouchMe`           |
 | Bundle Identifier     | `io.github.soom-kang.touchme`        |
-| Release 버전          | `VERSION`에서 읽는 `0.8.0-beta.8`    |
+| Release 버전          | `VERSION`에서 읽는 `0.8.0-beta.9`    |
 | 번들 버전             | `0.8.0`과 증가하는 숫자 build 번호   |
-| 전체 release metadata | `TouchMeReleaseVersion=0.8.0-beta.8` |
+| 전체 release metadata | `TouchMeReleaseVersion=0.8.0-beta.9` |
 | 대상 환경             | `arm64`, macOS 26 이상               |
 
 문서나 패키징을 바꿀 때는 식별자와 저장한 환경설정 형식을 유지하세요. 서명 identity나 설치 경로를 바꾸면 설치 앱의 권한 확인이 필요할 수 있습니다.
@@ -214,7 +456,29 @@ Release 실행 파일을 빌드하고 아이콘과 프로젝트 라이선스를 
 bash scripts/build-app.sh
 ```
 
-스크립트는 `dist/Touch Me.app`을 만들고 이전 로컬 번들의 build 번호를 증가시킵니다. 이전 앱은 `dist/previous-builds`에 보존합니다. Ad hoc 서명 후 `codesign --verify --strict`로 검증합니다.
+스크립트는 `dist/Touch Me.app`을 만들고 이전 로컬 번들의 build 번호를 증가시킵니다. 이전 앱은 `dist/previous-builds`에 보존합니다. 기본값은 `--signing-mode ad-hoc`이며 두 mode 모두 `codesign --verify --strict`로 검증합니다.
+
+승인된 self-signed 후보를 만들 때는 아래 placeholder를 장기 인증서의
+40자리 SHA-1 fingerprint와 기존 Keychain의 절대 경로로 바꾸세요. 다음
+빌드에도 같은 인증서를 사용하며 Probe 시험 identity는 제외합니다.
+[장기 identity와 백업 검사](#release-signing-identity-준비--2026-10-12)는 완료했으며
+실제 Touch Me 빌드 실행에는 별도 승인이 필요합니다:
+
+```bash
+bash scripts/build-app.sh --signing-mode self-signed \
+  --signing-identity '<40-character certificate SHA-1>' \
+  --keychain '/absolute/path/to/signing.keychain-db'
+```
+
+`python3 scripts/bundle-app.py [executable]`도 같은 옵션을 받습니다. Bundler는
+내장 인증서 fingerprint와 앱 identifier, leaf certificate hash로 구성된
+정확한 기본 DR을 확인합니다. 옵션, 서명이나 검증에 실패하면 ad hoc으로
+전환하지 않고 이전 앱을 대치하기 전에 중단합니다. Scripts는 Keychain 생성,
+import, unlock이나 인증서 trust 변경을 하지 않습니다. `--keychain`은
+identity lookup을 제한하며 인증서 chain 구성은 기존 Keychain search list를
+조회할 수 있습니다. 이 mode는 `--timestamp=none`을 사용하고 별도 만료
+requirement를 추가하지 않습니다. 인증서와 private key를 안전하게 보관하세요.
+인증서를 교체하면 고정한 identity가 바뀌어 수동 재승인이 필요할 수 있습니다.
 
 디스크 이미지를 만들기 전에 번들 metadata와 라이선스 리소스를 확인하세요:
 
@@ -224,7 +488,7 @@ cat 'dist/Touch Me.app/Contents/Resources/Licenses.txt'
 cmp Resources/TouchMe.icns 'dist/Touch Me.app/Contents/Resources/TouchMe.icns'
 ```
 
-`Licenses.txt`에는 프로젝트 `LICENSE`를 넣습니다. 라이선스 파일이 없으면 번들 생성을 중단합니다. Ad hoc 서명 검증은 로컬 번들의 무결성을 확인하며, Developer ID 서명이나 notarization의 근거가 되지는 않습니다.
+`Licenses.txt`에는 프로젝트 `LICENSE`를 넣습니다. 라이선스 파일이 없으면 번들 생성을 중단합니다. Strict 서명 검증은 로컬 번들의 무결성을 확인하며 ad hoc과 self-signed mode 모두 Developer ID 서명, 공증이나 설치 앱의 권한 유지를 검증한 근거가 되지는 않습니다.
 
 ## 개인용 디스크 이미지 만들기
 
@@ -234,7 +498,22 @@ cmp Resources/TouchMe.icns 'dist/Touch Me.app/Contents/Resources/TouchMe.icns'
 python3 scripts/package-dmg.py
 ```
 
-스크립트는 앱의 식별자, `VERSION`과 release metadata의 일치, 라이선스 리소스 존재 여부, 서명과 arm64 아키텍처를 확인합니다. 이전 버전 번들이면 새 release 파일명을 붙이지 않고 패키징을 중단합니다. 산출물은 다음과 같습니다:
+Self-signed bundle에는 bundler가 인증서를 검증한 뒤 출력한 64자리 SHA-256
+fingerprint를 사용하세요:
+
+```bash
+python3 scripts/package-dmg.py \
+  --expected-certificate '<64-character certificate SHA-256>'
+```
+
+Packager는 인증서로 서명한 앱에 이 fingerprint를 요구하며 내장 인증서와
+고정한 DR을 확인합니다. Ad hoc 앱에 이 옵션을 주면 중단합니다. 두 언어의
+`Install.txt`에는 실제 확인한 ad hoc 또는 인증서 서명을 표시합니다.
+Fingerprint와 DR 검사만으로 인증서 자체가 self-signed라는 것을 암호학적으로
+검증한 것은 아닙니다. 이 안내는 Gatekeeper 승인이나 최초 전환의
+재승인, native upgrade acceptance 완료를 보장하지 않습니다.
+
+스크립트는 앱의 식별자, `VERSION`과 release metadata의 일치, 라이선스 리소스 존재 여부, 서명과 arm64 아키텍처를 확인합니다. 이전 버전 번들이거나 서명 식별이 다르면 이전 DMG를 대치하기 전에 패키징을 중단합니다. 산출물은 다음과 같습니다:
 
 | 산출물                                        | 용도                    |
 | --------------------------------------------- | ----------------------- |

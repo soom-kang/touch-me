@@ -14,7 +14,14 @@ Beta `0.8.0-beta.8`은 **P16KT에서 확인한 USB/HID profile**을 요구합니
 
 [Beta.8/build 26](https://github.com/soom-kang/touch-me/releases/tag/v0.8.0-beta.8)을 2026-10-12 10:41:21 KST(01:41:21 UTC)에 **PUBLISHED**로 공개했습니다. 공개 DMG/checksum bytes는 검사한 release와 일치하며 공개·로컬 Tap revision `47a3e433`도 검증한 Cask와 같습니다. 새 앱과 DMG를 각각 한 번 생성하고 native 산출물 검사를 통과했습니다. 기존 Swift 38개와 packaging 22개 PASS는 재사용합니다. Build 26 GUI·실기기 사용·설치·Homebrew upgrade·Gatekeeper는 `NOT_RUN`입니다. [Beta.8 release notes](docs/releases/v0.8.0-beta.8.md)를 확인하세요.
 
-이번 release에는 아래에서 설명하는 TMQA-006 복구 기록 정리와 TMQA-007 패키징 수정을 포함합니다. 기존 arm64/macOS 26+ 대상, ad hoc 서명과 장치 모드 및 환경설정 형식은 유지합니다.
+Beta.9/build 27은 **READY_FOR_PUBLICATION; NOT_PUBLISHED**입니다. 장기 인증서로
+서명한 로컬 앱과 DMG가 native 산출물 검사를 통과했습니다. 승인한 공개 beta.9 A →
+beta.10 B Homebrew 경로의 권한 유지는 `NOT_RUN`이며 첫 전환에는 수동 승인이
+필요할 수 있습니다. Beta.9 공개를 확인하기 전까지 아래 beta.8 설치 안내를
+사용하세요. [Beta.9 후보 기록](docs/releases/v0.8.0-beta.9.md)에 정확한 식별을
+기록합니다.
+
+공개 beta.8에는 아래에서 설명하는 TMQA-006 복구 기록 정리와 TMQA-007 패키징 수정을 포함합니다. 기존 arm64/macOS 26+ 대상, ad hoc 서명과 장치 모드 및 환경설정 형식은 유지합니다.
 
 합의한 범위에 따라 online audit는 계속 `BLOCKED`입니다. Trust·developer 변경 명령이나 우회 변수는 사용하지 않았습니다. 대상 trust 상태는 baseline과 같으며 공유 store의 [관측 한계](docs/releases/v0.8.0-beta.8.md#상태-보존과-관측-한계)는 별도로 기록합니다.
 
@@ -139,6 +146,14 @@ Beta는 ad hoc 서명을 사용하며 공증하지 않았습니다. macOS가 다
 앱 재실행이나 이후 중지 성공만으로 충돌 전 모드가 복구됐다고 판단하지 마세요. 장치 동작이 예상과 다르면 매핑을 중지하고 업데이트와 제거를 보류하며 오류 내용을 보존하세요. 추측한 모드 값을 장치에 강제로 쓰지 마세요. 자세한 확인 범위는 [비정상 종료 검증](docs/qa/abnormal-exit-recovery.md)에 정리했습니다.
 
 업데이트하거나 제거하기 전에는 **매핑 중지 → 안전한 정리 확인 → 정상 종료**를 수행하세요. 안전한 정리는 연속 연결의 모드 복구나 종료가 확인된 연결의 기록 보존입니다. 복구나 기록 처리에 실패하면 기록과 오류를 보존하고 복구 재시도를 마칠 때까지 진행하지 마세요. 기록을 삭제하거나 이전 모드를 새 연결에 쓰지 않습니다. Ad hoc 앱을 업데이트한 뒤에는 두 개인정보 보호 권한을 다시 확인하세요.
+
+공개 beta.8은 ad hoc 서명을 유지하므로 업데이트 후 손쉬운 사용 재승인이
+필요할 수 있습니다. 별도 self-signed Probe의 A→B 교체 한 번에서 이 Mac의
+권한 유지가 확인됐으며 실제 Touch Me/Homebrew upgrade와 다른 수신 환경은
+아직 검증하지 않았습니다. [서명 시험 기록](Workflow.ko.md#손쉬운-사용-서명-시험--2026-10-12)을 확인하세요.
+권한이 없으면 시스템 설정에서 설치한 Touch Me의 **손쉬운 사용**을 다시
+허용하고 **다시 조회**를 누르세요. 이미 허용된 다른 권한은 유지하세요.
+반영되지 않으면 정상 종료한 뒤 같은 설치 앱을 다시 여세요.
 
 제거할 때는 **로그인 시 Touch Me 열기**도 꺼 주세요. 직접 설치한 앱은 안전한 정리와 종료를 마친 뒤 휴지통으로 옮기고 Homebrew로 설치한 앱은 [업데이트와 제거 안내](docs/Homebrew.ko.md#공개-후-설치업데이트제거)를 따르세요. 이 절차는 저장한 환경설정을 삭제하지 않습니다.
 
