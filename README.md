@@ -10,16 +10,22 @@ Touch Me is a macOS menu bar app built to help you use ZEUSLAP touch-enabled mon
 
 It maps touch input to the display you select, enabling taps, double-clicks, one-finger dragging and two-finger scrolling. Choose and confirm the target display in the app, then start mapping. Use the menu bar to stop mapping or change settings.
 
-Beta `0.8.0-beta.8` requires the **USB/HID profile verified on the P16KT**. Mapping won't start if the device identifiers or HID (Human Interface Device) input layout differ. Support for other ZEUSLAP models isn't guaranteed, so check the setup below first.
+Beta `0.8.0-beta.9` requires the **USB/HID profile verified on the P16KT**. Mapping won't start if the device identifiers or HID (Human Interface Device) input layout differ. Support for other ZEUSLAP models isn't guaranteed, so check the setup below first.
 
-[Beta.8/build 26](https://github.com/soom-kang/touch-me/releases/tag/v0.8.0-beta.8) was **PUBLISHED** on 2026-10-12 at 10:41:21 KST (01:41:21 UTC). Public DMG/checksum bytes match the inspected release. The public and installed Tap revision `47a3e433` matches the verified Cask. One new app and DMG passed native artifact checks; the existing 38 Swift and 22 packaging test results are reused. Build 26 GUI, real-device use, installation, Homebrew upgrade and Gatekeeper are `NOT_RUN`. See the [beta.8 release notes](docs/releases/v0.8.0-beta.8.md).
+[Beta.9/build 27](https://github.com/soom-kang/touch-me/releases/tag/v0.8.0-beta.9)
+is **PUBLISHED** — 2026-10-14 00:17:31 KST (2026-10-13 15:17:31 UTC). Verified
+public DMG/checksum bytes and Tap `65d13988` match the recorded release. One
+normal Homebrew beta.8 → beta.9 in-place upgrade passed with installed bytes,
+strict certificate/DR and outer-directory preservation verified. The user
+confirmed both permissions Allowed in its own GUI after initial approval.
+Normal Quit and native PID absence passed. Public beta.9 → beta.10 retention is `NOT_RUN`. See the
+[beta.9 release notes](docs/releases/v0.8.0-beta.9.md).
 
-Beta.9/build 27 is **READY_FOR_PUBLICATION; NOT_PUBLISHED**: its local app and DMG
-passed native artifact checks under the permanent signing certificate. The
-approved public beta.9 A → beta.10 B Homebrew route still has permission
-retention `NOT_RUN`; the first transition may need manual privacy approval.
-Use the beta.8 instructions below until verified beta.9 publication. See the
-[beta.9 candidate record](docs/releases/v0.8.0-beta.9.md).
+Beta.10/build 28 is **READY_FOR_PUBLICATION; NOT_PUBLISHED**. Native artifact
+and equivalent Cask-rule checks passed; public beta.9 → beta.10 upgrade and
+retention remain `NOT_RUN`. [Beta.10 draft](docs/releases/v0.8.0-beta.10.md).
+
+Historical 2026-10-12 publication: [Beta.8/build 26](https://github.com/soom-kang/touch-me/releases/tag/v0.8.0-beta.8) was **PUBLISHED** on 2026-10-12 at 10:41:21 KST (01:41:21 UTC). Public DMG/checksum bytes match the inspected release. The public and installed Tap revision `47a3e433` matches the verified Cask. One new app and DMG passed native artifact checks; the existing 38 Swift and 22 packaging test results are reused. Build 26 GUI, real-device use, installation, Homebrew upgrade and Gatekeeper are `NOT_RUN`. See the [beta.8 release notes](docs/releases/v0.8.0-beta.8.md).
 
 Published beta.8 includes the TMQA-006 recovery-cleanup fix and TMQA-007 packaging fix described below. It keeps the arm64/macOS 26+ target, ad hoc signature and existing device-mode and preference formats.
 
@@ -29,7 +35,7 @@ Historical 2026-10-10 publication: [beta.7/build 25](https://github.com/soom-kan
 
 Historical 2026-10-09 publication: [beta.6 build 24](https://github.com/soom-kang/touch-me/releases/tag/v0.8.0-beta.6) contained completed QA records with no runtime-code changes since beta.5 at that release. Public DMG/checksum, Tap and online audit checks passed; artifact identities are in the [release notes](docs/releases/v0.8.0-beta.6.md). The [beta.5 build 23 acceptance](docs/qa/beta5-native-acceptance.md) is regression evidence only. At the 2026-10-09 publication checkpoint, beta.6 installation, GUI, Gatekeeper, real-device use and Homebrew upgrade were `NOT_RUN`, and the installed beta.5 app was retained.
 
-## Current QA — 2026-10-12
+## Source QA checkpoint — 2026-10-12
 
 The [source QA report](docs/qa/2026-10-12-qa-report.md) records TMQA-006/007 fixes
 in commit `f828fd22`. Retry and Start confirm storage sync even when no active
@@ -56,19 +62,19 @@ The app targets one connected P16KT on an Apple Silicon Mac. Recorded hardware c
 | Target display | External, without rotation or mirroring |
 | Permissions | Input Monitoring and Accessibility |
 | App languages | English by default; English / 한국어 selector in settings |
-| Distribution | Ad hoc signed app and DMG; personal Homebrew beta Tap |
+| Distribution | Certificate-signed app in a DMG; personal Homebrew beta Tap |
 
 Other panels, Intel Macs and older macOS versions have no recorded validation. Stop other touch-mapping software before opening Touch Me.
 
 ## Install and start your first mapping session
 
-Install the published beta.8/build 26 through Homebrew or its DMG. Both installation routes use the same permission and target-display setup.
+Install the published beta.9/build 27 through Homebrew or its DMG. Both installation routes use the same permission and target-display setup.
 
 ### Install with Homebrew
 
 If you already have a manually installed `/Applications/Touch Me.app`, turn off **Open Touch Me at login** and select **Stop mapping**. Confirm restoration on the continuous connection or safe preservation of a verified ended-connection record, then quit normally and move the old app outside Applications to keep it. Stop installation if restoration fails. The [Homebrew installation guide](docs/Homebrew.md#install-update-and-remove-after-publication) explains how to preserve the app and preferences without forcing an overwrite.
 
-Install the verified beta.8 Cask:
+Install the verified beta.9 Cask:
 
 ```bash
 brew install --cask soom-kang/touch-me/touch-me
@@ -76,9 +82,9 @@ brew install --cask soom-kang/touch-me/touch-me
 
 ### Install from the DMG
 
-Download `touch-me-0.8.0-beta.8-arm64.dmg` and its `.sha256` file from the [beta.8 release](https://github.com/soom-kang/touch-me/releases/tag/v0.8.0-beta.8). Confirm version/build `0.8.0-beta.8`/26 and the recorded checksum in the [release notes](docs/releases/v0.8.0-beta.8.md), then open the disk image and drag **Touch Me.app** to **Applications**. Eject the image after copying. The earlier local beta.7 QA candidate has a different identity and is not this download.
+Download `touch-me-0.8.0-beta.9-arm64.dmg` and its `.sha256` file from the [beta.9 release](https://github.com/soom-kang/touch-me/releases/tag/v0.8.0-beta.9). Confirm version/build `0.8.0-beta.9`/27, checksum and certificate fingerprint in the [release notes](docs/releases/v0.8.0-beta.9.md), then open the image and drag **Touch Me.app** to **Applications**. Eject after copying. Earlier local QA/signing candidates are separate artifacts.
 
-The beta has an ad hoc signature and isn't notarized. If macOS blocks the downloaded app's first launch, verify its source and checksum before following [Apple's manual approval guidance](https://support.apple.com/en-us/102445). An available approval option doesn't guarantee the app can run.
+The beta uses a maintainer self-signed certificate, without Developer ID or notarization. Do not add certificate trust. If macOS blocks the downloaded app's first launch, verify its source and checksum before following [Apple's manual approval guidance](https://support.apple.com/en-us/102445). An available approval option doesn't guarantee the app can run.
 
 ### Set permissions and choose the target display
 
@@ -88,7 +94,7 @@ The choice takes effect immediately and stays selected on the next launch. Switc
 
 Set permissions and the target display in this order:
 
-1. In **System Settings → Privacy & Security**, allow Touch Me in **Input Monitoring** and **Accessibility**.
+1. In **System Settings → Privacy & Security**, enable only required Touch Me items in **Input Monitoring** and **Accessibility**. Leave already allowed items unchanged.
 2. Connect the P16KT by USB-C. Select **Refresh** if permissions or the device aren't visible.
 3. Select the P16KT display and choose **Open test on selected display**.
 4. Check that the test window appears on the P16KT, then select **I confirmed the test window is on the P16KT**.
@@ -134,7 +140,7 @@ Mapping temporarily changes the verified P16KT device mode. Stop or normal Quit 
 
 | Situation | Next action |
 | --- | --- |
-| A permission is missing | Allow Touch Me in both privacy settings, then select **Refresh** |
+| A permission is missing | Allow only required Touch Me items, keep already allowed items, then select **Refresh** |
 | The panel or display changed | Check the saved panel and confirm the display again; the old record is preserved only after ended-connection proof |
 | The mapped cable is disconnected | Wait for the saved target to return; follow the notice if manual Start is required |
 | Device access fails | Stop other mappers and check the USB connection |
@@ -144,15 +150,15 @@ Force Quit, a crash or power loss can't run normal cleanup. Public beta.4 and th
 
 Don't treat reopening the app or a later successful Stop as proof that the pre-crash mode was restored. If device behavior is unexpected, stop mapping, put upgrades and removal on hold, and keep the error details. Don't force an assumed mode value onto the device. See the [abnormal-exit verification notes](docs/qa/abnormal-exit-recovery.md) for the verification scope.
 
-Before updating or removing the app, follow **Stop mapping → confirm safe cleanup → normal Quit**. Safe cleanup restores the continuous connection or preserves a record only after its connection is proven ended. If restoration or record handling fails, preserve the record and error and use Retry restore before proceeding. Never delete the record or apply its old mode to a new connection. After an ad hoc update, check both privacy permissions again.
+Before updating or removing the app, follow **Stop mapping → confirm safe cleanup → normal Quit**. Safe cleanup restores the continuous connection or preserves a record only after its connection is proven ended. If restoration or record handling fails, preserve the record and error and use Retry restore before proceeding. Never delete the record or apply its old mode to a new connection. After an update, check both privacy permission states and allow only required items.
 
-Published beta.8 still uses ad hoc signing, so updates can require Accessibility
-reapproval. A separate self-signed probe retained authorization across one A→B
-replacement on this Mac; actual Touch Me/Homebrew upgrade and other recipients
-remain untested. See the [signing pilot](Workflow.md#accessibility-signing-pilot--2026-10-12).
-If authorization is missing, allow the installed Touch Me in **Accessibility**
-and select **Refresh**. Preserve permissions that are already allowed. If the
-status does not update, quit normally and reopen the same installed app.
+Published beta.9 uses the permanent signing certificate. The normal beta.8 →
+beta.9 upgrade passed, and the user reported both permissions Allowed after the
+initial transition. Public beta.9 → beta.10 retention and an identity-free
+receiving Mac remain untested. The [signing record](Workflow.md#public-signing-validation--2026-10-13)
+keeps these results separate from the earlier probe. If authorization is
+missing, allow only required items for the installed Touch Me, then **Refresh**.
+Keep already allowed permissions; quit normally and reopen the same app if needed.
 
 Turn off **Open Touch Me at login** before removal. After safe cleanup and Quit, move a manually installed app to Trash. For a Homebrew installation, follow the [update and removal guide](docs/Homebrew.md#install-update-and-remove-after-publication). These steps preserve saved preferences.
 
@@ -166,11 +172,11 @@ For local builds or distribution details, read these documents:
 
 - [Build workflow](Workflow.md): module responsibilities, local builds, packaging and checks for each change
 - [Homebrew distribution](docs/Homebrew.md): Tap and release procedure, installation conflicts, updates and removal
-- [Beta.8 release notes](docs/releases/v0.8.0-beta.8.md): recovery/packaging fixes, publication results and validation limits
-- Historical release notes: [beta.4](docs/releases/v0.8.0-beta.4.md), [beta.5](docs/releases/v0.8.0-beta.5.md), [beta.6](docs/releases/v0.8.0-beta.6.md), [beta.7](docs/releases/v0.8.0-beta.7.md)
+- [Beta.9 release notes](docs/releases/v0.8.0-beta.9.md): signing, publication, upgrade and permission-baseline results
+- Historical release notes: [beta.4](docs/releases/v0.8.0-beta.4.md), [beta.5](docs/releases/v0.8.0-beta.5.md), [beta.6](docs/releases/v0.8.0-beta.6.md), [beta.7](docs/releases/v0.8.0-beta.7.md), [beta.8](docs/releases/v0.8.0-beta.8.md)
 - [Editable architecture diagram](docs/assets/architecture.html)
 
-The beta.8 packaging target is `dist/touch-me-0.8.0-beta.8-arm64.dmg`, for build 26. Local artifact checks and exact public-byte verification passed; a local path does not establish publication.
+The published beta.9/build 27 artifact is `dist/touch-me-0.8.0-beta.9-arm64.dmg`. Native and public-byte checks passed; exact source/tag and download identities are in its release notes. Local builds read their version from `VERSION`.
 
 ## Recorded validation
 

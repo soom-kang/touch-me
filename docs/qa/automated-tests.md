@@ -3,38 +3,57 @@
 Ticket: TMQA-005. Tests added here are not a claim that native tests passed.
 No CI service, external dependency, device driver, or permission change is added.
 
-## Public signed beta.9 preparation — 2026-10-13
+## Beta.10 native candidate — 2026-10-14
 
-The native beta.9/build 27 candidate is **READY_FOR_PUBLICATION; NOT_PUBLISHED**.
-One build and one package invocation exited 0. Native strict signature, exact
-permanent certificate/DR, metadata, arm64, license/icon, DMG integrity/sidecar,
-five read-only inner-app file comparisons, inner signature/certificate/DR,
-bilingual notes, Applications shortcut and normal detach passed. Installed
-bytes/outer directory, the prior app archive and earlier images were preserved;
-42 build/package inputs remained unchanged. The outer DMG was not code signed
-by the packager, and the candidate was not launched.
-[Workflow](../../Workflow.md#public-signing-validation--2026-10-13) and the
-[beta.9 candidate record](../releases/v0.8.0-beta.9.md) retain hashes and evidence.
-Cask Ruby syntax and equivalent Homebrew Cask style rules passed (one file,
-no offenses). The initial style attempt exited 2 for missing locked
-`spoom 1.8.10`; a process-only load path for existing compatible `1.8.9` passed.
-No gem/configuration/trust write or additional Cask-rule exclusion was used.
-Exact locked-toolchain validation did not pass; online audit stays `BLOCKED`
-under the existing deferral. Exact commit approval is pending.
+**READY_FOR_PUBLICATION; NOT_PUBLISHED**. Build/package one each exited 0 for
+beta.10/build 28. Native app/DMG and bidirectional same-certificate A9/B10 DR
+checks passed with different cdhash; B10 was not launched. Equivalent Cask rules
+passed using existing compatible `spoom 1.8.9`, not the exact locked toolchain.
+Nonfatal CLT search-path warnings were retained without toolchain changes.
+[Release draft](../releases/v0.8.0-beta.10.md) records hashes and frozen43 inputs.
+Public download, beta.9 → beta.10 upgrade/retention, fresh Gatekeeper, receiver
+and device acceptance remain `NOT_RUN`. No runtime/test infrastructure changed.
 
-The approved route is public beta.9 A → beta.10 B with the same certificate,
-each followed by normal Homebrew upgrade. The App Management write/delete probe
-passed in the planned `brew` host with installed bytes/outer directory unchanged.
-Read-only preflight found no app process, `resumeMapping=false`, active record 0,
-valid reconnect guard 1 and archives 5; records were preserved.
+## Public signed beta.9 — 2026-10-14
 
-Public download/Tap publication, installation/upgrade, beta.9 GUI permission
-acceptance and public A → B retention are **NOT_RUN**, as are a receiving Mac
-without installed signing identity or added trust, and Gatekeeper. Initial
-ad hoc migration may require manual reapproval. Preserve receipts, preferences,
-recovery and trust settings; do not reset them to pass. Earlier source tests and
-probe results below retain their exact scopes. No suite was repeated for this
-artifact-only check, and no runtime feature or test infrastructure was added.
+Beta.9/build 27 is **PUBLISHED** at source/tag
+`0414617c860451e0c7b2200294b0eeca651f9ad9`/`v0.8.0-beta.9`.
+All 43 frozen inputs match the exact tag; anonymous public DMG/sidecar bytes
+match the native candidate. Public and clean installed Tap are
+`65d13988d6f4bb415df8f5d6853a8c38c8d3b7fc`. One normal Homebrew beta.8 → beta.9
+upgrade exited 0. Installed five-file equality, strict certificate/DR and outer
+device/inode preservation passed. The immediate App Management condition passed
+in the actual `brew` host; selected-Cask/whole-Tap trust remained true/false.
+[Workflow](../../Workflow.md#public-signing-validation--2026-10-13) and
+[release notes](../releases/v0.8.0-beta.9.md) retain exact identities/times.
+
+Initial A9 PID `26957` had user-reported one or more required permissions;
+individual before flags are unknown. After initial approval/restart, PID
+`35272` matched the public path/hash, and the user confirmed GUI beta.9/build
+27 with both permissions Allowed. Baseline is
+**PUBLIC_SIGNED_A9_GUI_PERMISSION_BASELINE_PASS_USER_REPORTED**. Normal Quit
+is user-reported and native PID absence passed; no Start was invoked. The
+automated GUI channel remained unavailable after reset/retries.
+
+Read-only postlaunch preferences/saved-payload/guard/recovery-manifest hashes
+match the preinstall baseline: `resumeMapping=false`, active 0, valid historical
+guard 1, archives 5. The earlier-boot guard was preserved; current-boot equality
+is not a prerequisite for the no-active-record path. Initial restricted queries
+were retained before successful native process confirmation. Physical mode and
+durable cleanup were not measured.
+
+At the 2026-10-13 native checkpoint, one build and one package exited 0; app/DMG
+checks and normal detach passed without launching the candidate. Equivalent
+Homebrew Cask style rules passed one file/no offenses after initial exit 2 for
+missing locked `spoom 1.8.10`, using installed compatible `1.8.9` through a
+process-only load path. Exact locked-toolchain validation did not pass; online
+audit stays **BLOCKED**. No suite was repeated or runtime feature/test
+infrastructure added for these artifact/publication checks.
+
+Public beta.9 → beta.10 retention, fresh Gatekeeper, physical-device acceptance
+and a receiving Mac without installed signing identity or added trust are
+**NOT_RUN**. Existing source-test and probe results below retain their scopes.
+Keep receipts, preferences and recovery; retain the confirmed A9 allowed state before measuring B.
 
 ## Current checkout check — 2026-10-12
 

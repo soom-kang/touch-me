@@ -45,5 +45,13 @@
     "scripts/package-dmg.py": "0c813c998bd563ffccb5ba085d3202a2e8ca0a1bbf60d8bf9380425c8dd083a5",
     "scripts/test.sh": "44b239916cd9eb536077a9f4c478cf814a0838f7311f6a155cf283d628df1932"
   },
-  "source_state": "All 43 release inputs frozen after native beta.9 build27/package and final DMG checksum. Exact release source/tag commit comparison remains pending publication."
+  "source_state": "All 43 frozen release inputs match published source 0414617c860451e0c7b2200294b0eeca651f9ad9 and tag v0.8.0-beta.9. Only validation documentation metadata is updated after publication; the input hash map is unchanged.",
+  "release_source_commit": "0414617c860451e0c7b2200294b0eeca651f9ad9",
+  "release_tag": "v0.8.0-beta.9",
+  "tagged_input_comparison": {
+    "result": "PASS",
+    "input_count": 43,
+    "annotated_tag_object": "626dc3614d4513fc7afbb001210ede240eaceb4e",
+    "peeled_source_commit": "0414617c860451e0c7b2200294b0eeca651f9ad9"
+  }
 }

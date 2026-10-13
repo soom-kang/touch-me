@@ -6,52 +6,77 @@
 
 이 Workflow에 따라 arm64 앱을 빌드하고 번들을 확인한 뒤 개인용 디스크 이미지를 만드세요. 기존 스크립트는 Apple의 로컬 도구와 Python 3를 사용합니다. 추가 dependency 설치와 산출물 공개는 수행하지 않습니다.
 
+## Beta.10 준비 — 2026-10-14
+
+상태는 **READY_FOR_PUBLICATION; NOT_PUBLISHED**입니다. Beta.10/build 28
+빌드·패키징 각 한 번은 exit 0입니다. Native 앱·DMG, 같은 인증서의 A9↔B10
+DR과 다른 cdhash 검사를 통과했고 B10은 실행하지 않았습니다. 동등한 Homebrew
+Cask 규칙은 설치된 호환 `spoom 1.8.9`로 통과했으며 정확한 locked toolchain의
+PASS는 아닙니다. 비치명적인 CLT search-path 경고를 유지하고 toolchain은
+바꾸지 않았습니다. [Beta.10 초안](docs/releases/v0.8.0-beta.10.md)과
+[입력 43개](docs/releases/v0.8.0-beta.10-inputs.json)에 로컬 식별을 기록합니다.
+Source/tag/Tap 식별은 미확정이며 공개 다운로드, beta.9 → beta.10 upgrade·
+권한 유지, fresh Gatekeeper·수신 Mac·실기기 acceptance는 `NOT_RUN`입니다.
+설치 안내는 공개 beta.9 기준을 유지합니다.
+
 ## 공개 서명 검증 — 2026-10-13
 
-Native beta.9/build 27 후보는 **READY_FOR_PUBLICATION; NOT_PUBLISHED**입니다.
-앱 빌드와 패키징을 각각 한 번 실행해 exit 0으로 마쳤습니다. 23:46:41 KST
-(14:46:41 UTC)에 strict 앱 서명, 정확한 장기 인증서·DR, metadata, arm64,
-라이선스·아이콘, DMG 무결성·checksum, 읽기 전용 내부 앱 파일 5개 비교,
-양국어 설치 안내, Applications 바로가기와 정상 detach를 확인했습니다.
-바깥 DMG 자체에는 packager가 code signing을 하지 않았습니다.
-[Beta.9 후보 기록](docs/releases/v0.8.0-beta.9.md)에 정확한 hash와
-[입력 43개 manifest](docs/releases/v0.8.0-beta.9-inputs.json)를 기록합니다.
-빌드·패키징 입력 42개는 유지됐으며 최종 Cask metadata는 별도 공개 입력으로
-manifest에 포함합니다. Cask version·URL·digest는 로컬 DMG와 일치하고 Ruby
-문법 검사는 통과했습니다. 동등한 Homebrew Cask style 규칙은 파일 1개,
-offenses 없음으로 통과했습니다. 첫 실행은 lock의 `spoom 1.8.10`이 없어
-exit 2로 중단됐으며 설치된 호환 버전 `1.8.9`를 해당 process의 load path로
-사용했습니다. Gem 설치, 설정·trust 변경이나 추가 Cask 규칙 제외는 없었습니다.
-정확한 locked toolchain의 PASS는 아니며 online audit는 기존 trust 보존 합의에
-따라 **BLOCKED**입니다. 정확한 source·Tap commit 승인은 대기 중이며 commit
-식별은 아직 확정하지 않았습니다.
+현재 상태는 **PUBLISHED; IN_PLACE_UPGRADE_PASS;
+A9_BASELINE_PASS_USER_REPORTED**입니다. Beta.9/build 27을 2026-10-14
+00:17:31 KST(2026-10-13 15:17:31 UTC)에 공개했습니다. Source/tag
+`0414617c860451e0c7b2200294b0eeca651f9ad9`/`v0.8.0-beta.9`은
+[동결한 입력 43개](docs/releases/v0.8.0-beta.9-inputs.json)와 일치합니다.
+익명 public DMG·sidecar bytes도 native 후보와 같습니다. 공개·clean 로컬 Tap은
+`65d13988d6f4bb415df8f5d6853a8c38c8d3b7fc`이며 전체 식별은
+[release notes](docs/releases/v0.8.0-beta.9.md)에 기록합니다.
 
-사용자는 같은 [장기 인증서](#release-signing-identity-준비--2026-10-12)로
-공개 beta.9 A → beta.10 B를 서명하고 정상 Homebrew upgrade하는 경로를
-승인했습니다. Native metadata 검증 뒤 각 prerelease를 공개하고 익명 public
-bytes를 비교한 뒤 검토한 Cask를 Tap에 반영합니다. 처음 ad hoc에서 전환할
-때는 수동 권한 승인이 필요할 수 있습니다. B에서는 권한을 바꾸기 전에 같은
-설치 경로의 새 GUI process를 측정합니다. 측정 중에는 매핑을 시작하지 않고
-정상 종료합니다. 서명 유지와 바깥 디렉터리 보존은 별도로 확인합니다.
+정상 Homebrew beta.8 → beta.9 upgrade 한 번을 2026-10-14 00:30:45 KST
+(2026-10-13 15:30:45 UTC)에 exit 0으로 마쳤습니다. 설치 파일 5개는 공개
+후보와 같고 strict 서명·장기 인증서·DR 검사를 통과했습니다. 앱 바깥 디렉터리의
+device `16777232`와 inode `109845586`도 유지됐습니다. Upgrade 직전 같은
+native `brew` host의 정확한 App Management 조건을 확인했습니다. 선택 Cask
+trust `true`와 전체 Tap trust `false`는 그대로입니다.
 
-실제 `brew` 실행 host에서 Homebrew vendored Ruby 쓰기·삭제 probe로
-App Management 사전 검사를 통과했습니다. 읽기 전용 runtime 점검에서
-TouchMe process 없음, `resumeMapping=false`, active record 0개, archive와
-일치하는 유효한 `disconnected-unchanged` guard 1개와 유효한 archive 총 5개를
-확인했습니다. Guard는 보존하며 이를 지우려고 기존 앱을 다시 실행해 Stop할
-필요는 없습니다. 파일 검사로 물리 모드나 durable cleanup을 입증한 것은
-아니며 GUI 실행은 정상 장치 조회를 수행합니다. 산출물 검증 중 설치 앱
-bytes·바깥 디렉터리, 이전 로컬 앱 archive와 이미지는 유지됐고 후보는
-실행하지 않았습니다.
+최초 A9 PID `26957`에서 권한 하나 이상이 필요하다는 사용자 보고가 있었으며
+개별 before 값은 미확인입니다. 최초 승인과 재실행 뒤 PID `35272`의 정확한
+공개 실행 파일 경로·hash를 확인했습니다. 사용자가 GUI beta.9/build 27의
+손쉬운 사용·입력 모니터링 모두 Allowed임을 확인했습니다. Baseline은
+**PUBLIC_SIGNED_A9_GUI_PERMISSION_BASELINE_PASS_USER_REPORTED**입니다.
+정상 Quit은 사용자 보고이며 native PID 부재도 확인했습니다. Start는 실행하지
+않았습니다. 자동 GUI 조회 channel은 reset·재시도 뒤에도 사용할 수 없었습니다.
 
-이전 asset·tag, Homebrew 소유권·receipt, 환경설정, 복구와 trust·developer
-설정을 보존합니다. 공개 다운로드·Tap 공개, 설치·upgrade, beta.9 GUI 권한
-확인과 공개 A → B 권한 유지는 **NOT_RUN**입니다. 서명 identity 설치·추가
-trust가 없는 수신 Mac과 Gatekeeper도 **NOT_RUN**입니다. 2026-10-12 기록은
-당시 checkpoint를 유지합니다. 로컬 근거는
-`.build/releases/beta9-e62595b427/native-app-verification.json`과
-`native-artifact-verification.json`에 있으며 비공개 운영자 정보는 공개하지
-않습니다.
+읽기 전용 실행 후 검사는 통과했습니다. 환경설정·저장 매핑·guard·전체 복구
+manifest hash는 같으며 `resumeMapping=false`, active record 0개, 유효한
+guard 1개와 archive 5개를 보존했습니다. Guard는
+`DIFFERENT_BOOT_VALID_HISTORICAL_GUARD`로 분류합니다. 이전 boot의
+일치하는 archive가 있는 유효한 기록이며 active record는 없습니다. 최초 제한
+executor의 process·boot 조회는 실패했지만 이후 native 조회에서 기존 process가
+없음을 확인했습니다. Boot 일치 assertion은 쓰기 전에 중단됐으며 source를
+검토한 뒤 upgrade 사전 조건에서 제외했습니다. Active record가 없는 경로는
+현재 boot와 같아야 한다는 조건 없이 기존 guard를 검증합니다. 기록은 보존했고
+파일 검사로 물리 장치 모드나 durable cleanup을 입증하지는 않습니다.
+
+Native checkpoint — 2026-10-13 23:46:41 KST: 빌드·패키징 각 한 번을 exit 0으로
+마쳤습니다. 앱·내부 앱 strict 서명, 정확한 인증서·DR, metadata, arm64,
+라이선스·아이콘, DMG 무결성·checksum, 읽기 전용 파일 5개 비교, 양국어 안내,
+Applications 바로가기와 정상 detach를 확인했습니다. 당시 후보는 실행하지
+않았으며 기존 설치 앱·로컬 archive·이전 이미지를 보존했습니다. 바깥 DMG는
+code signing하지 않았습니다. 동등한 Homebrew Cask style 규칙은 파일 1개,
+offenses 없음으로 통과했습니다. Lock의 `spoom 1.8.10`이 없어 첫 실행은
+exit 2로 중단됐고 설치된 호환 버전 `1.8.9`의 load path를 해당 process에만
+추가했습니다. Gem 설치, 설정·trust 변경과 추가 Cask 규칙 제외는 없었습니다.
+정확한 locked toolchain의 PASS는 아니며 online audit는 기존 합의에 따라
+**BLOCKED**입니다.
+
+공개 beta.9 A → beta.10 B 권한 유지는 **NOT_RUN**입니다. 승인된 다음 단계는
+확인한 A의 허용 상태와 같은 장기 인증서·정상 in-place B upgrade를
+사용하고 권한을 바꾸기 전에 새 GUI process를 측정하는 것입니다. Fresh
+Gatekeeper, 실기기 acceptance와 서명 identity 설치·추가 trust가 없는 수신 Mac도
+**NOT_RUN**입니다. Receipt, 환경설정, 복구, trust·developer 설정과 이전 공개
+산출물을 보존합니다. 아래 구간은 당시 checkpoint를 유지합니다. 로컬 근거는
+`.build/releases/beta9-e62595b427/`의 `public-download-verification.json`,
+`tap-publication.json`, `upgrade-state.json`, `postlaunch-preservation.json`에
+있으며 운영자 secret은 제외합니다.
 
 ## Beta.8 release — 2026-10-12
 
@@ -304,9 +329,9 @@ Apple Silicon Mac, macOS 26 이상, 패키지의 Swift 6.0 manifest와 호환되
 | --------------------- | ------------------------------------ |
 | 앱과 실행 파일        | `Touch Me.app` / `TouchMe`           |
 | Bundle Identifier     | `io.github.soom-kang.touchme`        |
-| Release 버전          | `VERSION`에서 읽는 `0.8.0-beta.9`    |
+| Release 버전          | `VERSION`에서 읽는 `0.8.0-beta.10`    |
 | 번들 버전             | `0.8.0`과 증가하는 숫자 build 번호   |
-| 전체 release metadata | `TouchMeReleaseVersion=0.8.0-beta.9` |
+| 전체 release metadata | `TouchMeReleaseVersion=0.8.0-beta.10` |
 | 대상 환경             | `arm64`, macOS 26 이상               |
 
 문서나 패키징을 바꿀 때는 식별자와 저장한 환경설정 형식을 유지하세요. 서명 identity나 설치 경로를 바꾸면 설치 앱의 권한 확인이 필요할 수 있습니다.

@@ -6,53 +6,78 @@
 
 Use this workflow to build the arm64 app, inspect its bundle and create a personal disk image. The existing scripts use Apple's local tools and Python 3. They do not install additional dependencies or publish artifacts.
 
+## Beta.10 preparation — 2026-10-14
+
+Status: **READY_FOR_PUBLICATION; NOT_PUBLISHED**. One build/package each exited
+0 for beta.10/build 28. Native app/DMG, same-certificate bidirectional A9↔B10 DR
+and different cdhash checks passed; B10 was not launched. Equivalent Homebrew
+Cask rules passed with existing compatible `spoom 1.8.9`, not the exact locked
+toolchain. Nonfatal CLT search-path warnings are retained; no toolchain changes.
+The [beta.10 draft](docs/releases/v0.8.0-beta.10.md) and
+[43-input manifest](docs/releases/v0.8.0-beta.10-inputs.json) hold exact local
+identities. Source/tag/Tap identifiers are not yet assigned. Public download,
+beta.9 → beta.10 upgrade/retention, fresh Gatekeeper and receiver/device
+acceptance are `NOT_RUN`; public beta.9 remains the installation guide.
+
 ## Public signing validation — 2026-10-13
 
-The native beta.9/build 27 candidate is **READY_FOR_PUBLICATION; NOT_PUBLISHED**.
-One app build and one package invocation exited 0. Native verification completed
-at 23:46:41 KST (14:46:41 UTC): strict app signature, exact permanent certificate/
-DR, metadata, arm64, license/icon, DMG integrity and checksum, five read-only
-inner-app file comparisons, bilingual installation notes, Applications shortcut
-and normal detach all passed. The outer DMG was not code signed by the packager.
-The [beta.9 candidate record](docs/releases/v0.8.0-beta.9.md) records the exact
-hashes and [43-input manifest](docs/releases/v0.8.0-beta.9-inputs.json). The 42
-build/package inputs remained unchanged; the finalized Cask metadata is the
-manifest's separate publication input. The Cask version/URL/digest match the
-local DMG and Ruby syntax passed. Equivalent Homebrew Cask style rules passed
-for one file with no offenses. The first attempt exited 2 because locked
-`spoom 1.8.10` was missing; existing compatible `1.8.9` was loaded through a
-process-only path. No gem/configuration/trust changes or additional Cask-rule
-exclusions were used. This is not an exact locked-toolchain PASS. Online audit
-remains **BLOCKED** under the existing trust-preserving deferral. Exact
-source/Tap commit approval is pending; neither commit is assigned yet.
+Current status: **PUBLISHED; IN_PLACE_UPGRADE_PASS;
+A9_BASELINE_PASS_USER_REPORTED**. Beta.9/build 27 was published on
+2026-10-14 at 00:17:31 KST (2026-10-13 15:17:31 UTC).
+Source/tag `0414617c860451e0c7b2200294b0eeca651f9ad9`/`v0.8.0-beta.9`
+matches all [43 frozen inputs](docs/releases/v0.8.0-beta.9-inputs.json).
+Anonymous public DMG/sidecar bytes match the native candidate. Public and clean
+installed Tap are `65d13988d6f4bb415df8f5d6853a8c38c8d3b7fc`.
+[Release notes](docs/releases/v0.8.0-beta.9.md) retain the complete identities.
 
-The user approved public beta.9 A → beta.10 B with the same
-[permanent certificate](#release-signing-identity-preparation--2026-10-12), each
-followed by normal Homebrew upgrade. Verify native metadata before each
-prerelease, compare anonymous public bytes after publication, then publish the
-reviewed Cask before upgrading. Initial ad hoc migration may require a manual
-permission grant. For B, make no privacy changes before measuring the new GUI
-process at the same installed path. Keep mapping stopped during permission
-measurement and quit normally. Signing continuity and outer-directory
-preservation are separate checks.
+One normal Homebrew beta.8 → beta.9 upgrade exited 0 on 2026-10-14 at
+00:30:45 KST (2026-10-13 15:30:45 UTC). The five installed files match the public
+candidate; strict signature, permanent certificate and DR passed. The outer app
+directory retained device `16777232` and inode `109845586`. The exact App
+Management preflight passed in the same native `brew` host immediately before
+upgrade. Selected-Cask trust `true` and whole-Tap trust `false` were unchanged.
 
-Homebrew's vendored-Ruby App Management write/delete preflight passed in the
-planned `brew` host. Read-only runtime preflight found no TouchMe process,
-`resumeMapping=false`, active record 0, a valid `disconnected-unchanged` guard
-with matching archive, and five valid archives. The guard is retained; no old
-Stop is needed solely to remove it. Passive files do not prove physical mode
-or durable cleanup, and GUI launch still performs normal discovery. Installed
-app bytes/outer directory, the prior local app archive and earlier images were
-preserved through artifact validation; the candidate was not launched.
+A9 initially ran as PID `26957` with user-reported one or more permissions
+required; individual before flags are unknown. After initial approval and
+restart, PID `35272` had the exact public executable path/hash. The user
+confirmed GUI beta.9/build 27 with both Accessibility and Input Monitoring
+Allowed. This is **PUBLIC_SIGNED_A9_GUI_PERMISSION_BASELINE_PASS_USER_REPORTED**.
+Normal Quit is user-reported and native PID absence passed. No Start was
+invoked. Automated GUI reads remained unavailable after channel reset/retries.
 
-Preserve prior assets/tags, Homebrew ownership/receipts, preferences, recovery
-and trust/developer settings. Public download/Tap publication, installation/
-upgrade, beta.9 GUI permission acceptance and public A → B retention are
-**NOT_RUN**. Receiving-Mac verification without installed signing identity or
-added trust, and Gatekeeper acceptance are also **NOT_RUN**. Records dated
-2026-10-12 retain their checkpoints. Local evidence is in
-`.build/releases/beta9-e62595b427/native-app-verification.json` and
-`native-artifact-verification.json`; private operator data is not published.
+Read-only postlaunch checks passed: preferences, saved mapping payload, guard
+and complete recovery manifest hashes stayed unchanged; `resumeMapping=false`,
+active record 0, valid guard 1 and archives 5 were retained. The guard is
+`DIFFERENT_BOOT_VALID_HISTORICAL_GUARD`: its matching archive is valid, and no
+active recovery record exists. Initial restricted process/boot queries failed;
+native confirmation subsequently found no old TouchMe process. A boot-equality
+assertion stopped before writes and was removed from the upgrade precondition
+after source review: the no-active-record path validates the historical guard
+without requiring current-boot equality. Records were preserved. Passive
+checks do not prove physical device mode or durable cleanup.
+
+Native checkpoint — 2026-10-13 23:46:41 KST: one build and one package exited 0.
+App/inner-app strict signature, exact certificate/DR, metadata, arm64,
+license/icon, DMG integrity/checksum, five read-only file comparisons,
+bilingual notes, Applications shortcut and normal detach passed. The candidate
+was not launched at that checkpoint; the old installed app, local archive and
+prior images were preserved then. The outer DMG was not code signed.
+Equivalent Homebrew Cask style rules passed for one file with no offenses:
+initial exit 2 for missing locked `spoom 1.8.10`, then existing compatible
+`1.8.9` through a process-only load path. No gem/configuration/trust changes or
+additional Cask-rule exclusions were used. Exact locked-toolchain validation
+did not pass; online audit remains **BLOCKED** under the existing deferral.
+
+Public beta.9 A → beta.10 B retention is **NOT_RUN**. The approved next step
+uses the confirmed allowed A baseline, then the same permanent certificate and a
+normal in-place B upgrade with no privacy changes before measuring its new
+GUI process. Fresh Gatekeeper, physical-device acceptance and a receiving Mac
+without installed signing identity or added trust are **NOT_RUN**. Preserve
+Homebrew receipts, preferences, recovery, trust/developer settings and earlier
+publications. Older sections retain their dated checkpoints. Local evidence
+includes `public-download-verification.json`, `tap-publication.json`,
+`upgrade-state.json` and `postlaunch-preservation.json` under
+`.build/releases/beta9-e62595b427/`; operator secrets are excluded.
 
 ## Beta.8 release — 2026-10-12
 
@@ -317,9 +342,9 @@ The app keeps these identifiers and versions:
 | --------------------- | ------------------------------------------------- |
 | App and executable    | `Touch Me.app` / `TouchMe`                        |
 | Bundle identifier     | `io.github.soom-kang.touchme`                     |
-| Release version       | `0.8.0-beta.9`, read from `VERSION`               |
+| Release version       | `0.8.0-beta.10`, read from `VERSION`               |
 | Bundle version        | `0.8.0` plus an incrementing numeric build number |
-| Full release metadata | `TouchMeReleaseVersion=0.8.0-beta.9`              |
+| Full release metadata | `TouchMeReleaseVersion=0.8.0-beta.10`              |
 | Target                | `arm64`, macOS 26 or later                        |
 
 Keep the identifier and saved-preference format stable when changing documentation or packaging. Changing the signing identity or installation path can require permission checks in the installed app.
