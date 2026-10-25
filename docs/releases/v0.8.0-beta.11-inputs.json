@@ -47,6 +47,13 @@
     "scripts/package-dmg.py": "10f7a189c75508d557e9bb26d4be283d6c47a288cb5dfdec6cdd8b8682276e0a",
     "scripts/test.sh": "44b239916cd9eb536077a9f4c478cf814a0838f7311f6a155cf283d628df1932"
   },
-  "source_state": "All 45 frozen inputs match the release candidate working tree. Source/tag comparison is pending publication.",
-  "release_tag": "v0.8.0-beta.11"
+  "source_state": "All 45 frozen inputs match published source 0de6e5aa58aa764de360aca8f4a3cd7fb084215b and tag v0.8.0-beta.11. Only documentation metadata changes after publication; the input hash map is unchanged.",
+  "release_tag": "v0.8.0-beta.11",
+  "release_source_commit": "0de6e5aa58aa764de360aca8f4a3cd7fb084215b",
+  "tagged_input_comparison": {
+    "result": "PASS",
+    "input_count": 45,
+    "annotated_tag_object": "9bf19cffa93c6b436a3d574b927d5f5ad712d06c",
+    "peeled_source_commit": "0de6e5aa58aa764de360aca8f4a3cd7fb084215b"
+  }
 }

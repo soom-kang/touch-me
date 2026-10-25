@@ -8,9 +8,18 @@
 
 Touch Me is a macOS menu bar app built to help you use ZEUSLAP touch-enabled monitors on a Mac. Its purpose is to address touch input that does not work properly on MacBooks and other Macs, helping you interact directly with the screen using your fingers.
 
-It maps touch input to the display you select, enabling taps, double-clicks, one-finger dragging and two-finger scrolling. Choose and confirm the target display in the app, then start mapping. Use the menu bar to stop mapping or change settings.
+It maps touch input to the display you select, enabling taps, double-clicks, one-finger dragging, two-finger scrolling and pinch, and three-finger screen switching. Choose and confirm the target display in the app, then start mapping. Use the menu bar to stop mapping or change settings.
 
-Beta `0.8.0-beta.10` requires the **USB/HID profile verified on the P16KT**. Mapping won't start if the device identifiers or HID (Human Interface Device) input layout differ. Support for other ZEUSLAP models isn't guaranteed, so check the setup below first.
+Beta `0.8.0-beta.11` requires the **USB/HID profile verified on the P16KT**. Mapping won't start if the device identifiers or HID (Human Interface Device) input layout differ. Support for other ZEUSLAP models isn't guaranteed, so check the setup below first.
+
+[Beta.11/build 33](https://github.com/soom-kang/touch-me/releases/tag/v0.8.0-beta.11)
+and its Homebrew Cask were published on 2026-10-25. Pinch zoom and three-finger
+Mission Control / Space switching are included. Public DMG/checksum bytes and
+Tap files match the reviewed candidates. Device results belong to development
+build 32; build 33 installation/upgrade remains **NOT_RUN**.
+See the [beta.11 verification record](docs/releases/v0.8.0-beta.11.md).
+
+Earlier publication and upgrade checkpoints:
 
 [Beta.10/build 28](https://github.com/soom-kang/touch-me/releases/tag/v0.8.0-beta.10)
 is **PUBLISHED** — 2026-10-14 01:14:28 KST (2026-10-13 16:14:28 UTC).
@@ -69,13 +78,13 @@ Other panels, Intel Macs and older macOS versions have no recorded validation. S
 
 ## Install and start your first mapping session
 
-Install the published beta.10/build 28 through Homebrew or its DMG. Both installation routes use the same permission and target-display setup.
+Install the published beta.11/build 33 through Homebrew or its DMG. Both installation routes use the same permission and target-display setup.
 
 ### Install with Homebrew
 
 If you already have a manually installed `/Applications/Touch Me.app`, turn off **Open Touch Me at login** and select **Stop mapping**. Confirm restoration on the continuous connection or safe preservation of a verified ended-connection record, then quit normally and move the old app outside Applications to keep it. Stop installation if restoration fails. The [Homebrew installation guide](docs/Homebrew.md#install-update-and-remove-after-publication) explains how to preserve the app and preferences without forcing an overwrite.
 
-Install the verified beta.10 Cask:
+Install the verified beta.11 Cask:
 
 ```bash
 brew install --cask soom-kang/touch-me/touch-me
@@ -83,7 +92,7 @@ brew install --cask soom-kang/touch-me/touch-me
 
 ### Install from the DMG
 
-Download `touch-me-0.8.0-beta.10-arm64.dmg` and its `.sha256` file from the [beta.10 release](https://github.com/soom-kang/touch-me/releases/tag/v0.8.0-beta.10). Confirm version/build `0.8.0-beta.10`/28, checksum and certificate fingerprint in the [release notes](docs/releases/v0.8.0-beta.10.md), then open the image and drag **Touch Me.app** to **Applications**. Eject after copying. Earlier local QA/signing candidates are separate artifacts.
+Download `touch-me-0.8.0-beta.11-arm64.dmg` and its `.sha256` file from the [beta.11 release](https://github.com/soom-kang/touch-me/releases/tag/v0.8.0-beta.11). Confirm version/build `0.8.0-beta.11`/33, checksum and certificate fingerprint in the [release notes](docs/releases/v0.8.0-beta.11.md), then open the image and drag **Touch Me.app** to **Applications**. Eject after copying. Earlier local QA/signing candidates are separate artifacts.
 
 The beta uses a maintainer self-signed certificate, without Developer ID or notarization. Do not add certificate trust. If macOS blocks the downloaded app's first launch, verify its source and checksum before following [Apple's manual approval guidance](https://support.apple.com/en-us/102445). An available approval option doesn't guarantee the app can run.
 
@@ -105,9 +114,8 @@ Closing settings leaves the app in the menu bar and mapping active.
 
 ## Use your fingers
 
-The current development source adds pinch zoom and three-finger switching.
-These changes are **not included in the published beta.10/build 28**. Automated
-checks pass. On local build 32, the user confirmed repeated three-finger commands,
+Beta.11 includes pinch zoom and three-finger switching. Automated checks pass.
+On local build 32, the user confirmed repeated three-finger commands,
 Space boundaries and pinch in Safari, Preview PDF/image and Chrome on the P16KT.
 Stop/restart, lock/unlock and USB reconnection during pinch also passed by user
 observation, including fresh input after recovery. Targeting in the current
@@ -115,7 +123,7 @@ four-display layout and final Stop passed. These results apply to this Mac on
 macOS 26.7.1. See the
 [gesture QA checkpoint](docs/qa/automated-tests.md#gesture-expansion--2026-10-25).
 
-Use these gestures in the local development candidate:
+Use these gestures:
 
 | Action | Gesture |
 | --- | --- |
@@ -181,7 +189,7 @@ Don't treat reopening the app or a later successful Stop as proof that the pre-c
 
 Before updating or removing the app, follow **Stop mapping → confirm safe cleanup → normal Quit**. Safe cleanup restores the continuous connection or preserves a record only after its connection is proven ended. If restoration or record handling fails, preserve the record and error and use Retry restore before proceeding. Never delete the record or apply its old mode to a new connection. After an update, check both privacy permission states and allow only required items.
 
-Public beta.9 and beta.10 use the same permanent signing certificate. The user
+Public beta.9, beta.10 and beta.11 use the same permanent signing certificate. The user
 confirmed both permissions Allowed after A9's initial transition. The normal
 beta.9 → beta.10 upgrade passed; the user confirmed both B10 permissions
 Allowed without reapproval on this Mac, user and installation path. This is a
@@ -192,7 +200,7 @@ Turn off **Open Touch Me at login** before removal. After safe cleanup and Quit,
 
 ## Architecture and further reading
 
-After you choose a target and start mapping, platform code reads input from the panel. Core maps coordinates and recognizes gestures; Platform posts mouse, scroll, pinch and system-shortcut events for the selected display. The architecture diagrams show the existing layers; the development gesture path uses those same layers.
+After you choose a target and start mapping, platform code reads input from the panel. Core maps coordinates and recognizes gestures; Platform posts mouse, scroll, pinch and system-shortcut events for the selected display. The architecture diagrams show the existing layers; the gesture path uses those same layers.
 
 ![Touch Me runtime: P16KT input passes through platform and core logic to macOS events on the selected display.](docs/assets/architecture.png)
 
@@ -200,12 +208,13 @@ For local builds or distribution details, read these documents:
 
 - [Build workflow](Workflow.md): module responsibilities, local builds, packaging and checks for each change
 - [Homebrew distribution](docs/Homebrew.md): Tap and release procedure, installation conflicts, updates and removal
+- [Beta.11 release notes](docs/releases/v0.8.0-beta.11.md): gesture release artifacts and validation boundaries
 - [Beta.10 release notes](docs/releases/v0.8.0-beta.10.md): publication, upgrade and permission-retention verification
 - [Beta.9 release notes](docs/releases/v0.8.0-beta.9.md): initial certificate-transition baseline
 - Historical release notes: [beta.4](docs/releases/v0.8.0-beta.4.md), [beta.5](docs/releases/v0.8.0-beta.5.md), [beta.6](docs/releases/v0.8.0-beta.6.md), [beta.7](docs/releases/v0.8.0-beta.7.md), [beta.8](docs/releases/v0.8.0-beta.8.md)
 - [Editable architecture diagram](docs/assets/architecture.html)
 
-The published beta.10/build 28 artifact is `dist/touch-me-0.8.0-beta.10-arm64.dmg`. Native and public-byte checks passed; exact source/tag and download identities are in its release notes. Local builds read their version from `VERSION`.
+The published beta.11/build 33 artifact is `dist/touch-me-0.8.0-beta.11-arm64.dmg`. Native and public-byte checks passed; exact source/tag and download identities are in its release notes. Local builds read their version from `VERSION`.
 
 ## Recorded validation
 

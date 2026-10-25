@@ -3,10 +3,23 @@
 Ticket: TMQA-005. Tests added here are not a claim that native tests passed.
 No CI service, external dependency, device driver, or permission change is added.
 
+## Beta.11 release packaging — 2026-10-25
+
+Gesture source was committed as `f386a89`. Beta.11/build 33 publishes the same
+runtime source at `0de6e5a`; release changes are version, packaging instructions,
+Cask metadata and documentation. The existing 49 Swift tests are reused and
+26 packaging tests passed after the instruction update. One release app and
+DMG passed native artifact checks; anonymous public bytes and the published Tap
+match. Build 33 GUI/device, installation/upgrade, fresh Gatekeeper and a receiving
+Mac remain **NOT_RUN**. Online audit is **BLOCKED** under the existing deferral.
+The build 32 user acceptance below remains tied to that exact development app.
+See [beta.11 release verification](../releases/v0.8.0-beta.11.md).
+
 ## Gesture expansion — 2026-10-25
 
 Status: **SOURCE_CHECKS_PASS; P16KT_ACCEPTANCE_PASS_USER_REPORTED_ON_THIS_MAC; FINAL_STOP_CONFIRMED**. The source is based on
-`6e82833` with uncommitted gesture changes. Public beta.10/build 28 is unchanged.
+`6e82833` with then-uncommitted gesture changes, later committed as `f386a89`.
+At this development checkpoint, public beta.10/build 28 was unchanged.
 
 | Check | Result and boundary |
 | --- | --- |

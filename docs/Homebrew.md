@@ -2,9 +2,16 @@
 
 # Publish the Touch Me Homebrew beta
 
-Beta.10/build 28 and its Tap Cask are **PUBLISHED**. A normal beta.9 → beta.10
-in-place upgrade passed. Both new B10 permissions remained Allowed without
-reapproval: **PASS_USER_REPORTED_ON_THIS_MAC**.
+Beta.11/build 33 and its Tap Cask are published with pinch and three-finger
+gestures. Anonymous public DMG/checksum and Tap-file comparisons passed. The
+installed app and Tap are retained; this upgrade is **NOT_RUN**. See the
+[beta.11 verification record](releases/v0.8.0-beta.11.md) for source/tag, artifact
+and Tap identities and validation limits.
+
+Current selected-Cask and whole-Tap trust are both false. No trust change is
+made; online audit remains **BLOCKED** under the existing deferral. Cask syntax
+and current Homebrew style rules passed using existing compatible gems, not
+the exact locked toolchain. Earlier publication/upgrade records follow.
 
 ## Beta.10 publication and upgrade — 2026-10-14
 
@@ -88,7 +95,7 @@ is trusted and the whole Tap is untrusted; neither state was changed. No trust
 bypass variables were used. Build 26 GUI/device, installation, upgrade,
 Gatekeeper and login/lock/sleep/crash acceptance are **NOT_RUN**. At that
 checkpoint installation guidance targeted beta.8; the current guide below
-targets beta.10. These results retain their historical publication scope.
+targets beta.11. These results retain their historical publication scope.
 
 The installed app, recovery files, preferences and prior local artifacts match
 their inventories. Target trust/developer settings also match, but the shared
@@ -360,7 +367,7 @@ Homebrew 7.0.8 was inspected on 2026-10-07 and its relevant contracts were reche
 
 ## Install, update and remove after publication
 
-These instructions target published certificate-signed beta.10 and its verified Tap Cask. Normal beta.9 → beta.10 in-place upgrade passed; both GUI permissions remained Allowed without reapproval on this Mac (`PASS_USER_REPORTED_ON_THIS_MAC`). Earlier release checkpoints retain their original installation limits. Fully qualified installation scopes trust to the selected Cask rather than the whole Tap. [Tap Trust](https://docs.brew.sh/Tap-Trust)
+These instructions target published certificate-signed beta.11 and its verified Tap Cask. Normal beta.9 → beta.10 in-place upgrade passed; both GUI permissions remained Allowed without reapproval on this Mac (`PASS_USER_REPORTED_ON_THIS_MAC`). Earlier release checkpoints retain their original installation limits. Fully qualified installation scopes trust to the selected Cask rather than the whole Tap. [Tap Trust](https://docs.brew.sh/Tap-Trust)
 
 ```bash
 brew install --cask soom-kang/touch-me/touch-me
@@ -372,7 +379,7 @@ This beta uses a fixed maintainer self-signed certificate, without Developer ID 
 
 Check **Input Monitoring** and **Accessibility** in System Settings and enable only required Touch Me items, then refresh. The initial ad hoc → certificate transition may need one manual approval; public beta.9 → beta.10 retained both permissions without reapproval on this Mac, user and path (`PASS_USER_REPORTED_ON_THIS_MAC`). The Cask's signing caveat explains this limit. It grants no permissions and does not change quarantine.
 
-Public beta.9 and beta.10 use the same permanent certificate; the [probe pilot](../Workflow.md#accessibility-signing-pilot--2026-10-12)
+Public beta.9, beta.10 and beta.11 use the same permanent certificate; the [probe pilot](../Workflow.md#accessibility-signing-pilot--2026-10-12)
 remains separate evidence. If a required permission is unavailable, allow the
 installed Touch Me manually, then refresh. Keep already allowed items and
 existing recovery state. Quit normally and reopen the same app if needed.
@@ -408,7 +415,7 @@ The release owner records the source revision, tag, build number, DMG SHA-256, H
 
 A later Developer ID release needs separately approved signing/notarization preparation and validation of the final downloaded, installed app. Keep credential access outside this runbook and record that release's verification separately from this self-signed beta.
 
-Beta.9 and beta.10 use the same permanent maintainer identity. Preserve it for future
+Beta.9, beta.10 and beta.11 use the same permanent maintainer identity. Preserve it for future
 versions and validate downloaded/installed upgrades separately. Keep the trial
 certificate out of releases. Certificate or DR changes may require reapproval;
 self-signing gives no notarization or Gatekeeper guarantee. Preserve published

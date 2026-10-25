@@ -6,10 +6,21 @@
 
 이 Workflow에 따라 arm64 앱을 빌드하고 번들을 확인한 뒤 개인용 디스크 이미지를 만드세요. 기존 스크립트는 Apple의 로컬 도구와 Python 3를 사용합니다. 추가 dependency 설치와 산출물 공개는 수행하지 않습니다.
 
+## Beta.11 공개 — 2026-10-25
+
+핀치·세 손가락 제스처를 포함한 beta.11/build 33과 Homebrew Cask를 공개했습니다.
+앱 빌드와 DMG 패키징을 각각 한 번 실행했고 서명·DMG·공개 다운로드 검사를 통과했습니다.
+실행 코드와 테스트는 제스처 commit `f386a89`와 같습니다. 입력 45개는 release
+commit `0de6e5a`에 고정했으며 공개 Tap commit은 `49be006`입니다.
+설치된 build 28과 Tap, 기존 산출물·환경설정·복구 기록을 보존했습니다.
+새 빌드의 설치·upgrade·GUI·실기 검증은 **NOT_RUN**입니다.
+[Release notes](docs/releases/v0.8.0-beta.11.md)에 식별과 검증 한계를 기록했습니다.
+
 ## 제스처 개발 후보 — 2026-10-25
 
 현재 소스에 연속 핀치와 세 손가락 Mission Control·Space 전환을 추가했습니다.
-공개 release는 아니며, `VERSION`과 Cask는 beta.10을 유지합니다.
+이 개발 checkpoint에서는 `VERSION`과 Cask가 beta.10이었습니다. 이후 beta.11
+공개 결과는 위에 기록했습니다.
 
 - Core는 스크롤·핀치·세 손가락 동작을 판별한 뒤 동작 종류를 고정합니다.
   두 손가락 기준은 중심 이동 6단위, 간격 변화 `max(6, 초기 간격의 5%)`,
@@ -408,9 +419,9 @@ Apple Silicon Mac, macOS 26 이상, 패키지의 Swift 6.0 manifest와 호환되
 | --------------------- | ------------------------------------ |
 | 앱과 실행 파일        | `Touch Me.app` / `TouchMe`           |
 | Bundle Identifier     | `io.github.soom-kang.touchme`        |
-| Release 버전          | `VERSION`에서 읽는 `0.8.0-beta.10`    |
+| Release 버전          | `VERSION`에서 읽는 `0.8.0-beta.11`    |
 | 번들 버전             | `0.8.0`과 증가하는 숫자 build 번호   |
-| 전체 release metadata | `TouchMeReleaseVersion=0.8.0-beta.10` |
+| 전체 release metadata | `TouchMeReleaseVersion=0.8.0-beta.11` |
 | 대상 환경             | `arm64`, macOS 26 이상               |
 
 문서나 패키징을 바꿀 때는 식별자와 저장한 환경설정 형식을 유지하세요. 서명 identity나 설치 경로를 바꾸면 설치 앱의 권한 확인이 필요할 수 있습니다.

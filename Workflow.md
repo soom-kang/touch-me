@@ -6,10 +6,21 @@
 
 Use this workflow to build the arm64 app, inspect its bundle and create a personal disk image. The existing scripts use Apple's local tools and Python 3. They do not install additional dependencies or publish artifacts.
 
+## Beta.11 publication — 2026-10-25
+
+Beta.11/build 33 and its Homebrew Cask publish pinch and three-finger gestures.
+One app build and one DMG packaging run passed signature, DMG and anonymous
+public-download checks. Runtime source/tests match gesture commit `f386a89`.
+The 45 inputs are frozen at release commit `0de6e5a`; the public Tap is `49be006`.
+Installed build 28 and Tap, prior artifacts, preferences and recovery files are
+preserved. New-build installation/upgrade, GUI and device acceptance are **NOT_RUN**.
+See [release notes](docs/releases/v0.8.0-beta.11.md) for identities and limits.
+
 ## Gesture development candidate — 2026-10-25
 
 The current source adds continuous pinch and one-shot three-finger Mission Control /
-Space switching. This is not a public release; `VERSION` and the Cask remain at beta.10.
+Space switching. At this development checkpoint, `VERSION` and the Cask stayed
+at beta.10; the later beta.11 publication is recorded above.
 
 - Core locks scroll, pinch or three-finger motion after recognition. Two-finger
   thresholds are 6 screen units for translation and `max(6, 5% of initial span)`
@@ -422,9 +433,9 @@ The app keeps these identifiers and versions:
 | --------------------- | ------------------------------------------------- |
 | App and executable    | `Touch Me.app` / `TouchMe`                        |
 | Bundle identifier     | `io.github.soom-kang.touchme`                     |
-| Release version       | `0.8.0-beta.10`, read from `VERSION`               |
+| Release version       | `0.8.0-beta.11`, read from `VERSION`               |
 | Bundle version        | `0.8.0` plus an incrementing numeric build number |
-| Full release metadata | `TouchMeReleaseVersion=0.8.0-beta.10`              |
+| Full release metadata | `TouchMeReleaseVersion=0.8.0-beta.11`              |
 | Target                | `arm64`, macOS 26 or later                        |
 
 Keep the identifier and saved-preference format stable when changing documentation or packaging. Changing the signing identity or installation path can require permission checks in the installed app.
