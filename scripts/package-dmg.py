@@ -197,6 +197,12 @@ English is the default app language. Select English or 한국어 with the Langua
 picker at the top of settings. The choice applies immediately and is saved.
 
 Use one finger to tap or drag and two fingers to scroll vertically or horizontally.
+Spread or pinch two fingers to zoom app content. Pinch requires macOS 26 and a
+successful event-format check; it can be disabled in settings.
+Swipe three fingers up for Mission Control, left for the next Space, or right
+for the previous Space. Enable the default Control+Up/Left/Right shortcuts and
+release modifier keys and mouse buttons before switching.
+Lift all fingers before starting a different gesture.
 Quitting while running preserves the intent to resume on next launch.
 Resume requires the saved display, USB location and both permissions to match.
 A pending mode change is restored only on its verified continuous attachment.
@@ -236,6 +242,12 @@ Touch Me {VERSION} · {signing_label_ko} beta 후보
 선택합니다. 선택은 즉시 적용되며 다음 실행에도 유지됩니다.
 
 한 손가락으로 탭·드래그하고 두 손가락으로 위아래·좌우 스크롤합니다.
+두 손가락을 벌리거나 오므려 앱 콘텐츠를 확대·축소합니다. 핀치는 macOS 26에서
+이벤트 형식 검사를 통과해야 사용할 수 있으며 설정에서 끌 수 있습니다.
+세 손가락을 위로 밀면 Mission Control, 왼쪽으로 밀면 다음 Space,
+오른쪽으로 밀면 이전 Space로 전환합니다. 기본 Control+↑/←/→ 단축키를
+켜고 modifier 키와 마우스 버튼에서 손을 뗀 뒤 사용하세요.
+동작을 바꾸려면 손가락을 모두 떼세요.
 실행 중 종료하면 다음 실행에서 재개할 의도를 저장합니다.
 저장한 화면·USB 위치가 일치하고 두 권한이 허용돼야 재개합니다.
 남은 모드 변경은 확인한 동일 연속 연결에서만 원복합니다.
