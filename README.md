@@ -105,17 +105,45 @@ Closing settings leaves the app in the menu bar and mapping active.
 
 ## Use your fingers
 
-Use one finger to click or drag and two fingers to scroll:
+The current development source adds pinch zoom and three-finger switching.
+These changes are **not included in the published beta.10/build 28**. Automated
+checks pass. On local build 32, the user confirmed repeated three-finger commands,
+Space boundaries and pinch in Safari, Preview PDF/image and Chrome on the P16KT.
+Stop/restart, lock/unlock and USB reconnection during pinch also passed by user
+observation, including fresh input after recovery. Targeting in the current
+four-display layout and final Stop passed. These results apply to this Mac on
+macOS 26.7.1. See the
+[gesture QA checkpoint](docs/qa/automated-tests.md#gesture-expansion--2026-10-25).
+
+Use these gestures in the local development candidate:
 
 | Action | Gesture |
 | --- | --- |
 | Click or double-click | Tap once or twice; each click happens when you lift the finger |
 | Drag | Move one finger more than 8 screen-coordinate units from its starting position |
 | Scroll vertically or horizontally | Place two fingers before dragging starts, then move them together; no click is sent |
+| Zoom app content | Spread or pinch two fingers; requires **Two-finger pinch to zoom** and a compatible app |
+| Mission Control | Swipe three fingers upward far enough; runs once until all fingers lift |
+| Next / previous desktop or full-screen app | Swipe three fingers left / right; runs once until all fingers lift |
 | Add a second finger during a drag | The drag continues to follow the first finger |
-| Switch between dragging and scrolling | Lift all fingers, then start the new gesture |
+| Add a third finger during a drag | The drag releases; lift all fingers before starting again |
+| Switch gestures | Lift all fingers, then start the new gesture |
 
-After scrolling, a finger left on the screen cannot start a click or drag. Lift all fingers before starting again.
+Scrolling and pinching lock after the first clear motion. A third finger can join
+before either commits; adding it afterward cancels the gesture. Remaining
+fingers cannot click or drag. Four or more fingers cancel input until full lift.
+
+Pinch is enabled by default on macOS 26 when the local event-format check passes.
+Turn it off in settings to use two fingers for scrolling only. It uses an
+undocumented macOS event format; another OS major or a failed format check disables
+pinch with an explanation. It does not substitute keyboard zoom shortcuts or zoom
+the whole screen. Keep the intended content under the touch point; Touch Me does
+not click or activate another app to zoom it. Apps may handle magnification differently.
+
+Three-finger switching requires enabled default **Control+↑/←/→** shortcuts in
+macOS Keyboard Shortcuts → Mission Control. Touch Me does not change those settings.
+Release modifier keys and mouse buttons before switching. Space transitions follow
+macOS's **Displays have separate Spaces** setting; no interactive swipe animation is synthesized.
 
 ## Stop and start again
 
@@ -164,7 +192,7 @@ Turn off **Open Touch Me at login** before removal. After safe cleanup and Quit,
 
 ## Architecture and further reading
 
-After you choose a target and start mapping, platform code reads input from the panel. It runs Core coordinate and gesture logic, then posts mouse and scroll events to macOS for that display.
+After you choose a target and start mapping, platform code reads input from the panel. Core maps coordinates and recognizes gestures; Platform posts mouse, scroll, pinch and system-shortcut events for the selected display. The architecture diagrams show the existing layers; the development gesture path uses those same layers.
 
 ![Touch Me runtime: P16KT input passes through platform and core logic to macOS events on the selected display.](docs/assets/architecture.png)
 

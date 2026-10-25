@@ -127,6 +127,29 @@ final class ProofModel: ObservableObject {
     @Published var values = 0
     @Published var clicks = 0
     @Published var scrolls = 0
+    @Published var magnifications = 0
+    @Published var systemGestures = 0
+    @Published private(set) var pinchEnabled = UserDefaults.standard.object(forKey: "io.github.soom-kang.touchme.pinchEnabled") as? Bool ?? true
+    var pinchAvailable: Bool { mapper.pinchAvailability == .available }
+    var pinchStatus: String {
+        switch mapper.pinchAvailability {
+        case .available:
+            return Texts.get("앱 콘텐츠를 확대·축소합니다. 앱별 동작은 다를 수 있습니다.",
+                             "Zooms app content. Behavior depends on the app.")
+        case .unsupportedOS:
+            return Texts.get("핀치는 macOS 26에서만 제공됩니다. 클릭·스크롤·세 손가락 전환은 사용할 수 있습니다.",
+                             "Pinch is available only on macOS 26. Click, scroll and three-finger switching remain available.")
+        case .eventFormatUnavailable:
+            return Texts.get("이 Mac에서 핀치 이벤트 형식을 확인하지 못해 핀치를 비활성화했습니다.",
+                             "Pinch is unavailable because its event format could not be verified on this Mac.")
+        }
+    }
+
+    func setPinchEnabled(_ enabled: Bool) {
+        pinchEnabled = enabled
+        UserDefaults.standard.set(enabled, forKey: "io.github.soom-kang.touchme.pinchEnabled")
+        mapper.setPinchEnabled(enabled)
+    }
     @Published var maximumContacts = 0
     @Published private var messageState: ProofMessage = .none
     var message: String { messageState.text }
@@ -183,10 +206,13 @@ final class ProofModel: ObservableObject {
             self.values = self.mapper.receivedValues
             self.clicks = self.mapper.postedDowns
             self.scrolls = self.mapper.postedScrolls
+            self.magnifications = self.mapper.postedMagnifications
+            self.systemGestures = self.mapper.postedSystemGestures
             self.maximumContacts = self.mapper.maximumContacts
             self.updateRecoveryScheduling()
             self.onRunChange?(self.running)
         }
+        mapper.setPinchEnabled(pinchEnabled)
         mapper.onFailure = { [weak self] error, display in
             self?.handleMappingFailure(error, previousDisplay: display)
         }
@@ -893,9 +919,17 @@ struct ProofSettingsView: View {
                     .pickerStyle(.menu).controlSize(.small).fixedSize()
                 }
                 Text(Texts.get("터치 설정", "Touch settings")).font(.headline)
-                Text(Texts.get("한 손가락 탭은 손을 뗄 때 클릭합니다. 손가락을 움직여 드래그하거나, 드래그 전에 두 손가락을 대고 클릭 없이 스크롤하세요. 동작을 바꾸려면 손가락을 모두 뗀 뒤 다시 시작하세요.",
-                               "A one-finger tap clicks when you lift it. Move one finger to drag, or place two fingers before dragging to scroll without clicking. Lift all fingers before switching gestures."))
+                Text(Texts.get("한 손가락 탭은 손을 뗄 때 클릭합니다. 드래그 전에 두 손가락을 대고 함께 움직이면 스크롤하고, 벌리거나 오므리면 확대·축소합니다. 세 손가락을 위로 밀면 Mission Control, 좌우로 밀면 데스크탑·전체 화면 앱을 전환합니다. 동작을 바꾸려면 손가락을 모두 떼세요.",
+                               "A one-finger tap clicks on lift. Before dragging starts, move two fingers together to scroll or pinch to zoom. Swipe three fingers up for Mission Control, or sideways between desktops and full-screen apps. Lift all fingers before switching gestures."))
                     .foregroundStyle(.secondary).fixedSize(horizontal: false, vertical: true)
+                Toggle(Texts.get("두 손가락 핀치 확대·축소", "Two-finger pinch to zoom"), isOn: Binding(
+                    get: { model.pinchEnabled && model.pinchAvailable }, set: model.setPinchEnabled))
+                    .disabled(!model.pinchAvailable)
+                Text(model.pinchStatus).font(.caption).foregroundStyle(.secondary)
+                    .fixedSize(horizontal: false, vertical: true)
+                Text(Texts.get("세 손가락 전환에는 macOS 기본 Control+↑/←/→ 단축키가 필요합니다. modifier 키나 마우스 버튼을 누른 동안에는 전환하지 않습니다.",
+                               "Three-finger switching requires the default macOS Control+↑/←/→ shortcuts. Release modifier keys and mouse buttons before switching."))
+                    .font(.caption).foregroundStyle(.secondary).fixedSize(horizontal: false, vertical: true)
                 GroupBox(Texts.get("1. 권한 확인", "1. Permissions")) {
                     VStack(alignment: .leading, spacing: 10) {
                         permissionRow(Texts.get("입력 모니터링", "Input Monitoring"), granted: model.permissions.inputMonitoring, input: true)
@@ -978,6 +1012,9 @@ struct ProofSettingsView: View {
                     .font(.system(.caption, design: .monospaced))
                 Text(Texts.get("관찰한 최대 접촉: \(model.maximumContacts) · 스크롤 이벤트: \(model.scrolls)",
                                "Maximum contacts observed: \(model.maximumContacts) · Scroll events: \(model.scrolls)"))
+                    .font(.system(.caption, design: .monospaced))
+                Text(Texts.get("게시한 핀치 이벤트: \(model.magnifications) · 전환 명령: \(model.systemGestures)",
+                               "Posted pinch events: \(model.magnifications) · Switch commands: \(model.systemGestures)"))
                     .font(.system(.caption, design: .monospaced))
                 if !model.message.isEmpty { Text(model.message).font(.callout).fixedSize(horizontal: false, vertical: true) }
                 if !model.lastFailureMessage.isEmpty {

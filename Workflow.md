@@ -6,6 +6,53 @@
 
 Use this workflow to build the arm64 app, inspect its bundle and create a personal disk image. The existing scripts use Apple's local tools and Python 3. They do not install additional dependencies or publish artifacts.
 
+## Gesture development candidate — 2026-10-25
+
+The current source adds continuous pinch and one-shot three-finger Mission Control /
+Space switching. This is not a public release; `VERSION` and the Cask remain at beta.10.
+
+- Core locks scroll, pinch or three-finger motion after recognition. Two-finger
+  thresholds are 6 screen units for translation and `max(6, 5% of initial span)`
+  for pinch, with 1.5× dominance; pinch needs an initial span of at least 20.
+  Three-finger switching needs 40 units, 1.5× axis dominance and all fingers moving
+  in the same direction. A committed drag keeps the existing 8-unit threshold.
+- HID slot generations distinguish observed lift/recontact cycles, including
+  cycles within one timestamp. Unreported physical finger replacement is not detectable.
+- `GestureEventAdapter` isolates the undocumented pinch fields, checks their
+  AppKit conversion on macOS 26 without posting, and prepares terminal events before
+  beginning. Stop, rejection and lifecycle interruptions cancel once. Other OS
+  majors or failed format checks disable pinch only; there is no keyboard-zoom fallback.
+- System commands use default Control-arrow shortcuts. Physical modifiers or
+  mouse buttons suppress new switch commands. Control is added without discarding
+  the arrow event's native `numericPad`/`secondaryFn` flags, which the native
+  Mission Control check required. An explicit Control-down/up pair prevents
+  synthetic modifier state from blocking the next stroke. All release events
+  are prepared before posting. System preferences remain unchanged.
+- `io.github.soom-kang.touchme.pinchEnabled` stores the pinch toggle separately
+  from saved mapping and recovery records. Posted counters indicate emission only.
+
+Use `bash scripts/test.sh` and `git diff --check`. Existing Core/HID tests and one
+Platform adapter test file cover the changes without posting global input. A normal
+macOS execution context is needed for native event-source construction; sandbox
+service denial is not proof of a product failure. The [QA checkpoint](docs/qa/automated-tests.md#gesture-expansion--2026-10-25)
+records the candidate, app results and remaining P16KT checks.
+
+Default local builds use ad hoc signing and may need their own privacy permissions.
+Preserve the installed certificate-signed app and its existing permission entries.
+For this check, the user approved signing local build 30 with the existing permanent
+certificate after ad hoc build 29 could not use the existing permissions. The
+subsequent build 31 fixes discarded native arrow flags. Build 32 also pairs the
+Control modifier to clear synthetic state between strokes; the 49-test suite
+passed after both corrections. Both permissions remain Allowed, and the installed
+build 28 and privacy entries were preserved. Build 32's repeated three-finger
+commands, both Space boundaries and pinch in Safari, Preview PDF/image and Chrome
+passed by user observation. Stop/restart, lock/unlock and USB reconnection during
+pinch also passed, including fresh input after recovery. Targeting in the current
+four-display layout and final Stop passed. The GUI confirmed Stopped without a
+recovery error. These results apply to this Mac on macOS 26.7.1. The QA checkpoint
+retains the build 30/31 failures, isolated diagnostic results and unrun variants.
+No new dependency, driver, daemon, installation, trust change or publication is included.
+
 ## Beta.10 publication and upgrade — 2026-10-14
 
 Status: **PUBLISHED; IN_PLACE_UPGRADE_PASS;
@@ -388,7 +435,7 @@ The package separates session logic from macOS device access and app controls:
 
 | Module             | Responsibility                                                                                         |
 | ------------------ | ------------------------------------------------------------------------------------------------------ |
-| `TouchMappingCore` | Coordinate normalization, screen mapping and contact-state effects                                     |
+| `TouchMappingCore` | Coordinate normalization, screen mapping, contact ownership and gesture recognition                    |
 | `TouchMePlatform`  | USB Human Interface Device (HID) discovery, display selection, P16KT mode restoration and macOS events |
 | `TouchMeApp`       | Menu bar, settings and test windows, preferences, login launch and resume decisions                    |
 

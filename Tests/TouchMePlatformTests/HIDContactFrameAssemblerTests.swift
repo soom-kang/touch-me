@@ -3,12 +3,41 @@ import TouchMappingCore
 @testable import TouchMePlatform
 
 struct HIDContactFrameAssemblerTests {
+    @Test
+    func sameReportSlotReplacementCancelsThePreviousDrag() {
+        var assembler = HIDContactFrameAssembler()
+        assembler.addContact(key: "A", down: false)
+        var session = ProofSession()
+        session.start()
+        _ = session.update(contacts: [])
+        let read: (String, HIDContactField) -> HIDContactValue = { _, _ in
+            Issue.record("Coordinates in the report must not be reread")
+            return HIDContactValue(integer: 0, timestamp: 0)
+        }
+        for (timestamp, x) in [(UInt64(1), 100), (UInt64(2), 120)] {
+            let fields: [(HIDContactField, Int)] = [(.x, x), (.y, 100), (.tip, 1)]
+            for (field, value) in fields {
+                _ = assembler.receive(key: "A", field: field, value: HIDContactValue(integer: value, timestamp: timestamp), read: read)
+            }
+            _ = update(assembler.flush(read: read), session: &session)
+        }
+        #expect(session.buttonPoint == MappedPoint(x: 120, y: 100))
+        let replacement: [(HIDContactField, Int)] = [(.tip, 0), (.x, 200), (.tip, 1), (.y, 100)]
+        for (field, value) in replacement {
+            _ = assembler.receive(key: "A", field: field, value: HIDContactValue(integer: value, timestamp: 3), read: read)
+        }
+        let frame = assembler.flush(read: read)
+        #expect(frame?.contacts.first?.generation == 2)
+        #expect(update(frame, session: &session) == [.up(MappedPoint(x: 120, y: 100))])
+        #expect(session.buttonPoint == nil)
+    }
+
     private func update(_ frame: HIDContactFrame?, session: inout ProofSession) -> [ProofAction] {
         guard let frame else { return [] }
         let down = frame.contacts.filter(\.down)
         let contacts = down.compactMap { contact -> ProofContact? in
             guard let x = contact.x, let y = contact.y else { return nil }
-            return ProofContact(id: contact.key, point: MappedPoint(x: Double(x), y: Double(y)))
+            return ProofContact(id: contact.identity, point: MappedPoint(x: Double(x), y: Double(y)))
         }
         return contacts.count == down.count ? session.update(contacts: contacts) : session.rejectContact()
     }

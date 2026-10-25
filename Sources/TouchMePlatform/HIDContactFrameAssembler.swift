@@ -11,6 +11,8 @@ enum HIDContactField: Equatable {
 struct HIDContactFrame {
     struct Contact {
         let key: String
+        let generation: UInt64
+        var identity: String { "\(key):\(generation)" }
         let x: Int?
         let y: Int?
         let down: Bool
@@ -25,6 +27,7 @@ struct HIDContactFrameAssembler {
         var y: HIDContactValue? = nil
         var down: Bool
         var needsCoordinates: Bool
+        var generation: UInt64 = 0
     }
     private var states: [String: State] = [:]
     private(set) var pendingTimestamp: UInt64?
@@ -51,7 +54,10 @@ struct HIDContactFrameAssembler {
         case .y: state.y = value
         case .tip:
             let down = value.integer != 0
-            if down && !state.down { state.needsCoordinates = true }
+            if down && !state.down {
+                state.needsCoordinates = true
+                state.generation &+= 1
+            }
             state.down = down
         }
         states[key] = state
@@ -79,7 +85,7 @@ struct HIDContactFrameAssembler {
         pendingTimestamp = nil
         return HIDContactFrame(contacts: states.keys.sorted().compactMap { key in
             guard let state = states[key] else { return nil }
-            return HIDContactFrame.Contact(key: key,
+            return HIDContactFrame.Contact(key: key, generation: state.generation,
                 x: state.x.flatMap { $0.timestamp <= timestamp ? $0.integer : nil },
                 y: state.y.flatMap { $0.timestamp <= timestamp ? $0.integer : nil },
                 down: state.down)

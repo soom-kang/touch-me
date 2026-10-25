@@ -36,7 +36,7 @@ public enum ProofError: Error, LocalizedError {
         case .deviceChanged(.displayValidation): return "The target display changed or is unavailable. Refresh and try again."
         case .openFailed(let rc): return String(format: "Exclusive open failed (0x%08X). Check permission or another mapper.", UInt32(bitPattern: rc))
         case .readFailed(let rc): return String(format: "Contact state read failed (0x%08X).", UInt32(bitPattern: rc))
-        case .eventCreationFailed: return "A mouse event could not be created. Mapping stopped."
+        case .eventCreationFailed: return "An input event could not be created. Mapping stopped."
         case .modeUnsupported: return "The verified P16KT multitouch feature layout was not found."
         case .modeStateUnexpected: return "The device mode or identifier is outside the verified starting states."
         case .modeReadFailed(let rc): return String(format: "Device mode read failed (0x%08X).", UInt32(bitPattern: rc))
@@ -110,6 +110,9 @@ public final class ProofMapper {
     public private(set) var receivedValues = 0
     public private(set) var postedDowns = 0
     public private(set) var postedScrolls = 0
+    public private(set) var postedMagnifications = 0
+    public private(set) var postedSystemGestures = 0
+    public let pinchAvailability = GestureEventAdapter.availability()
     public private(set) var maximumContacts = 0
     public var modeRestorePending: Bool {
         deviceMode?.control.needsRestore == true || stoppedObservationJournal?.hasPendingUnchangedDisconnect == true
@@ -122,6 +125,7 @@ public final class ProofMapper {
     public var onEnvironmentCheck: (() -> Void)?
     public var onDisplaySleep: (() -> Void)?
     private var session = ProofSession()
+    private let gestureEvents = GestureEventAdapter()
     private var clickSequence = ClickSequence()
     private var releaseEvent: CGEvent?
     private var opened: [HIDCollection] = []
@@ -141,7 +145,16 @@ public final class ProofMapper {
     private let loop = CFRunLoopGetMain()!
     private let mode = CFRunLoopMode.commonModes.rawValue
 
-    public init() {}
+    public init() {
+        _ = session.setMagnificationEnabled(pinchAvailability == .available)
+    }
+
+    public func setPinchEnabled(_ enabled: Bool) {
+        precondition(Thread.isMainThread)
+        let actions = session.setMagnificationEnabled(enabled && pinchAvailability == .available)
+        if !post(actions) { fail(.eventCreationFailed) }
+        onChange?()
+    }
 
     public var activeDisplayTarget: DisplayTarget? { target }
 
@@ -182,6 +195,8 @@ public final class ProofMapper {
         receivedValues = 0
         postedDowns = 0
         postedScrolls = 0
+        postedMagnifications = 0
+        postedSystemGestures = 0
         maximumContacts = 0
         let context = Unmanaged.passUnretained(self).toOpaque()
         func verifyOpenedEnvironment() throws {
@@ -321,6 +336,7 @@ public final class ProofMapper {
         }
         // Release before clearing the target or closing devices, including rollback.
         _ = post(session.stop())
+        gestureEvents.cancel()
         if let releaseEvent {
             releaseEvent.timestamp = DispatchTime.now().uptimeNanoseconds
             releaseEvent.post(tap: .cghidEventTap)
@@ -543,7 +559,7 @@ public final class ProofMapper {
             guard let elements = contacts[state.key], let x = state.x, let y = state.y,
                   let point = CoordinateMapper.map(x: x, y: y, xRange: elements.xRange,
                                                    yRange: elements.yRange, to: target.rect) else { return nil }
-            return ProofContact(id: state.key, point: point)
+            return ProofContact(id: state.identity, point: point)
         }
         // Reject the whole gesture rather than interpreting partial data as a tap/lift.
         if mappedContacts.count != active.count || (active.isEmpty && !downs.isEmpty) {
@@ -574,6 +590,29 @@ public final class ProofMapper {
             clickSequence.cancelTap()
         }
         for action in actions {
+            switch action {
+            case .magnify(let delta, let phase, let point):
+                clickSequence.cancelTap()
+                scrollRemainderX = 0
+                scrollRemainderY = 0
+                switch gestureEvents.magnify(delta: delta, phase: phase, at: point) {
+                case .failed: return false
+                case .posted: postedMagnifications += 1
+                case .skipped: break
+                }
+                continue
+            case .systemGesture(let gesture, let point):
+                clickSequence.cancelTap()
+                scrollRemainderX = 0
+                scrollRemainderY = 0
+                switch gestureEvents.perform(gesture, at: point) {
+                case .failed: return false
+                case .posted: postedSystemGestures += 1
+                case .skipped: break
+                }
+                continue
+            default: break
+            }
             if case .scroll(let dx, let dy, let point) = action {
                 clickSequence.cancelTap()
                 scrollRemainderX += dx
@@ -606,7 +645,7 @@ public final class ProofMapper {
                 clickSequence.move(to: p)
                 type = .leftMouseDragged; point = p
             case .up(let p): type = .leftMouseUp; point = p
-            case .scroll: continue
+            case .scroll, .magnify, .systemGesture: continue
             }
             let position = CGPoint(x: point.x, y: point.y)
             let event: CGEvent
