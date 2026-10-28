@@ -6,6 +6,65 @@
 
 Use this workflow to build the arm64 app, inspect its bundle and create a personal disk image. The existing scripts use Apple's local tools and Python 3. They do not install additional dependencies or publish artifacts.
 
+## Native page swipe candidate — 2026-10-28
+
+Status: **SOURCE_CHECKS_PASS; LOCAL_ACCEPTANCE_PASS_USER_REPORTED;
+FINAL_STOP_CONFIRMED**. This unpublished
+local work adds two-finger native
+back/forward gestures. The latest local build 38 retains the beta.11 version label but is
+separate from published build 33. The installed app, `VERSION`, Cask, permission
+entries and trust settings are preserved.
+The candidate has not been installed or released.
+
+- Core keeps the existing scroll/pinch classifier and click, drag and three-finger
+  contracts. Scroll actions now carry `ScrollPhase`; began includes accumulated
+  movement, later changes use incremental deltas, and the target stays at the
+  initial center. Normal partial lift ends once and waits for full lift. Invalid
+  contacts, replacement, a third contact or Stop cancel once.
+- `GestureEventAdapter` pairs public precise-scroll events with an undocumented
+  type-29/subtype-6 companion. Both events share location, flags and a fresh
+  timestamp. Terminal pairs are prepared before began. `PageSwipeAvailability`
+  permits companions only on macOS 26 after a non-posting format check; otherwise
+  public scrolling remains available. No momentum or keyboard-navigation fallback
+  is added.
+- The app receiving the gesture handles scrolling, history eligibility and
+  transition progress. Right means back and left means forward without reversing
+  direct-touch deltas for Natural scrolling. macOS page-swipe preferences are not
+  changed. Saved mapping and recovery formats remain unchanged.
+- After the USB source-selection change, 39 Platform and 21 Core tests pass,
+  including App compilation. The initial test-macro compilation failure and
+  successful retry are recorded in QA. Tests record events without posting global input. Use
+  `bash scripts/test.sh` and `git diff --check`; no packaging check is needed for
+  this gesture change.
+- Build 37 diagnosis found an inactive mouse-emulation contact blocking the
+  all-lift gate after USB recovery. The source now selects digitizer contacts once
+  at registration, with pointer-only fallback and full descriptor validation
+  preserved. Build 38 passed recovery on the previously failed attachment and
+  fresh USB interruption/reconnect cycles in Safari and Chrome, with new taps,
+  vertical scrolling and Back/Forward working (**PASS_USER_REPORTED**).
+
+On build 36, the user confirmed native back/forward progress, repeated strokes
+and reversal cancellation in Safari 27.2 and Chrome 156.0.8078.74 on the P16KT with
+macOS 26.7.2. Both browsers also passed these user checks:
+
+- First/last history boundaries and reverse-direction return after lift.
+- Vertical/diagonal scrolling, pinch, tap and text-selection drag without
+  unintended navigation or clicks.
+
+Both browsers also passed horizontal-page scrolling, including both edges compared
+with the built-in trackpad. Build 38 additionally passed pinch, drag and reversal
+cancellation in both browsers, repeated three-finger gestures, correct P16KT
+targeting in the current display layout and final Stop (**PASS_USER_REPORTED**).
+The agreed local validation scope is complete using build 36's broad checks and
+build 38's focused regressions; the full build 36 matrix was not repeated.
+Per-browser results are maintained in the
+[QA record](docs/qa/automated-tests.md#native-page-swipe-candidate--2026-10-28)
+alongside exact candidate identities, the public-scroll-only failures in builds
+34/35, the build 36 USB failure, receiver diagnostics and each browser's evidence.
+The optional Natural scrolling on/off comparison is **NOT_RUN**; the system
+setting was unchanged. These
+results do not establish acceptance for a public release.
+
 ## Beta.11 publication — 2026-10-25
 
 Beta.11/build 33 and its Homebrew Cask publish pinch and three-finger gestures.

@@ -130,18 +130,17 @@ struct ProofSessionTests {
         let midpoint = MappedPoint(x: 140, y: 90)
         let movedFirst = MappedPoint(x: 132, y: 72)
         let movedSecond = MappedPoint(x: 172, y: 92)
-        let movedMidpoint = MappedPoint(x: 152, y: 82)
 
         #expect(session.update(contacts: [contact(first)]) == [])
         #expect(session.update(contacts: [contact(first), contact(second, id: "secondary")]) == [])
         #expect(session.buttonPoint == nil)
         #expect(session.update(contacts: [contact(second, id: "secondary"), contact(first)]) == [])
         #expect(session.update(contacts: [contact(movedFirst), contact(movedSecond, id: "secondary")])
-                == [.scroll(dx: 12, dy: -8, at: movedMidpoint)])
+                == [.scroll(dx: 12, dy: -8, phase: .began, at: midpoint)])
         #expect(session.update(contacts: [contact(first), contact(second, id: "secondary")])
-                == [.scroll(dx: -12, dy: 8, at: midpoint)])
+                == [.scroll(dx: -12, dy: 8, phase: .changed, at: midpoint)])
 
-        #expect(session.update(contacts: [contact(first)]) == [])
+        #expect(session.update(contacts: [contact(first)]) == [.scroll(dx: 0, dy: 0, phase: .ended, at: midpoint)])
         #expect(session.update(contacts: [contact(first), contact(second, id: "secondary")]) == [])
         #expect(session.update(contacts: []) == [])
         #expect(session.update(contacts: [contact(first)]) == [])
@@ -164,8 +163,8 @@ struct ProofSessionTests {
 
         #expect(session.update(contacts: [contact(first), contact(second, id: "secondary")]) == [])
         #expect(session.update(contacts: [contact(movedFirst), contact(movedSecond, id: "secondary")])
-                == [.scroll(dx: 10, dy: 10, at: MappedPoint(x: 150, y: 100))])
-        #expect(session.update(contacts: []) == [])
+                == [.scroll(dx: 10, dy: 10, phase: .began, at: MappedPoint(x: 140, y: 90))])
+        #expect(session.update(contacts: []) == [.scroll(dx: 0, dy: 0, phase: .ended, at: MappedPoint(x: 140, y: 90))])
         #expect(session.update(contacts: [contact(movedFirst), contact(movedSecond, id: "secondary")]) == [])
         #expect(session.rejectContact() == [])
         #expect(session.update(contacts: [contact(first), contact(second, id: "secondary")]) == [])
@@ -177,6 +176,65 @@ struct ProofSessionTests {
         #expect(session.update(contacts: [contact(first), contact(second, id: "secondary")]) == [])
         #expect(session.update(contacts: []) == [])
         #expect(session.update(contacts: [contact(movedFirst), contact(movedSecond, id: "secondary")]) == [])
+    }
+
+    @Test
+    func scrollPhasesPreserveDirectionAnchorAndPartialLiftOwnership() {
+        var session = readySession()
+        let pair = [contact(MappedPoint(x: -100, y: 80)), contact(MappedPoint(x: 0, y: 80), id: "B")]
+        let anchor = MappedPoint(x: -50, y: 80)
+        // Each new stroke retains its direct-touch direction on both axes.
+        for (dx, dy) in [(6.0, 0.0), (-6.0, 0.0), (0.0, 6.0), (0.0, -6.0)] {
+            #expect(session.update(contacts: pair) == [])
+            let shifted = pair.map { contact(MappedPoint(x: $0.point.x + dx, y: $0.point.y + dy), id: $0.id) }
+            #expect(session.update(contacts: shifted) == [.scroll(dx: dx, dy: dy, phase: .began, at: anchor)])
+            #expect(session.update(contacts: shifted) == [])
+            let fractional = shifted.map { contact(MappedPoint(x: $0.point.x + 0.25, y: $0.point.y - 0.5), id: $0.id) }
+            #expect(session.update(contacts: Array(fractional.reversed()))
+                    == [.scroll(dx: 0.25, dy: -0.5, phase: .changed, at: anchor)])
+            #expect(session.update(contacts: shifted)
+                    == [.scroll(dx: -0.25, dy: 0.5, phase: .changed, at: anchor)])
+            #expect(session.update(contacts: [shifted[1]])
+                    == [.scroll(dx: 0, dy: 0, phase: .ended, at: anchor)])
+            #expect(session.update(contacts: [pair[1]]) == [])
+            #expect(session.update(contacts: pair) == [])
+            #expect(session.update(contacts: []) == [])
+            #expect(session.update(contacts: []) == [])
+        }
+    }
+
+    @Test
+    func interruptedScrollCancelsExactlyOnceAndRequiresLiftBeforeRestart() {
+        let pair = [contact(MappedPoint(x: 0, y: 100)), contact(MappedPoint(x: 100, y: 100), id: "B")]
+        let shifted = pair.map { contact(MappedPoint(x: $0.point.x + 10, y: $0.point.y), id: $0.id) }
+        let anchor = MappedPoint(x: 50, y: 100)
+        for reason in 0..<9 {
+            var session = readySession()
+            _ = session.update(contacts: pair)
+            #expect(session.update(contacts: shifted) == [.scroll(dx: 10, dy: 0, phase: .began, at: anchor)])
+            let cancelled: [ProofAction]
+            switch reason {
+            case 0: cancelled = session.stop()
+            case 1: cancelled = session.rejectContact()
+            case 2: cancelled = session.start()
+            case 3: cancelled = session.update(contacts: [shifted[0], contact(shifted[1].point, id: "new-generation")])
+            case 4: cancelled = session.update(contacts: shifted + [contact(first, id: "C")])
+            case 5: cancelled = session.update(contacts: [shifted[0], contact(MappedPoint(x: .nan, y: 100), id: "B")])
+            case 6: cancelled = session.update(contacts: [contact(first, id: "replacement")])
+            case 7: cancelled = session.update(contacts: shifted + [contact(first, id: "C"), contact(second, id: "D")])
+            default: cancelled = session.update(contacts: [shifted[0], shifted[0]])
+            }
+            #expect(cancelled == [.scroll(dx: 0, dy: 0, phase: .cancelled, at: anchor)])
+            #expect(session.rejectContact() == [])
+            #expect(session.update(contacts: shifted) == [])
+            #expect(session.start() == [])
+            #expect(session.update(contacts: shifted) == [])
+            #expect(session.update(contacts: []) == [])
+            #expect(session.update(contacts: pair) == [])
+            #expect(session.update(contacts: shifted) == [.scroll(dx: 10, dy: 0, phase: .began, at: anchor)])
+            #expect(session.update(contacts: []) == [.scroll(dx: 0, dy: 0, phase: .ended, at: anchor)])
+            #expect(session.stop() == [])
+        }
     }
 
     @Test
@@ -238,14 +296,16 @@ struct ProofSessionTests {
         #expect(session.update(contacts: [pair[0], contact(MappedPoint(x: 105, y: 0), id: "B")]) == [])
         #expect(session.update(contacts: [contact(MappedPoint(x: 5, y: 0)), contact(MappedPoint(x: 115, y: 0), id: "B")]) == [])
         let shifted = [contact(MappedPoint(x: 6, y: 0)), contact(MappedPoint(x: 106, y: 0), id: "B")]
-        #expect(session.update(contacts: shifted) == [.scroll(dx: 6, dy: 0, at: MappedPoint(x: 56, y: 0))])
+        #expect(session.update(contacts: shifted) == [.scroll(dx: 6, dy: 0, phase: .began, at: MappedPoint(x: 50, y: 0))])
         #expect(session.update(contacts: [contact(MappedPoint(x: -4, y: 0)), contact(MappedPoint(x: 116, y: 0), id: "B")]) == [])
-        #expect(session.update(contacts: shifted + [contact(first, id: "C")]) == [])
+        #expect(session.update(contacts: shifted + [contact(first, id: "C")])
+                == [.scroll(dx: 0, dy: 0, phase: .cancelled, at: MappedPoint(x: 50, y: 0))])
         #expect(session.update(contacts: shifted) == [])
         #expect(session.update(contacts: []) == [])
         _ = session.update(contacts: pair)
         _ = session.update(contacts: shifted)
-        #expect(session.update(contacts: [shifted[0], contact(shifted[1].point, id: "new-generation")]) == [])
+        #expect(session.update(contacts: [shifted[0], contact(shifted[1].point, id: "new-generation")])
+                == [.scroll(dx: 0, dy: 0, phase: .cancelled, at: MappedPoint(x: 50, y: 0))])
         #expect(session.update(contacts: []) == [])
     }
 
@@ -256,7 +316,7 @@ struct ProofSessionTests {
         let pair = [contact(MappedPoint(x: 0, y: 0)), contact(MappedPoint(x: 100, y: 0), id: "B")]
         _ = session.update(contacts: pair)
         #expect(session.update(contacts: [pair[0], contact(MappedPoint(x: 120, y: 0), id: "B")])
-                == [.scroll(dx: 10, dy: 0, at: MappedPoint(x: 60, y: 0))])
+                == [.scroll(dx: 10, dy: 0, phase: .began, at: MappedPoint(x: 50, y: 0))])
         _ = session.update(contacts: [])
         _ = session.setMagnificationEnabled(true)
         _ = session.update(contacts: [pair[0], contact(pair[0].point, id: "B")])

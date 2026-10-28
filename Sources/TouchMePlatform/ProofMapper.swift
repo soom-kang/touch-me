@@ -113,6 +113,7 @@ public final class ProofMapper {
     public private(set) var postedMagnifications = 0
     public private(set) var postedSystemGestures = 0
     public let pinchAvailability = GestureEventAdapter.availability()
+    public var pageSwipeAvailability: PageSwipeAvailability { gestureEvents.pageSwipeAvailability }
     public private(set) var maximumContacts = 0
     public var modeRestorePending: Bool {
         deviceMode?.control.needsRestore == true || stoppedObservationJournal?.hasPendingUnchangedDisconnect == true
@@ -139,9 +140,6 @@ public final class ProofMapper {
     private var watchdog: Timer?
     private var flushScheduled = false
     private var generation = 0
-    private var preferDigitizer = false
-    private var scrollRemainderX = 0.0
-    private var scrollRemainderY = 0.0
     private let loop = CFRunLoopGetMain()!
     private let mode = CFRunLoopMode.commonModes.rawValue
 
@@ -229,7 +227,12 @@ public final class ProofMapper {
                 try control.prepareStart(policy: startPolicy, expectedDescriptor: expectedReconnectDescriptor)
                 try control.enable()
                 resumePhase("mode_enable_finished")
-                for e in collection.contacts {
+                // Multitouch mode does not keep the mouse-emulation report current.
+                // Select one source for initial lift, coordinates and every later frame.
+                let mappingKeys = HIDContactLayout.mappingKeys(collection.contacts.map {
+                    (key: $0.key, isDigitizer: $0.isDigitizer)
+                })
+                for e in collection.contacts where mappingKeys.contains(e.key) {
                     // Verify an initial tip state; actual coordinates still require callbacks.
                     let down = try currentValue(for: e.tip).integer != 0
                     contacts[e.key] = e
@@ -410,9 +413,6 @@ public final class ProofMapper {
         target = nil
         frameAssembler = HIDContactFrameAssembler()
         flushScheduled = false
-        preferDigitizer = false
-        scrollRemainderX = 0
-        scrollRemainderY = 0
         if recoverPreviousOwner, !hadControl, restoreError == nil {
             do {
                 if stoppedObservationJournal != nil { _ = try observeStoppedAttachment() }
@@ -545,27 +545,17 @@ public final class ProofMapper {
     private func process(_ frame: HIDContactFrame) {
         guard running, let target else { return }
         let downs = frame.contacts.filter(\.down)
-        let digitizer = downs.filter { contacts[$0.key]?.isDigitizer == true }
-        if !digitizer.isEmpty { preferDigitizer = true }
-        if downs.isEmpty { preferDigitizer = false }
-        let active = preferDigitizer ? digitizer : downs
-        if !downs.isEmpty && active.count != 1 { clickSequence.cancelTap() }
-        maximumContacts = max(maximumContacts, active.count)
-        if active.count != 2 {
-            scrollRemainderX = 0
-            scrollRemainderY = 0
-        }
-        let mappedContacts = active.compactMap { state -> ProofContact? in
+        if !downs.isEmpty && downs.count != 1 { clickSequence.cancelTap() }
+        maximumContacts = max(maximumContacts, downs.count)
+        let mappedContacts = downs.compactMap { state -> ProofContact? in
             guard let elements = contacts[state.key], let x = state.x, let y = state.y,
                   let point = CoordinateMapper.map(x: x, y: y, xRange: elements.xRange,
                                                    yRange: elements.yRange, to: target.rect) else { return nil }
             return ProofContact(id: state.identity, point: point)
         }
         // Reject the whole gesture rather than interpreting partial data as a tap/lift.
-        if mappedContacts.count != active.count || (active.isEmpty && !downs.isEmpty) {
+        if mappedContacts.count != downs.count {
             clickSequence.cancelTap()
-            scrollRemainderX = 0
-            scrollRemainderY = 0
             guard post(session.rejectContact()) else { fail(.eventCreationFailed); return }
             onChange?()
             return
@@ -591,10 +581,16 @@ public final class ProofMapper {
         }
         for action in actions {
             switch action {
+            case .scroll(let dx, let dy, let phase, let point):
+                clickSequence.cancelTap()
+                switch gestureEvents.scroll(dx: dx, dy: dy, phase: phase, at: point) {
+                case .failed: return false
+                case .posted: postedScrolls += 1
+                case .skipped: break
+                }
+                continue
             case .magnify(let delta, let phase, let point):
                 clickSequence.cancelTap()
-                scrollRemainderX = 0
-                scrollRemainderY = 0
                 switch gestureEvents.magnify(delta: delta, phase: phase, at: point) {
                 case .failed: return false
                 case .posted: postedMagnifications += 1
@@ -603,8 +599,6 @@ public final class ProofMapper {
                 continue
             case .systemGesture(let gesture, let point):
                 clickSequence.cancelTap()
-                scrollRemainderX = 0
-                scrollRemainderY = 0
                 switch gestureEvents.perform(gesture, at: point) {
                 case .failed: return false
                 case .posted: postedSystemGestures += 1
@@ -613,30 +607,6 @@ public final class ProofMapper {
                 continue
             default: break
             }
-            if case .scroll(let dx, let dy, let point) = action {
-                clickSequence.cancelTap()
-                scrollRemainderX += dx
-                scrollRemainderY += dy
-                guard scrollRemainderX.isFinite, scrollRemainderY.isFinite else { return false }
-                let sx = Int32(min(max(scrollRemainderX.rounded(), Double(Int32.min)), Double(Int32.max)))
-                let sy = Int32(min(max(scrollRemainderY.rounded(), Double(Int32.min)), Double(Int32.max)))
-                guard sx != 0 || sy != 0 else { continue }
-                let position = CGPoint(x: point.x, y: point.y)
-                guard let event = CGEvent(scrollWheelEvent2Source: nil, units: .pixel,
-                                          wheelCount: 2, wheel1: sy, wheel2: sx, wheel3: 0),
-                      let movement = CGEvent(mouseEventSource: nil, mouseType: .mouseMoved,
-                                             mouseCursorPosition: position, mouseButton: .left) else { return false }
-                event.location = position
-                // Keep the live pointer on the touch target without a preceding tap.
-                movement.post(tap: .cghidEventTap)
-                event.post(tap: .cghidEventTap)
-                scrollRemainderX -= Double(sx)
-                scrollRemainderY -= Double(sy)
-                postedScrolls += 1
-                continue
-            }
-            scrollRemainderX = 0
-            scrollRemainderY = 0
             let type: CGEventType
             let point: MappedPoint
             switch action {

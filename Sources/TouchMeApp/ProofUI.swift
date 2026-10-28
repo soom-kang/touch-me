@@ -144,6 +144,19 @@ final class ProofModel: ObservableObject {
                              "Pinch is unavailable because its event format could not be verified on this Mac.")
         }
     }
+    var pageSwipeStatus: String {
+        switch mapper.pageSwipeAvailability {
+        case .available:
+            return Texts.get("Safari·Chrome에서 두 손가락을 오른쪽으로 밀면 뒤로, 왼쪽으로 밀면 앞으로 이동합니다. macOS의 ‘페이지 쓸어넘기기’가 켜져 있어야 합니다. 가로 스크롤을 할지 페이지를 이동할지는 브라우저가 결정합니다.",
+                             "Swipe two fingers right to go back or left to go forward in Safari and Chrome. Enable macOS ‘Swipe between pages’. The browser decides whether to scroll horizontally or navigate.")
+        case .unsupportedOS:
+            return Texts.get("페이지 이동 제스처는 macOS 26에서만 제공됩니다. 일반 스크롤은 계속 사용할 수 있습니다.",
+                             "Page-swipe gestures are available only on macOS 26. Regular scrolling remains available.")
+        case .eventFormatUnavailable:
+            return Texts.get("이 Mac에서 페이지 이동 이벤트 형식을 확인하지 못해 페이지 이동 제스처를 사용할 수 없습니다. 일반 스크롤은 계속 사용할 수 있습니다.",
+                             "Page-swipe gestures are unavailable because their event format could not be verified on this Mac. Regular scrolling remains available.")
+        }
+    }
 
     func setPinchEnabled(_ enabled: Bool) {
         pinchEnabled = enabled
@@ -926,6 +939,8 @@ struct ProofSettingsView: View {
                     get: { model.pinchEnabled && model.pinchAvailable }, set: model.setPinchEnabled))
                     .disabled(!model.pinchAvailable)
                 Text(model.pinchStatus).font(.caption).foregroundStyle(.secondary)
+                    .fixedSize(horizontal: false, vertical: true)
+                Text(model.pageSwipeStatus).font(.caption).foregroundStyle(.secondary)
                     .fixedSize(horizontal: false, vertical: true)
                 Text(Texts.get("세 손가락 전환에는 macOS 기본 Control+↑/←/→ 단축키가 필요합니다. modifier 키나 마우스 버튼을 누른 동안에는 전환하지 않습니다.",
                                "Three-finger switching requires the default macOS Control+↑/←/→ shortcuts. Release modifier keys and mouse buttons before switching."))

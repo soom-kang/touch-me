@@ -3,6 +3,303 @@
 Ticket: TMQA-005. Tests added here are not a claim that native tests passed.
 No CI service, external dependency, device driver, or permission change is added.
 
+## Native page swipe candidate — 2026-10-28
+
+Status: **SOURCE_CHECKS_PASS; LOCAL_ACCEPTANCE_COMPLETE_USER_REPORTED; FINAL_STOP_GUI_CONFIRMED; NOT_PUBLISHED**.
+This is unpublished local work based on `be6216d`, with scroll phases,
+fixed gesture targeting and explicit scroll termination. The installed beta.11
+app and existing permission/trust settings are unchanged.
+The latest candidate is build 38, with the contact-source selection fix described
+below. Its focused physical results are separate from the broader build 36 matrix;
+only explicitly marked cases are **PASS_USER_REPORTED**.
+Event construction and receiver observations are tracked separately from these
+browser results; a pending row is not covered by another browser's result.
+
+| Build 38 focused physical check | Safari 27.2 | Chrome 156.0.8078.74 |
+| --- | --- | --- |
+| Fresh tap, vertical scroll and Back/Forward on the same attachment that failed in build 37 | Not separately checked | **PASS_USER_REPORTED** |
+| USB removal during an uncommitted transition; full lift, same-port reconnect and automatic resume; B retained, feedback cleared and fresh tap, vertical scroll and Back/Forward | **PASS_USER_REPORTED** | **PASS_USER_REPORTED** |
+| Pinch, drag and reversal cancellation after recovery | **PASS_USER_REPORTED** | **PASS_USER_REPORTED** |
+
+Build 38's repeated three-finger left/right and Mission Control gestures,
+application to the P16KT in the current multi-display layout, and final Stop are
+**PASS_USER_REPORTED**. A later GUI read still showed Running; the agent then
+clicked Stop and confirmed **Stopped**, Start enabled and Stop disabled. No cause
+is assigned to the difference between the user report and that later GUI state.
+The optional Natural scrolling on/off comparison is **NOT_RUN**; the system
+setting was not changed. Source checks pass with 39 Platform + 21 Core tests and
+App compilation. The agreed local validation is complete, with the candidate
+boundaries below. No installation or publication was performed.
+Build 38 retains the gesture output behavior from build 36, with the registration
+source-selection fix and focused tests. The full build 36 matrix was not repeated.
+
+| Historical build 36 physical check | Safari 27.2 | Chrome 156.0.8078.74 |
+| --- | --- | --- |
+| Native transition feedback, back/forward, repetition, reversal cancellation | **PASS_USER_REPORTED** | **PASS_USER_REPORTED** |
+| History first/last boundary and reverse return after full lift | **PASS_USER_REPORTED** | **PASS_USER_REPORTED** |
+| Vertical/diagonal scroll, pinch, tap and text-selection drag without unintended navigation/click | **PASS_USER_REPORTED** | **PASS_USER_REPORTED** |
+| Wide page: content-only horizontal scroll in the middle; both actual scrollbar ends match the built-in trackpad | **PASS_USER_REPORTED** | **PASS_USER_REPORTED** |
+| Nested scroll: middle and both boundaries; target remains on the original region as fingers cross its border | **PASS_USER_REPORTED** | **PASS_USER_REPORTED** |
+| Page overscroll policy compared with the built-in trackpad | **MATCH_NATIVE_USER_REPORTED**: both inputs navigate; CSS blocking was not observed | **PASS_USER_REPORTED**: both inputs block back/forward navigation |
+| Stop during an uncommitted transition; full lift, restart and fresh navigation | **PASS_USER_REPORTED** | **PASS_USER_REPORTED** |
+| Lock during an uncommitted transition; full lift, unlock and automatic recovery | **PASS_USER_REPORTED** | **PASS_USER_REPORTED** |
+| USB removal during an uncommitted transition; full lift, same-port reconnect and automatic recovery | **PENDING** | **FAIL_USER_REPORTED**: automatic resume succeeds, but fresh touch input malfunctions |
+
+At that checkpoint, three-finger, multi-display, the optional alternate Natural
+scrolling setting and final Stop had not been checked. The subsequent source-only
+help/status update also passed
+`bash scripts/test.sh`: 35 Platform + 21 Core tests and App compilation in the
+normal host context (`.build/page-swipe-final-tests.log`). Final bounded code
+review found no new actionable defect in that source state. At that checkpoint,
+build 36 was running for physical checks; the help/status changes had not yet
+been bundled or checked in the GUI. The later USB diagnosis and source-selection
+change are recorded below, separately from those passing checks.
+The chronological record below preserves each development checkpoint. Its
+failure and pending labels apply to that checkpoint; build 36 and build 38 results
+are separated in the tables above. The initial browser/receiver results belong to
+build 34; the follow-up build 35 is described separately.
+
+| Check | Result and boundary |
+| --- | --- |
+| `bash scripts/test.sh` in the normal host context | **PASS**, 33 Platform + 21 Core tests, including App compilation; no global input is posted |
+| Initial restricted-executor run | **FAIL**: the existing keyboard-source test could not create its event source; scroll assertions also required explicit `CGFloat` to `Double` conversion. The corrected suite passed in the normal host context |
+| Public precise-scroll event conversion | **PASS**: nonzero began, changed, zero-delta ended/cancelled, signed axes, fixed anchor and no momentum |
+| Local build / existing certificate signature | **PASS**, build 34 at `dist/Touch Me.app`; no installation or publication |
+| Candidate permissions and target | Both permissions **Allowed** in the GUI; P16KT display 3 confirmed by the user; mapping started |
+| Safari page navigation | **FAIL_USER_REPORTED** on the A/B/C local-page fixture; the B page remained visible with both history controls enabled |
+| Same-fixture controls | **PASS_USER_REPORTED**: P16KT vertical scrolling and built-in trackpad back navigation both work |
+| Listen-only scroll capture | **OBSERVED**: the candidate's began/changed/ended phases and deltas survive the HID and session taps; this does not establish AppKit swipe tracking |
+| Temporary AppKit receiver | **OBSERVED** after user-operated comparison: candidate began `dx=33` seeds progress `0.033`, but further progress remains at that value before returning to 0. Physical trackpad begins at `0.001`, progresses and completes at 1. Both trackers complete before the next trial; neither result establishes browser acceptance |
+| Chrome, cancellation/edge cases and interruption recovery | **NOT_RUN**, pending resolution of the Safari failure |
+
+Candidate executable SHA-256:
+`f751cf66a56b493d37b23382e40739088ce114f38a7278fc0171004c03d4ab1a`.
+Native PID `60913` was verified at the local candidate path. The candidate keeps
+the unchanged `0.8.0-beta.11` version label but uses build 34; it is not the public
+build 33. Environment: macOS 26.7.2, Safari 27.2, Chrome 156.0.8078.74.
+Input counters establish posting activity only, not browser handling. No keyboard
+navigation fallback is implemented, and native page navigation is not yet accepted.
+The receiver uses public `trackSwipeEvent` with symmetric `[-1, 1]` bounds.
+Its result rules out an initial direction-sign mismatch for that stroke, but does
+not identify which subsequent event property prevents progress. Tracker callbacks
+are asynchronous and are not counted as one callback per received scroll event.
+The diagnostic receiver and captures are temporary local files, not shipped code.
+
+A second user-operated receiver comparison reproduced the lack of subsequent
+synthetic progress. Its separate, time-limited field listener had already exited,
+so post-dispatch timestamp and delta-field comparison is **NOT_RUN**; unrelated
+mouse-wheel records are not used as evidence. A follow-up candidate assigns a
+fresh uptime timestamp immediately before both began and changed dispatch, while
+leaving delta, phase and event-source fields unchanged. The three existing scroll
+tests pass, including send-time timestamp ordering, and App compilation passes.
+After user-completed native authentication, the existing certificate signed local
+build 35 and strict signature verification passed. Candidate path remains
+`dist/Touch Me.app`; executable SHA-256 is
+`bbcada2c049b2bf49a550ce1a1c4345dadc76575e7eddccd2a87f9dda36a7670`.
+Native PID `28858` was verified at that path, both permissions remain **Allowed**,
+and mapping started with the confirmed P16KT display 3 target. The installed
+build 33 executable hash is unchanged. The user-operated receiver comparison
+**FAILS_TO_IMPROVE**: build 35 seeds `0.008`, remains there during tracking, then
+returns to 0; the physical trackpad progresses and completes at 1. The session
+capture independently contains one candidate began, 121 changed and one ended.
+Changed timestamps increase and are nonzero; horizontal point deltas sum to 527.
+Public raw/accelerated fields are zero on those candidate events. Physical
+samples have nonzero raw/accelerated fields, but that difference alone does not
+establish causality. The bounded listener exited and the candidate was stopped
+normally in the GUI after diagnosis. Safari/Chrome acceptance remains incomplete.
+
+The existing [Mac Mouse Fix scroll implementation](https://github.com/noah-nuebling/mac-mouse-fix/blob/master/Helper/Core/Touch/GestureScrollSimulator.m)
+posts a separate, undocumented type-29/subtype-6 gesture event alongside the
+ordinary scroll event. This is a source-backed alternative to investigate, not a
+verified fix on this candidate. The user explicitly approved extending the
+public-scroll-only plan for a local companion-event candidate. The path is being
+isolated in the adapter with paired termination and a macOS 26 format guard.
+A non-posting check confirms that subtype 6 converts to native event type 29 and
+that `CGGesturePhase` values map to the expected `NSEvent.Phase` values on this Mac.
+The implemented pairs share location, flags and a fresh timestamp. All began,
+ended and cancelled events are allocated before any input; a failed changed-pair
+allocation posts neither member and the existing mapper cleanup cancels the
+active pair. Unsupported OS/format checks retain public scrolling. The companion
+uses the same pixel displacement without the reference project's sensitivity
+multiplier. This mapping still needs physical acceptance.
+
+`bash scripts/test.sh` now **PASS**: 35 Platform + 21 Core tests and App compilation
+in the normal host context. Independent code review and `git diff --check` pass.
+The earlier restricted focused run had 8 passes and one failure in the unchanged
+system-key event-source allocation; the complete suite passes without a source
+change in the normal host. No companion input has been posted at this checkpoint.
+
+The existing certificate then signed local build 36; strict verification passed.
+Its executable SHA-256 is
+`5bfa36858f338ad9220a14600f7cf9a399a2ba8b75e124401165a99cd747032f`
+at `dist/Touch Me.app`, native PID `43560`. Both permissions remain **Allowed**.
+Mapping started on confirmed P16KT display 3 for the companion-event receiver
+trial. User-operated receiver results are **PASS_OBSERVED_ON_THIS_MAC**: rightward
+tracking grows from `0.012` to `0.642` and completes at 1; leftward tracking grows
+from `-0.008` to `-0.545` and completes at -1. The short rightward/reverse stroke
+peaks at `0.135`, decreases during return and completes at 0. Each tracker
+completes before the next stroke. This demonstrates progress, direction and
+reversal cancellation in the temporary receiver, not browser history acceptance.
+Safari 27.2 basic acceptance is **PASS_USER_REPORTED** on build 36: P16KT
+back/forward navigation follows the fingers, repeats normally, and a short stroke
+reversed before lift cancels. This used a fresh A→B→C history, returned to B, in a
+test window moved to the P16KT. At that checkpoint, scroll-policy, boundary,
+regression and interruption checks were pending. Subsequent results are recorded
+in the table above. The installed build 33 hash was unchanged.
+
+Chrome's automated local-file navigation was blocked by the browser tool's URL
+policy. No workaround was attempted. Its basic history trial instead uses a
+dedicated public-page tab: `https://example.com/` →
+`https://www.iana.org/help/example-domains` →
+`https://www.iana.org/domains/reserved`, returned to the middle page. The user was
+asked to move that tab to the P16KT and report physical navigation, repetition
+and reversal cancellation. Chrome 156.0.8078.74 basic acceptance is now
+**PASS_USER_REPORTED** on build 36: transition feedback, both directions,
+repeated strokes and reversal cancellation all work normally. This does not
+cover the local fixture's horizontal-scroll or overscroll-policy cases.
+The user subsequently confirmed both actual history boundaries (disabled Back
+or Forward control), no extra navigation beyond either end, and normal reverse
+return after full lift. On the long IANA page, vertical and diagonal scrolling,
+pinch, tap and text-selection drag also work without unintended navigation or
+clicks. These additional results apply to Chrome on build 36 only.
+The user then opened the existing wide-page fixture manually in both browsers
+and prepared forward history with its C link before returning. Both Safari and
+Chrome pass middle-of-range content-only horizontal scrolling, and both actual
+scrollbar boundaries behave like the built-in trackpad (**PASS_USER_REPORTED**).
+The fixture's printed “right end” label was not used to identify the real end.
+The nested fixture also passes in both browsers (**PASS_USER_REPORTED**): the
+inner content scrolls in the middle, both boundaries match the built-in
+trackpad, and moving the fingers outside the inner region without lifting does
+not switch the gesture to another region or unexpectedly navigate history.
+On the `html { overscroll-behavior-x: contain }` fixture, Safari navigates with
+both the P16KT and the built-in trackpad (**MATCH_NATIVE_USER_REPORTED**).
+This is not a successful CSS navigation-blocking test and does not, by itself,
+demonstrate a Touch Me defect. The observation is consistent with
+[WebKit issue 240183](https://bugs.webkit.org/show_bug.cgi?id=240183), still open
+when checked on 2026-10-28, which reports Safari history navigation despite this
+CSS setting. That issue is supporting context, not proof of the exact code in
+the installed Safari binary. On the same fixture, Chrome blocks both back and
+forward navigation with both the P16KT and the built-in trackpad
+(**PASS_USER_REPORTED**). The browser-specific results are kept separate; Touch Me
+does not impose a different history-navigation policy on either browser.
+Safari's actual first/last history boundaries and reverse return after full
+lift also pass, along with vertical/diagonal scroll, pinch, tap and text-selection
+drag without unintended navigation or clicks (**PASS_USER_REPORTED**).
+Both browsers' Stop/restart flows pass with an uncommitted transition: page B stays
+in place, the transition feedback clears, and fresh back/forward gestures work
+after full lift and restart. This is evidence for the complete Stop flow, not
+isolated proof of the adapter's cancellation event; the mouse action used to
+press Stop can also affect browser tracking. Both browsers' lock/unlock flows
+also pass (**PASS_USER_REPORTED**): after locking during an uncommitted
+transition, lifting all fingers and unlocking, mapping resumes automatically,
+B stays in place, transition feedback clears, and fresh back/forward input
+works normally. The Chrome USB interruption/recovery trial then failed according
+to the user. The user clarified that mapping resumes automatically but fresh
+touch input does not work normally. The subsequent GUI
+shows mapping Running with both permissions Allowed on the confirmed display 3,
+2,320 received values, maximum two contacts, and zero posted clicks, scrolls,
+pinches or system gestures since restart. The scoped recovery log records the
+old attachment ending at 14:44:41 KST and verified device reappearance at
+14:44:56 KST on 2026-10-28. These observations do not identify the cause or prove
+that browser tracking recovered. The local build 36 remains unchanged, and
+Safari USB, common regressions and final-candidate work are on hold during
+diagnosis. Logs are stored in the ignored `.build/page-swipe-usb-recovery.log`.
+A second GUI read before the distinguishing check still shows 2,320 values and
+zero output counters. Without reconnecting or restarting, the user was asked to
+complete one two-contact touch/full-lift cycle, then a fresh tap and vertical
+scroll. Both remained ineffective according to the user; the GUI showed 3,781
+received values, maximum three contacts and zero outputs. At that checkpoint the
+cause was not established. A local diagnostic candidate was planned to collect
+aggregate contact masks and rejection counts without raw coordinates. The
+all-lift gate and HID initialization paths had not changed with page swiping;
+neither a stale contact nor invalid coordinates had yet been established as the cause.
+
+### USB input diagnosis — 2026-10-28 16:09:51 KST
+
+Temporary diagnostic build 37 uses executable SHA-256
+`a7963a60cba3f0e16a53faa48f81d8554e4187bb3f03f196155b81fe35154771`,
+with native PID `27492` at `dist/Touch Me.app`. The 56-test suite and native strict
+signature verification passed for that candidate. Both GUI permissions remained
+**Allowed**, with the same P16KT display 3 target. After normal Stop, Quit and
+relaunch, the user still reported ineffective input before another USB trial.
+
+The ignored `.build/page-swipe-input-diagnostic.log` records aggregate fields,
+without raw coordinates:
+
+- Start at 16:07:19 KST: `slots=6`, `initialDown=1`, `currentDown=1`,
+  `initialReady=false`.
+- Stop at 16:09:51 KST: `initialDown=1`, `currentDown=1`, `tipOff=6`,
+  `initialReady=false`, `frames=430`, `validEmpty=0`, `missingCoordinates=0`,
+  `mappingRejected=0`, `filtered=28`, `excessContacts=0`.
+
+The metadata-only `--scan`, which does not open the device, identifies contact
+ordinal 0 as mouse emulation (tip usage page 9, usage 1), followed by five
+digitizer contacts (tip usage page 13, usage 66). Its captured output is
+`.build/page-swipe-diagnostic-scan.json`. The down-mask bit that persisted belongs
+to the inactive mouse source. Source inspection shows that the assembler's
+`allLifted` included that source while the later frame path preferred digitizer
+contacts. Its retained pressed state prevented an empty accepted frame, leaving
+Core's initial-lift gate closed. This identifies the input-blocking path in this
+run; it does not establish why the device retained the mouse state.
+
+The source change selects contact keys once at registration through
+`HIDContactLayout.mappingKeys`: use digitizer contacts when present, otherwise
+retain the pointer-only fallback. Initial tip reads, coordinate callbacks and
+all-lift checks then use the same selected source. Full descriptor validation
+still precedes selection. The temporary aggregate instrumentation is removed
+from the source change. The earlier 56-test result applies to build 37, not this
+subsequent fix. The first fix-specific full-suite attempt failed to compile a new
+test because a nested `#expect` recursively
+expanded. This was a test compilation failure, not a runtime failure. The
+expression was extracted before the assertion and the suite was retried. The
+retry **PASS** covers 39 Platform + 21 Core tests and App compilation, recorded
+in `.build/page-swipe-usb-fix-tests-retry.log`.
+The initial failure remains in `.build/page-swipe-usb-fix-tests.log`.
+
+Build 38 was signed successfully at `dist/Touch Me.app`, with executable SHA-256
+`1ad79bfc70e3d08b2addce47ff59439ba1e75af59ff3207f50b16906f03bee46`.
+Native strict signature verification is **PASS**; the build log is
+`.build/page-swipe-usb-fix-build.log`. The launched candidate has both GUI
+permissions **Allowed**, and mapping started on the confirmed P16KT display 3.
+Runtime versions were rechecked: macOS 26.7.2, Safari 27.2 and Chrome
+156.0.8078.74. Native PID is `51263`. At launch, USB recovery acceptance was pending;
+the baseline result below preceded the new USB cycles.
+
+Build 38 baseline, before a further cable interruption: **PASS_USER_REPORTED**.
+On the same attachment that failed in build 37, the user reports that fresh
+Chrome taps, vertical scrolling and Back/Forward all work. The GUI shows Running,
+2,748 received values, four posted presses and 671 scroll actions. This confirms
+recovery in that attachment; a new USB interruption/reconnect had not yet been run.
+
+The subsequent Chrome USB cycle on build 38 is **PASS_USER_REPORTED**:
+automatic resume, B retained, transition feedback cleared and fresh taps,
+vertical scrolling and Back/Forward normal. The GUI confirms Running with
+1,531 received values, five posted presses and 369 scroll actions after restart.
+The following Safari USB cycle on build 38 is also **PASS_USER_REPORTED**:
+automatic resume, B retained, transition feedback cleared and fresh taps,
+vertical scrolling and Back/Forward normal. The user then confirmed pinch, drag
+and reversal cancellation in both browsers (**PASS_USER_REPORTED**). The final
+user confirmation covers repeated three-finger gestures without an intervening
+mouse click, application to the P16KT and final Stop (**PASS_USER_REPORTED**).
+At closeout, the GUI still showed Running; the agent clicked Stop and observed
+Stopped, Start enabled and Stop disabled. The counters then showed 7,748 received
+values, five posted presses, 1,252 scroll actions, 305 magnification actions and
+two system actions in that session. Counters are not substituted for physical
+acceptance. The optional alternate Natural scrolling setting remains **NOT_RUN**.
+The candidate executable still matches the build 38 hash above; the installed
+build 33 executable retains SHA-256
+`d2fff378613a3653b7b795008b17d8d7e9f1417c7785cd55c7775222eb207ea6`.
+Final documentation checks reuse the unchanged 60-test/build result and run
+`git diff --check`; no source tests or packaging checks are repeated for prose.
+The existing beta.11 release-document changes are preserved. VERSION, Cask,
+installed app, permissions and certificate trust are unchanged; push, tagging,
+publication and Homebrew distribution remain outside this task.
+
+An earlier own-process queue experiment compiled but exited with code 133 during
+initialization, before its application-start log. Baseline/raw-only/accelerated-only
+trials are therefore **NOT_RUN / INVALID_HARNESS**, not evidence for or against a
+field's effect. Both diagnostic processes exited; the experiment was not expanded.
+
 ## Beta.11 release packaging — 2026-10-25
 
 Gesture source was committed as `f386a89`. Beta.11/build 33 publishes the same

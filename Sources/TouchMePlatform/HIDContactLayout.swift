@@ -2,6 +2,14 @@ import TouchMappingCore
 
 /// Descriptor-only evidence, shared by discovery and the fail-closed checks.
 enum HIDContactLayout {
+    /// Choose once per mapping session, after full descriptor validation.
+    /// In multitouch mode, the inactive mouse-emulation report can retain a pressed value.
+    /// Its state must not participate in the digitizer's lift or gesture lifecycle.
+    static func mappingKeys(_ contacts: [(key: String, isDigitizer: Bool)]) -> Set<String> {
+        let digitizers = contacts.filter(\.isDigitizer)
+        return Set((digitizers.isEmpty ? contacts : digitizers).map(\.key))
+    }
+
     struct Axis {
         let range: AxisRange
         var isRelative = false

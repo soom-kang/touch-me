@@ -142,7 +142,7 @@ before either commits; adding it afterward cancels the gesture. Remaining
 fingers cannot click or drag. Four or more fingers cancel input until full lift.
 
 Pinch is enabled by default on macOS 26 when the local event-format check passes.
-Turn it off in settings to use two fingers for scrolling only. It uses an
+Turn it off in settings to disable pinch; scrolling remains available. It uses an
 undocumented macOS event format; another OS major or a failed format check disables
 pinch with an explanation. It does not substitute keyboard zoom shortcuts or zoom
 the whole screen. Keep the intended content under the touch point; Touch Me does
@@ -152,6 +152,41 @@ Three-finger switching requires enabled default **Control+↑/←/→** shortcut
 macOS Keyboard Shortcuts → Mission Control. Touch Me does not change those settings.
 Release modifier keys and mouse buttons before switching. Space transitions follow
 macOS's **Displays have separate Spaces** setting; no interactive swipe animation is synthesized.
+
+### Local source candidate: back and forward
+
+The unpublished local source adds two-finger page swiping. This feature is not
+included in the published beta.11/build 33 or its Homebrew Cask.
+The candidate has not been installed or released.
+
+- Swipe two fingers right to go back or left to go forward. The direct-touch
+  direction does not reverse with macOS's **Natural scrolling** setting.
+- The receiving app decides whether to scroll content or navigate its history.
+  A short stroke reversed before lift can cancel the native transition.
+- Enable macOS **Swipe between pages** for two-finger gestures. Touch Me does not
+  change that setting or substitute keyboard navigation shortcuts.
+- Page swiping uses an undocumented macOS gesture format, enabled only on macOS
+  26 after a local format check. Other OS majors or failed checks keep regular
+  scrolling available. The pinch toggle does not disable page swiping.
+
+On 2026-10-28, the user confirmed native back/forward progress, repeated strokes
+and reversal cancellation in Safari 27.2 and Chrome 156.0.8078.74 with local build
+36 on the P16KT and macOS 26.7.2 (**PASS_USER_REPORTED**). Both browsers also passed:
+
+- First/last history boundaries and reverse-direction return after lift.
+- Vertical/diagonal scrolling, pinch, tap and text-selection drag without
+  unintended navigation or clicks.
+
+Both browsers also passed horizontal-page scrolling, including both edges compared
+with the built-in trackpad. After a build 36 USB trial left fresh input ineffective,
+build 38 corrected contact-source selection. Both browsers then passed USB recovery
+with fresh input, pinch, drag and reversal cancellation (**PASS_USER_REPORTED**).
+Build 38 also passed repeated three-finger gestures, correct P16KT targeting in
+the current display layout and final Stop. This completes the agreed local
+validation scope using build 36's broad checks and build 38's focused regressions;
+the full build 36 matrix was not repeated. The optional Natural scrolling on/off
+comparison is **NOT_RUN**, with the setting unchanged. Exact candidate identities
+and results are in the [page-swipe QA record](docs/qa/automated-tests.md#native-page-swipe-candidate--2026-10-28).
 
 ## Stop and start again
 

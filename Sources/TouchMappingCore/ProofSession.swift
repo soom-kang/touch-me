@@ -1,5 +1,9 @@
 import Foundation
 
+public enum ScrollPhase: Equatable {
+    case began, changed, ended, cancelled
+}
+
 public enum MagnificationPhase: Equatable {
     case began, changed, ended, cancelled
 }
@@ -12,7 +16,7 @@ public enum ProofAction: Equatable {
     case down(MappedPoint)
     case drag(MappedPoint)
     case up(MappedPoint)
-    case scroll(dx: Double, dy: Double, at: MappedPoint)
+    case scroll(dx: Double, dy: Double, phase: ScrollPhase, at: MappedPoint)
     case magnify(delta: Double, phase: MagnificationPhase, at: MappedPoint)
     case systemGesture(action: SystemGesture, at: MappedPoint)
 }
@@ -54,10 +58,12 @@ public struct ProofSession {
         case pending(id: String, origin: MappedPoint, point: MappedPoint)
         case dragging(id: String)
         case pendingTwo(Group)
-        case scrolling(ids: Set<String>, point: MappedPoint)
+        case scrolling(ids: Set<String>, point: MappedPoint, anchor: MappedPoint)
         case pinching(ids: Set<String>, span: Double, anchor: MappedPoint)
         case pendingThree(Group)
     }
+
+    private enum TerminalPhase { case ended, cancelled }
 
     private static let maximumTapDistance = 8.0
     public private(set) var isRunning = false
@@ -116,9 +122,13 @@ public struct ProofSession {
         }
         let ids = Set(contacts.map(\.id))
         switch gesture {
-        case .scrolling(let owners, let previous):
+        case .scrolling(let owners, let previous, let anchor):
+            if contacts.count < 2 && ids.isSubset(of: owners) {
+                waitingForLift = true
+                return finish(phase: .ended)
+            }
             guard ids == owners, let group = Group(contacts) else { return rejectContact() }
-            return scroll(group, from: previous)
+            return scroll(group, from: previous, phase: .changed, at: anchor)
         case .pinching(let owners, let span, let anchor):
             if contacts.count < 2 && ids.isSubset(of: owners) {
                 waitingForLift = true
@@ -180,17 +190,18 @@ public struct ProofSession {
                     .magnify(delta: delta, phase: .changed, at: origin.center)]
         }
         if movement >= 6, !magnificationEnabled || movement >= separation * 1.5 {
-            return scroll(group, from: origin.center)
+            return scroll(group, from: origin.center, phase: .began, at: origin.center)
         }
         return []
     }
 
-    private mutating func scroll(_ group: Group, from previous: MappedPoint) -> [ProofAction] {
+    private mutating func scroll(_ group: Group, from previous: MappedPoint,
+                                 phase: ScrollPhase, at anchor: MappedPoint) -> [ProofAction] {
         let dx = group.center.x - previous.x
         let dy = group.center.y - previous.y
         guard dx.isFinite, dy.isFinite else { return rejectContact() }
-        gesture = .scrolling(ids: group.ids, point: group.center)
-        return dx == 0 && dy == 0 ? [] : [.scroll(dx: dx, dy: dy, at: group.center)]
+        gesture = .scrolling(ids: group.ids, point: group.center, anchor: anchor)
+        return dx == 0 && dy == 0 ? [] : [.scroll(dx: dx, dy: dy, phase: phase, at: anchor)]
     }
 
     private mutating func classifyThree(_ group: Group, origin: Group) -> [ProofAction] {
@@ -226,10 +237,14 @@ public struct ProofSession {
         return finish(phase: .cancelled)
     }
 
-    private mutating func finish(phase: MagnificationPhase) -> [ProofAction] {
+    private mutating func finish(phase: TerminalPhase) -> [ProofAction] {
         var actions: [ProofAction] = []
-        if case .pinching(_, _, let anchor) = gesture {
-            actions.append(.magnify(delta: 0, phase: phase, at: anchor))
+        switch gesture {
+        case .scrolling(_, _, let anchor):
+            actions.append(.scroll(dx: 0, dy: 0, phase: phase == .ended ? .ended : .cancelled, at: anchor))
+        case .pinching(_, _, let anchor):
+            actions.append(.magnify(delta: 0, phase: phase == .ended ? .ended : .cancelled, at: anchor))
+        default: break
         }
         gesture = .idle
         if let point = buttonPoint {
