@@ -2,21 +2,27 @@
 
 # Publish the Touch Me Homebrew beta
 
-## Beta.12 preparation — 2026-10-28
+## Beta.12 publication — 2026-10-28
 
-Status: **READY / NOT_PUBLISHED**. The next release is `0.8.0-beta.12`, build 39,
-with native back/forward gestures and the USB contact-source fix.
+Status: **PUBLISHED** — 2026-10-28 17:01:23 KST (08:01:23 UTC).
+Release `0.8.0-beta.12`, build 39, includes native back/forward gestures and the
+USB contact-source fix.
 Runtime source is unchanged from `294982a`. Existing 60-test and build 36/38 local
 acceptance results are reused, with no claim that the new release was exercised.
 New-release installation, upgrade, permission retention and physical use are
 **NOT_RUN**. Local signature, certificate/DR, arm64, mounted inner-app byte and
-DMG/checksum checks passed. Public release, download and Tap verification are pending. The
+DMG/checksum checks passed. Anonymous public DMG/sidecar bytes, sizes and API digests
+match the candidate. Public Tap `d9206d806864a539a56f5292387db510807b84e1`
+and all four changed files match the reviewed checkout. The
 optional Natural scrolling on/off comparison remains **NOT_RUN**.
 
-Keep the current installation instructions on public beta.11 until publication.
+The beta.12 DMG and Tap Cask are public. Cask Ruby syntax and current style rules
+passed for one file with no offenses, using existing compatible gems including
+RuboCop 1.91.0; the `brew style` front-end and exact locked toolchain were not used.
 The selected Cask is trusted; the whole Tap is not. Preserve that scope and the
 clean installed Tap at `49be006`; installed build 33 is unchanged. Online audit
 remains **BLOCKED** under the existing deferral. See the
+[release record](releases/v0.8.0-beta.12.md) and
 [QA checkpoint](qa/automated-tests.md#beta12-release-preparation--2026-10-28).
 
 ## Beta.11 publication checkpoint — 2026-10-25
@@ -115,7 +121,7 @@ is trusted and the whole Tap is untrusted; neither state was changed. No trust
 bypass variables were used. Build 26 GUI/device, installation, upgrade,
 Gatekeeper and login/lock/sleep/crash acceptance are **NOT_RUN**. At that
 checkpoint installation guidance targeted beta.8; the current guide below
-targets beta.11. These results retain their historical publication scope.
+targets beta.12. These results retain their historical publication scope.
 
 The installed app, recovery files, preferences and prior local artifacts match
 their inventories. Target trust/developer settings also match, but the shared
@@ -387,7 +393,7 @@ Homebrew 7.0.8 was inspected on 2026-10-07 and its relevant contracts were reche
 
 ## Install, update and remove after publication
 
-These instructions target published certificate-signed beta.11 and its verified Tap Cask. Normal beta.9 → beta.10 in-place upgrade passed; both GUI permissions remained Allowed without reapproval on this Mac (`PASS_USER_REPORTED_ON_THIS_MAC`). Earlier release checkpoints retain their original installation limits. Fully qualified installation scopes trust to the selected Cask rather than the whole Tap. [Tap Trust](https://docs.brew.sh/Tap-Trust)
+These instructions target published certificate-signed beta.12 and its verified Tap Cask. Normal beta.9 → beta.10 in-place upgrade passed; both GUI permissions remained Allowed without reapproval on this Mac (`PASS_USER_REPORTED_ON_THIS_MAC`). Earlier release checkpoints retain their original installation limits. Fully qualified installation scopes trust to the selected Cask rather than the whole Tap. [Tap Trust](https://docs.brew.sh/Tap-Trust)
 
 ```bash
 brew install --cask soom-kang/touch-me/touch-me
@@ -399,7 +405,7 @@ This beta uses a fixed maintainer self-signed certificate, without Developer ID 
 
 Check **Input Monitoring** and **Accessibility** in System Settings and enable only required Touch Me items, then refresh. The initial ad hoc → certificate transition may need one manual approval; public beta.9 → beta.10 retained both permissions without reapproval on this Mac, user and path (`PASS_USER_REPORTED_ON_THIS_MAC`). The Cask's signing caveat explains this limit. It grants no permissions and does not change quarantine.
 
-Public beta.9, beta.10 and beta.11 use the same permanent certificate; the [probe pilot](../Workflow.md#accessibility-signing-pilot--2026-10-12)
+Public beta.9 through beta.12 use the same permanent certificate; the [probe pilot](../Workflow.md#accessibility-signing-pilot--2026-10-12)
 remains separate evidence. If a required permission is unavailable, allow the
 installed Touch Me manually, then refresh. Keep already allowed items and
 existing recovery state. Quit normally and reopen the same app if needed.
@@ -435,7 +441,7 @@ The release owner records the source revision, tag, build number, DMG SHA-256, H
 
 A later Developer ID release needs separately approved signing/notarization preparation and validation of the final downloaded, installed app. Keep credential access outside this runbook and record that release's verification separately from this self-signed beta.
 
-Beta.9, beta.10 and beta.11 use the same permanent maintainer identity. Preserve it for future
+Beta.9 through beta.12 use the same permanent maintainer identity. Preserve it for future
 versions and validate downloaded/installed upgrades separately. Keep the trial
 certificate out of releases. Certificate or DR changes may require reapproval;
 self-signing gives no notarization or Gatekeeper guarantee. Preserve published

@@ -8,17 +8,17 @@
 
 Touch Me는 ZEUSLAP 터치 모니터를 Mac에서 활용할 수 있도록 만든 macOS 메뉴 막대 앱입니다. MacBook을 비롯한 Mac에서 터치 입력이 제대로 작동하지 않는 문제를 해결하고, 화면을 손가락으로 직접 조작할 수 있도록 돕는 것이 목적입니다.
 
-터치 입력을 선택한 화면의 좌표에 맞춰 전달해 탭과 더블 클릭, 한 손가락 드래그, 두 손가락 스크롤·핀치와 세 손가락 화면 전환을 사용할 수 있습니다. 앱에서 대상 화면을 선택하고 확인한 뒤 매핑을 시작하며, 메뉴 막대에서 매핑을 중지하거나 설정을 바꿀 수 있습니다.
+터치 입력을 선택한 화면의 좌표에 맞춰 전달해 탭과 더블 클릭, 한 손가락 드래그, 두 손가락 스크롤·핀치·뒤로·앞으로 이동과 세 손가락 화면 전환을 사용할 수 있습니다. 앱에서 대상 화면을 선택하고 확인한 뒤 매핑을 시작하며, 메뉴 막대에서 매핑을 중지하거나 설정을 바꿀 수 있습니다.
 
-Beta `0.8.0-beta.11`은 **P16KT에서 확인한 USB/HID profile**을 요구합니다. 장치 식별자와 HID(Human Interface Device) 입력 구조가 다르면 매핑을 시작하지 않습니다. 다른 ZEUSLAP 모델까지 지원한다고 보장하지 않으므로 아래 환경을 먼저 확인해 주세요.
+Beta `0.8.0-beta.12`는 **P16KT에서 확인한 USB/HID profile**을 요구합니다. 장치 식별자와 HID(Human Interface Device) 입력 구조가 다르면 매핑을 시작하지 않습니다. 다른 ZEUSLAP 모델까지 지원한다고 보장하지 않으므로 아래 환경을 먼저 확인해 주세요.
 
-Beta.12는 **READY / NOT_PUBLISHED**입니다. 두 손가락 뒤로·앞으로 이동과 USB
-복구 후 터치 입력 수정을 포함합니다. 실행 소스는 `294982a`와 같아 Swift 테스트
-60개 PASS와 build 36/38의 로컬 검증을 재사용합니다. Release build 39의 로컬 서명·
-DMG 검사는 통과했고 공개 release·Tap 검증은 진행 전입니다. 새 release의
-설치·upgrade·권한 유지·실기 사용은
-**NOT_RUN**입니다. 아래 설치 안내는 공개 beta.11을 유지합니다.
-[Release 준비 기록](docs/qa/automated-tests.md#beta12-release-preparation--2026-10-28)을 확인하세요.
+[Beta.12/build 39](https://github.com/soom-kang/touch-me/releases/tag/v0.8.0-beta.12)는
+**PUBLISHED**입니다. 공개 시각은 2026-10-28 17:01:23 KST(08:01:23 UTC)입니다.
+두 손가락 뒤로·앞으로 이동과 USB 복구 후 터치 입력 수정을 포함합니다. 로컬 산출물
+검사와 익명 공개 DMG·checksum·Tap 파일 대조를 통과했습니다.
+실행 소스는 `294982a`와 같아 Swift 테스트 60개 PASS와 build 36/38의 로컬 검증을
+재사용합니다. Build 39의 설치·upgrade·권한 유지·실기 사용은 **NOT_RUN**입니다.
+[Beta.12 release 기록](docs/releases/v0.8.0-beta.12.md)을 확인하세요.
 
 [Beta.11/build 33](https://github.com/soom-kang/touch-me/releases/tag/v0.8.0-beta.11)과
 Homebrew Cask를 2026-10-25에 공개했습니다. 핀치 확대·축소와 세 손가락 Mission
@@ -87,13 +87,13 @@ Apple Silicon Mac에서 P16KT 한 대를 연결하는 환경을 대상으로 합
 
 ## 설치하고 첫 매핑 시작하기
 
-공개한 beta.11/build 33을 Homebrew로 설치하거나 DMG에서 복사할 수 있습니다. 어느 쪽으로 설치하든 권한과 대상 화면 설정은 같습니다.
+공개한 beta.12/build 39를 Homebrew로 설치하거나 DMG에서 복사할 수 있습니다. 어느 쪽으로 설치하든 권한과 대상 화면 설정은 같습니다.
 
 ### Homebrew로 설치하기
 
 수동 설치한 `/Applications/Touch Me.app`이 이미 있다면 **로그인 시 Touch Me 열기**를 끄고 **매핑 중지**를 선택하세요. 연속 연결의 모드 복구나 종료가 확인된 연결의 기록 보존을 확인한 뒤 정상 종료하고 기존 앱을 Applications 밖으로 옮겨 보존하세요. 복구에 실패하면 설치를 멈추세요. 강제 덮어쓰기 없이 기존 앱과 환경설정을 보존하는 방법은 [Homebrew 설치 안내](docs/Homebrew.ko.md#공개-후-설치업데이트제거)에 정리했습니다.
 
-Tap의 Cask가 공개 beta.11 산출물과 checksum을 가리키는지 확인한 뒤 설치하세요:
+공개 beta.12 산출물과 checksum을 확인한 Cask로 설치하세요:
 
 ```bash
 brew install --cask soom-kang/touch-me/touch-me
@@ -101,7 +101,7 @@ brew install --cask soom-kang/touch-me/touch-me
 
 ### DMG로 설치하기
 
-[beta.11 release](https://github.com/soom-kang/touch-me/releases/tag/v0.8.0-beta.11)에서 `touch-me-0.8.0-beta.11-arm64.dmg`와 `.sha256` 파일을 받으세요. Version/build `0.8.0-beta.11`/33, [release notes](docs/releases/v0.8.0-beta.11.md)의 checksum과 인증서 fingerprint를 확인한 뒤 이미지를 열어 **Touch Me.app**을 **Applications**로 복사하세요. 복사를 마치면 이미지를 추출합니다. 이전 로컬 QA·서명 후보는 별도 산출물입니다.
+[beta.12 release](https://github.com/soom-kang/touch-me/releases/tag/v0.8.0-beta.12)에서 `touch-me-0.8.0-beta.12-arm64.dmg`와 `.sha256` 파일을 받으세요. Version/build `0.8.0-beta.12`/39, [release notes](docs/releases/v0.8.0-beta.12.md)의 checksum과 인증서 fingerprint를 확인한 뒤 이미지를 열어 **Touch Me.app**을 **Applications**로 복사하세요. 복사를 마치면 이미지를 추출합니다. 이전 로컬 QA·서명 후보는 별도 산출물입니다.
 
 Beta는 maintainer self-signed 인증서로 서명했으며 Developer ID와 공증은 없습니다. 인증서 trust를 추가하지 마세요. macOS가 다운로드한 앱의 첫 실행을 차단하면 출처와 checksum을 확인한 뒤 [Apple의 수동 실행 승인 안내](https://support.apple.com/en-us/102445)를 따르세요. 승인 항목이 보이더라도 앱 실행을 보장하지는 않습니다.
 
@@ -123,7 +123,8 @@ Beta는 maintainer self-signed 인증서로 서명했으며 Developer ID와 공�
 
 ## 손가락으로 사용하기
 
-Beta.11부터 핀치 확대·축소와 세 손가락 전환을 지원합니다. 자동 검사는 통과했습니다.
+Beta.12는 beta.11의 핀치 확대·축소와 세 손가락 전환에 뒤로·앞으로 이동을
+추가했습니다. 자동 검사는 통과했습니다.
 로컬 build 32에서 사용자가 P16KT로 다음 동작을 정상 확인했습니다.
 
 - 세 손가락 연속 동작과 양쪽 Space 경계·복귀
@@ -144,6 +145,7 @@ Beta.11부터 핀치 확대·축소와 세 손가락 전환을 지원합니다. 
 | 클릭 또는 더블 클릭 | 한 번 또는 두 번 탭하며, 각 클릭은 손가락을 뗄 때 발생 |
 | 드래그 | 한 손가락을 처음 위치에서 화면 좌표 8단위보다 멀리 이동 |
 | 세로 또는 가로 스크롤 | 드래그가 시작되기 전에 두 손가락을 대고 함께 이동하며, 클릭은 발생하지 않음 |
+| Safari·Chrome 뒤로 / 앞으로 | 두 손가락을 오른쪽 / 왼쪽으로 밀며, 콘텐츠 스크롤과 페이지 이동은 브라우저가 판단 |
 | 앱 콘텐츠 확대·축소 | 두 손가락을 벌리거나 오므림. ‘두 손가락 핀치 확대·축소’ 설정과 호환 앱이 필요함 |
 | Mission Control | 세 손가락을 위로 충분히 밀면 한 번 실행 |
 | 다음 / 이전 데스크탑 또는 전체 화면 앱 | 세 손가락을 왼쪽 / 오른쪽으로 충분히 밀면 한 번 전환 |
@@ -169,11 +171,10 @@ modifier 키와 마우스 버튼에서 손을 뗀 뒤 사용하세요. Space 전
 ‘각각의 Spaces가 있는 디스플레이’ 설정을 따르며, 화면이 손가락을 따라 움직이는
 애니메이션을 합성하지 않습니다.
 
-### 로컬 개발 후보: 뒤로 가기와 앞으로 가기
+### 뒤로 가기와 앞으로 가기
 
-beta.12로 준비하는 소스에 두 손가락 페이지 쓸어넘기기를 추가했습니다. 공개
-beta.11/build 33과 Homebrew Cask에는 아직 포함되지 않은 기능입니다.
-아래 개발 후보는 설치하거나 공개하지 않았습니다.
+Beta.12는 두 손가락 페이지 쓸어넘기기를 포함합니다. 아래 동작은 개발 build 36/38에서
+검증했으며 release build 39의 실기 사용은 **NOT_RUN**입니다.
 
 - 두 손가락을 오른쪽으로 밀면 뒤로, 왼쪽으로 밀면 앞으로 갑니다. macOS의
   **자연스러운 스크롤** 설정에 따라 직접 터치 방향을 반전하지 않습니다.
@@ -239,7 +240,7 @@ build 38의 세 손가락 연속 동작, 현재 다중 화면 배치에서 P16KT
 
 업데이트하거나 제거하기 전에는 **매핑 중지 → 안전한 정리 확인 → 정상 종료**를 수행하세요. 안전한 정리는 연속 연결의 모드 복구나 종료가 확인된 연결의 기록 보존입니다. 복구나 기록 처리에 실패하면 기록과 오류를 보존하고 복구 재시도를 마칠 때까지 진행하지 마세요. 기록을 삭제하거나 이전 모드를 새 연결에 쓰지 않습니다. 업데이트 뒤에는 두 권한의 상태를 확인하고 필요한 항목만 허용하세요.
 
-공개 beta.9·beta.10·beta.11은 같은 장기 인증서로 서명했습니다. 최초 A9 전환 뒤
+공개 beta.9부터 beta.12까지 같은 장기 인증서로 서명했습니다. 최초 A9 전환 뒤
 사용자는 두 권한 모두 Allowed임을 확인했습니다. 정상 beta.9 → beta.10
 upgrade는 통과했고 사용자가 재승인 없이 B10의 두 권한 모두 Allowed임을
 확인했습니다. 이 Mac의 같은 사용자·설치 경로에서 확인한 권한 유지 PASS이며
@@ -258,13 +259,14 @@ GUI 값은 사용자 보고입니다.
 
 - [개발 Workflow](Workflow.ko.md): 모듈별 역할, 로컬 빌드와 패키징, 변경에 맞는 검증
 - [Homebrew 배포](docs/Homebrew.ko.md): Tap과 release 절차, 설치 충돌, 업데이트와 제거
+- [beta.12 release notes](docs/releases/v0.8.0-beta.12.md): 페이지 이동·USB 복구 배포 산출물과 검증 범위
 - [beta.11 release notes](docs/releases/v0.8.0-beta.11.md): 제스처 배포 산출물과 검증 범위
 - [beta.10 release notes](docs/releases/v0.8.0-beta.10.md): 공개·upgrade와 권한 유지 검증 기록
 - [beta.9 release notes](docs/releases/v0.8.0-beta.9.md): 최초 인증서 전환의 허용 baseline
 - 과거 release notes: [beta.4](docs/releases/v0.8.0-beta.4.md), [beta.5](docs/releases/v0.8.0-beta.5.md), [beta.6](docs/releases/v0.8.0-beta.6.md), [beta.7](docs/releases/v0.8.0-beta.7.md), [beta.8](docs/releases/v0.8.0-beta.8.md)
 - [편집 가능한 구조 다이어그램](docs/assets/architecture.ko.html)
 
-공개 beta.11/build 33 산출물은 `dist/touch-me-0.8.0-beta.11-arm64.dmg`입니다. Native 검사와 public bytes 비교를 통과했고 정확한 source/tag·다운로드 식별은 release notes에 기록합니다. 로컬 빌드 버전은 `VERSION`에서 읽습니다.
+공개 beta.12/build 39 산출물은 `dist/touch-me-0.8.0-beta.12-arm64.dmg`입니다. Native 검사와 public bytes 비교를 통과했고 정확한 source/tag·다운로드 식별은 release notes에 기록합니다. 로컬 빌드 버전은 `VERSION`에서 읽습니다.
 
 ## 기록된 검증 결과
 

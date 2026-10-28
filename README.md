@@ -8,17 +8,17 @@
 
 Touch Me is a macOS menu bar app built to help you use ZEUSLAP touch-enabled monitors on a Mac. Its purpose is to address touch input that does not work properly on MacBooks and other Macs, helping you interact directly with the screen using your fingers.
 
-It maps touch input to the display you select, enabling taps, double-clicks, one-finger dragging, two-finger scrolling and pinch, and three-finger screen switching. Choose and confirm the target display in the app, then start mapping. Use the menu bar to stop mapping or change settings.
+It maps touch input to the display you select, enabling taps, double-clicks, one-finger dragging, two-finger scrolling, pinch and back/forward navigation, and three-finger screen switching. Choose and confirm the target display in the app, then start mapping. Use the menu bar to stop mapping or change settings.
 
-Beta `0.8.0-beta.11` requires the **USB/HID profile verified on the P16KT**. Mapping won't start if the device identifiers or HID (Human Interface Device) input layout differ. Support for other ZEUSLAP models isn't guaranteed, so check the setup below first.
+Beta `0.8.0-beta.12` requires the **USB/HID profile verified on the P16KT**. Mapping won't start if the device identifiers or HID (Human Interface Device) input layout differ. Support for other ZEUSLAP models isn't guaranteed, so check the setup below first.
 
-Beta.12 is **READY / NOT_PUBLISHED**. It adds two-finger back/forward and fixes
-touch input after USB recovery. Runtime source is unchanged from `294982a`; the
-60 passing Swift tests and build 36/38 local acceptance are reused. Release build
-39 passed local signature and DMG checks; public release and Tap verification are
-pending. Its installation, upgrade, permission retention and physical use are
-**NOT_RUN**. Installation instructions below still
-target public beta.11. See the [release preparation checkpoint](docs/qa/automated-tests.md#beta12-release-preparation--2026-10-28).
+[Beta.12/build 39](https://github.com/soom-kang/touch-me/releases/tag/v0.8.0-beta.12)
+is **PUBLISHED** — 2026-10-28 17:01:23 KST (08:01:23 UTC). It adds two-finger
+back/forward and fixes touch input after USB recovery. Local artifact checks and
+anonymous public DMG/checksum and Tap-file comparisons passed.
+Runtime source is unchanged from `294982a`; 60 passing Swift tests and build 36/38
+local acceptance are reused. Build 39 installation, upgrade, permission retention
+and physical use are **NOT_RUN**. See the [beta.12 release record](docs/releases/v0.8.0-beta.12.md).
 
 [Beta.11/build 33](https://github.com/soom-kang/touch-me/releases/tag/v0.8.0-beta.11)
 and its Homebrew Cask were published on 2026-10-25. Pinch zoom and three-finger
@@ -87,13 +87,13 @@ Other panels, Intel Macs and older macOS versions have no recorded validation. S
 
 ## Install and start your first mapping session
 
-Install the published beta.11/build 33 through Homebrew or its DMG. Both installation routes use the same permission and target-display setup.
+Install the published beta.12/build 39 through Homebrew or its DMG. Both installation routes use the same permission and target-display setup.
 
 ### Install with Homebrew
 
 If you already have a manually installed `/Applications/Touch Me.app`, turn off **Open Touch Me at login** and select **Stop mapping**. Confirm restoration on the continuous connection or safe preservation of a verified ended-connection record, then quit normally and move the old app outside Applications to keep it. Stop installation if restoration fails. The [Homebrew installation guide](docs/Homebrew.md#install-update-and-remove-after-publication) explains how to preserve the app and preferences without forcing an overwrite.
 
-Install the verified beta.11 Cask:
+Install the verified beta.12 Cask:
 
 ```bash
 brew install --cask soom-kang/touch-me/touch-me
@@ -101,7 +101,7 @@ brew install --cask soom-kang/touch-me/touch-me
 
 ### Install from the DMG
 
-Download `touch-me-0.8.0-beta.11-arm64.dmg` and its `.sha256` file from the [beta.11 release](https://github.com/soom-kang/touch-me/releases/tag/v0.8.0-beta.11). Confirm version/build `0.8.0-beta.11`/33, checksum and certificate fingerprint in the [release notes](docs/releases/v0.8.0-beta.11.md), then open the image and drag **Touch Me.app** to **Applications**. Eject after copying. Earlier local QA/signing candidates are separate artifacts.
+Download `touch-me-0.8.0-beta.12-arm64.dmg` and its `.sha256` file from the [beta.12 release](https://github.com/soom-kang/touch-me/releases/tag/v0.8.0-beta.12). Confirm version/build `0.8.0-beta.12`/39, checksum and certificate fingerprint in the [release notes](docs/releases/v0.8.0-beta.12.md), then open the image and drag **Touch Me.app** to **Applications**. Eject after copying. Earlier local QA/signing candidates are separate artifacts.
 
 The beta uses a maintainer self-signed certificate, without Developer ID or notarization. Do not add certificate trust. If macOS blocks the downloaded app's first launch, verify its source and checksum before following [Apple's manual approval guidance](https://support.apple.com/en-us/102445). An available approval option doesn't guarantee the app can run.
 
@@ -123,7 +123,8 @@ Closing settings leaves the app in the menu bar and mapping active.
 
 ## Use your fingers
 
-Beta.11 includes pinch zoom and three-finger switching. Automated checks pass.
+Beta.12 adds back/forward navigation to the pinch and three-finger gestures
+introduced in beta.11. Automated checks pass.
 On local build 32, the user confirmed repeated three-finger commands,
 Space boundaries and pinch in Safari, Preview PDF/image and Chrome on the P16KT.
 Stop/restart, lock/unlock and USB reconnection during pinch also passed by user
@@ -139,6 +140,7 @@ Use these gestures:
 | Click or double-click | Tap once or twice; each click happens when you lift the finger |
 | Drag | Move one finger more than 8 screen-coordinate units from its starting position |
 | Scroll vertically or horizontally | Place two fingers before dragging starts, then move them together; no click is sent |
+| Back / forward in Safari and Chrome | Swipe two fingers right / left; the browser decides between content scrolling and navigation |
 | Zoom app content | Spread or pinch two fingers; requires **Two-finger pinch to zoom** and a compatible app |
 | Mission Control | Swipe three fingers upward far enough; runs once until all fingers lift |
 | Next / previous desktop or full-screen app | Swipe three fingers left / right; runs once until all fingers lift |
@@ -162,11 +164,10 @@ macOS Keyboard Shortcuts → Mission Control. Touch Me does not change those set
 Release modifier keys and mouse buttons before switching. Space transitions follow
 macOS's **Displays have separate Spaces** setting; no interactive swipe animation is synthesized.
 
-### Local source candidate: back and forward
+### Back and forward
 
-The source prepared for beta.12 adds two-finger page swiping. This feature is not
-included in the published beta.11/build 33 or its Homebrew Cask. The development
-candidate below was not installed or released.
+Beta.12 includes two-finger page swiping. The behavior below was verified on
+development builds 36/38; release build 39 physical use is **NOT_RUN**.
 
 - Swipe two fingers right to go back or left to go forward. The direct-touch
   direction does not reverse with macOS's **Natural scrolling** setting.
@@ -233,7 +234,7 @@ Don't treat reopening the app or a later successful Stop as proof that the pre-c
 
 Before updating or removing the app, follow **Stop mapping → confirm safe cleanup → normal Quit**. Safe cleanup restores the continuous connection or preserves a record only after its connection is proven ended. If restoration or record handling fails, preserve the record and error and use Retry restore before proceeding. Never delete the record or apply its old mode to a new connection. After an update, check both privacy permission states and allow only required items.
 
-Public beta.9, beta.10 and beta.11 use the same permanent signing certificate. The user
+Public beta.9 through beta.12 use the same permanent signing certificate. The user
 confirmed both permissions Allowed after A9's initial transition. The normal
 beta.9 → beta.10 upgrade passed; the user confirmed both B10 permissions
 Allowed without reapproval on this Mac, user and installation path. This is a
@@ -252,13 +253,14 @@ For local builds or distribution details, read these documents:
 
 - [Build workflow](Workflow.md): module responsibilities, local builds, packaging and checks for each change
 - [Homebrew distribution](docs/Homebrew.md): Tap and release procedure, installation conflicts, updates and removal
+- [Beta.12 release notes](docs/releases/v0.8.0-beta.12.md): page-swipe and USB recovery release artifacts and validation boundaries
 - [Beta.11 release notes](docs/releases/v0.8.0-beta.11.md): gesture release artifacts and validation boundaries
 - [Beta.10 release notes](docs/releases/v0.8.0-beta.10.md): publication, upgrade and permission-retention verification
 - [Beta.9 release notes](docs/releases/v0.8.0-beta.9.md): initial certificate-transition baseline
 - Historical release notes: [beta.4](docs/releases/v0.8.0-beta.4.md), [beta.5](docs/releases/v0.8.0-beta.5.md), [beta.6](docs/releases/v0.8.0-beta.6.md), [beta.7](docs/releases/v0.8.0-beta.7.md), [beta.8](docs/releases/v0.8.0-beta.8.md)
 - [Editable architecture diagram](docs/assets/architecture.html)
 
-The published beta.11/build 33 artifact is `dist/touch-me-0.8.0-beta.11-arm64.dmg`. Native and public-byte checks passed; exact source/tag and download identities are in its release notes. Local builds read their version from `VERSION`.
+The published beta.12/build 39 artifact is `dist/touch-me-0.8.0-beta.12-arm64.dmg`. Native and public-byte checks passed; exact source/tag and download identities are in its release notes. Local builds read their version from `VERSION`.
 
 ## Recorded validation
 

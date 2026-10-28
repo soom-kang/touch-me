@@ -5,7 +5,8 @@ No CI service, external dependency, device driver, or permission change is added
 
 ## Beta.12 release preparation — 2026-10-28
 
-Status: **READY / NOT_PUBLISHED**. The release started from clean source
+Status: **PUBLISHED** — 2026-10-28 17:01:23 KST (08:01:23 UTC).
+The release started from clean source
 `5920354`, with runtime source/tests unchanged from `294982a`. Version
 `0.8.0-beta.12`, build 39, was built and packaged once from the build 38 baseline.
 This is a new release artifact; development acceptance below remains tied to its
@@ -18,7 +19,10 @@ recorded candidates.
 | Optional Natural scrolling on/off comparison | **NOT_RUN**; the setting was unchanged |
 | Existing packaging suite after bilingual instruction update | **PASS**: 26 tests; `.build/release-beta12/packaging-tests.log` |
 | New release build and local artifacts | **PASS**: strict signature, pinned certificate/DR and bidirectional installed DR, arm64, license/icon, DMG/checksum, mounted inner-app byte equality and bilingual notes |
-| Public tag/release, downloadable bytes and Tap Cask | **NOT_PUBLISHED / PENDING** |
+| Public tag/release and downloadable bytes | **PASS**: anonymous DMG/sidecar bytes, sizes and API digests match; release body comparison passed |
+| Tap publication and verification | **PASS**: remote main and four anonymously downloaded files match the reviewed checkout; Cask matches the source template body and the allowlist names exactly beta.12 |
+| Cask Ruby syntax and current style rules | **PASS**: one file, no offenses; existing compatible gems including RuboCop 1.91.0, not the `brew style` front-end or exact locked toolchain |
+| Prior artifacts and state | **PASS**: 11 releases, 22 assets, 22 tag references, 41 local artifact files (including five installed-app files) and 13 preference/recovery files preserved |
 | New-release installation, Homebrew upgrade, permission retention and physical use | **NOT_RUN** |
 
 Local artifact record: `.build/release-beta12/artifact.json`.
@@ -30,20 +34,33 @@ An initial requirement check omitted the inline `=` prefix and treated the
 requirement as a filename. The corrected read-only check passed without another
 build or packaging run.
 
+Release ID `426393196` points to source
+`5bf65f6753fce6942fe29e2126727332c6dd3fff`; the annotated tag object is
+`20b5eceb02ccdb3688a5d10ad659440495ce1d6b`. Public asset IDs are `684278619`
+(DMG) and `684278623` (checksum). The public verification is recorded in
+`.build/release-beta12/public-verification.json`; exact publication identities
+are also in the [release record](../releases/v0.8.0-beta.12.md).
+Public Tap commit is `d9206d806864a539a56f5292387db510807b84e1`, verified in
+`.build/release-beta12/tap-public-verification.json`.
+Preservation results are in `.build/release-beta12/preservation-local.json` and
+`.build/release-beta12/preservation-remote.json`.
+
 The only packaging change is bilingual page-swipe guidance in `Install.txt`.
 The existing packaging suite was used without new tests or a new framework. Keep the
 installed app, prior artifacts, preferences, recovery records and trust settings.
 The live native check confirms selected-Cask trust true and whole-Tap trust false,
 with clean installed Tap `49be006` and installed build 33 unchanged. Online audit
 remains **BLOCKED** under the existing approved deferral.
+Final scoped trust and installed-Tap preservation passed in
+`.build/release-beta12/homebrew-preservation.json`; no app upgrade was performed.
 
 ## Native page swipe candidate — 2026-10-28
 
-Status: **SOURCE_CHECKS_PASS; LOCAL_ACCEPTANCE_COMPLETE_USER_REPORTED; FINAL_STOP_GUI_CONFIRMED; NOT_PUBLISHED**.
-This is unpublished local work based on `be6216d`, with scroll phases,
-fixed gesture targeting and explicit scroll termination. The installed beta.11
-app and existing permission/trust settings are unchanged.
-The latest candidate is build 38, with the contact-source selection fix described
+Historical development status: **SOURCE_CHECKS_PASS; LOCAL_ACCEPTANCE_COMPLETE_USER_REPORTED; FINAL_STOP_GUI_CONFIRMED; NOT_PUBLISHED**.
+At this checkpoint, the unpublished local work was based on `be6216d`, with scroll
+phases, fixed gesture targeting and explicit scroll termination. The installed
+beta.11 app and existing permission/trust settings were unchanged.
+The final development candidate was build 38, with the contact-source selection fix described
 below. Its focused physical results are separate from the broader build 36 matrix;
 only explicitly marked cases are **PASS_USER_REPORTED**.
 Event construction and receiver observations are tracked separately from these
@@ -325,9 +342,10 @@ build 33 executable retains SHA-256
 `d2fff378613a3653b7b795008b17d8d7e9f1417c7785cd55c7775222eb207ea6`.
 Final documentation checks reuse the unchanged 60-test/build result and run
 `git diff --check`; no source tests or packaging checks are repeated for prose.
-The existing beta.11 release-document changes are preserved. VERSION, Cask,
-installed app, permissions and certificate trust are unchanged; push, tagging,
-publication and Homebrew distribution remain outside this task.
+At this development closeout, the existing beta.11 release-document changes were
+preserved. VERSION, Cask, installed app, permissions and certificate trust were
+unchanged; push, tagging, publication and Homebrew distribution were outside that
+scope. The subsequent beta.12 release is recorded above.
 
 An earlier own-process queue experiment compiled but exited with code 133 during
 initialization, before its application-start log. Baseline/raw-only/accelerated-only

@@ -6,11 +6,13 @@
 
 Use this workflow to build the arm64 app, inspect its bundle and create a personal disk image. The existing scripts use Apple's local tools and Python 3. They do not install additional dependencies or publish artifacts.
 
-## Beta.12 release preparation — 2026-10-28
+## Beta.12 publication — 2026-10-28
 
-Status: **READY / NOT_PUBLISHED**. Version `0.8.0-beta.12`, build 39, contains
-native back/forward gestures and the USB contact-source fix. Local artifact checks
-passed; public release, download and Tap verification remain pending.
+Status: **PUBLISHED** — 2026-10-28 17:01:23 KST (08:01:23 UTC).
+Version `0.8.0-beta.12`, build 39, contains native back/forward gestures and the USB
+contact-source fix. Local artifacts and anonymous public DMG/checksum bytes passed
+verification. Public Tap `d9206d8` and its four changed files match the reviewed
+checkout; the Cask matches the source template body and the allowlist names beta.12.
 
 - Runtime source and Swift tests are unchanged from `294982a`. Reuse the existing
   60-test PASS (39 Platform + 21 Core) and App compilation.
@@ -25,8 +27,9 @@ passed; public release, download and Tap verification remain pending.
   **NOT_RUN**. Preserve the installed app, prior artifacts, preferences and trust
   settings; development acceptance does not establish these release results.
 
-The [QA checkpoint](docs/qa/automated-tests.md#beta12-release-preparation--2026-10-28)
-separates release preparation from the development records below.
+The [release record](docs/releases/v0.8.0-beta.12.md) and
+[QA checkpoint](docs/qa/automated-tests.md#beta12-release-preparation--2026-10-28)
+separate publication results from the development records below.
 
 ## Native page swipe candidate — 2026-10-28
 
@@ -513,9 +516,9 @@ The app keeps these identifiers and versions:
 | --------------------- | ------------------------------------------------- |
 | App and executable    | `Touch Me.app` / `TouchMe`                        |
 | Bundle identifier     | `io.github.soom-kang.touchme`                     |
-| Release version       | `0.8.0-beta.11`, read from `VERSION`               |
+| Release version       | `0.8.0-beta.12`, read from `VERSION`               |
 | Bundle version        | `0.8.0` plus an incrementing numeric build number |
-| Full release metadata | `TouchMeReleaseVersion=0.8.0-beta.11`              |
+| Full release metadata | `TouchMeReleaseVersion=0.8.0-beta.12`              |
 | Target                | `arm64`, macOS 26 or later                        |
 
 Keep the identifier and saved-preference format stable when changing documentation or packaging. Changing the signing identity or installation path can require permission checks in the installed app.

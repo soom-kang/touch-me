@@ -48,10 +48,13 @@
     "scripts/package-dmg.py": "2fd08d9dfb7e0bd4fa07e74960c3301b9c58ba5f21a77d91fe2c0f3a9ffa7db1",
     "scripts/test.sh": "44b239916cd9eb536077a9f4c478cf814a0838f7311f6a155cf283d628df1932"
   },
-  "source_state": "READY / NOT_PUBLISHED. Frozen inputs for the locally verified beta.12/build 39 artifact; compare every input against the release commit before pushing the annotated tag.",
+  "source_state": "All 45 frozen inputs match published source 5bf65f6753fce6942fe29e2126727332c6dd3fff and tag v0.8.0-beta.12. Only documentation metadata changes after publication; the input hash map is unchanged.",
   "release_tag": "v0.8.0-beta.12",
   "tagged_input_comparison": {
-    "result": "PENDING",
-    "input_count": 45
-  }
+    "result": "PASS",
+    "input_count": 45,
+    "annotated_tag_object": "20b5eceb02ccdb3688a5d10ad659440495ce1d6b",
+    "peeled_source_commit": "5bf65f6753fce6942fe29e2126727332c6dd3fff"
+  },
+  "release_source_commit": "5bf65f6753fce6942fe29e2126727332c6dd3fff"
 }
