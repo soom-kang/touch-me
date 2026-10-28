@@ -2,15 +2,33 @@
 
 # Touch Me Homebrew beta 배포
 
+## Beta.12 준비 — 2026-10-28
+
+상태는 **READY / NOT_PUBLISHED**입니다. 다음 release는 뒤로·앞으로 제스처와
+USB 접점 소스 수정을 포함한 `0.8.0-beta.12`, build 39입니다. 실행 소스는
+`294982a`와 같아 기존 테스트 60개와 build 36/38의 로컬 검증을 재사용합니다.
+이 결과를 새 release의 실기 사용으로 확대하지 않습니다. 새 release의 설치·upgrade·
+권한 유지·실기 사용은 **NOT_RUN**입니다. 로컬 서명·인증서/DR·arm64·마운트한 내부 앱
+byte·DMG/checksum 검사는 통과했고 공개 release·다운로드·Tap 검증은 진행 전입니다.
+선택 항목인 자연스러운 스크롤 켜기·끄기 비교는 **NOT_RUN**입니다.
+
+공개 전까지 현재 설치 안내는 공개 beta.11을 유지합니다. 현재 선택 Cask는 trusted,
+전체 Tap은 untrusted이며 이 범위를 유지합니다. 설치된 Tap은 clean `49be006`,
+앱은 build 33으로 그대로입니다. Online audit는 기존 합의에 따라 **BLOCKED**입니다.
+[QA 기록](qa/automated-tests.md#beta12-release-preparation--2026-10-28)을 확인하세요.
+
+## Beta.11 공개 시점 기록 — 2026-10-25
+
 Beta.11/build 33과 Tap Cask를 공개했습니다. 핀치·세 손가락 제스처를 포함하며,
-공개 DMG·checksum과 Tap 파일 대조를 통과했습니다. 설치된 앱과 Tap은 유지했고
-이번 upgrade는 **NOT_RUN**입니다. [Beta.11 검증 기록](releases/v0.8.0-beta.11.md)에
+공개 DMG·checksum과 Tap 파일 대조를 통과했습니다. 공개 당시 설치된 앱과 Tap은
+유지했고 upgrade는 **NOT_RUN**이었습니다. [Beta.11 검증 기록](releases/v0.8.0-beta.11.md)에
 source/tag·산출물·Tap 식별과 검증 한계를 기록했습니다.
 
-현재 선택 Cask와 전체 Tap의 trust는 모두 false입니다. Trust를 변경하지 않고
-online audit는 기존 합의에 따라 **BLOCKED**로 유지합니다. Cask 문법과 기존 호환
-gem으로 실행한 현재 Homebrew style 규칙은 통과했습니다. 잠금 파일의 정확한
-toolchain 결과는 아닙니다. 아래는 이전 공개·upgrade 기록입니다.
+공개 당시 선택 Cask와 전체 Tap의 trust는 모두 false였습니다. Trust를 변경하지 않고
+online audit는 기존 합의에 따라 **BLOCKED**로 유지했습니다. Cask 문법과 기존 호환
+gem으로 실행한 당시 Homebrew style 규칙은 통과했습니다. 잠금 파일의 정확한
+toolchain 결과는 아닙니다. 이후 beta.11 upgrade와 권한 유지 결과는 해당 release
+notes에 기록했습니다. 아래는 이전 공개·upgrade 기록입니다.
 
 ## Beta.10 공개와 upgrade — 2026-10-14
 

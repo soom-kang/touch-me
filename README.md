@@ -12,11 +12,20 @@ It maps touch input to the display you select, enabling taps, double-clicks, one
 
 Beta `0.8.0-beta.11` requires the **USB/HID profile verified on the P16KT**. Mapping won't start if the device identifiers or HID (Human Interface Device) input layout differ. Support for other ZEUSLAP models isn't guaranteed, so check the setup below first.
 
+Beta.12 is **READY / NOT_PUBLISHED**. It adds two-finger back/forward and fixes
+touch input after USB recovery. Runtime source is unchanged from `294982a`; the
+60 passing Swift tests and build 36/38 local acceptance are reused. Release build
+39 passed local signature and DMG checks; public release and Tap verification are
+pending. Its installation, upgrade, permission retention and physical use are
+**NOT_RUN**. Installation instructions below still
+target public beta.11. See the [release preparation checkpoint](docs/qa/automated-tests.md#beta12-release-preparation--2026-10-28).
+
 [Beta.11/build 33](https://github.com/soom-kang/touch-me/releases/tag/v0.8.0-beta.11)
 and its Homebrew Cask were published on 2026-10-25. Pinch zoom and three-finger
 Mission Control / Space switching are included. Public DMG/checksum bytes and
-Tap files match the reviewed candidates. Device results belong to development
-build 32; build 33 installation/upgrade remains **NOT_RUN**.
+Tap files match the reviewed candidates. The later beta.10 → beta.11 upgrade passed
+with both permissions retained on this Mac. Its installed-device checks remain
+separate from development build 32 acceptance.
 See the [beta.11 verification record](docs/releases/v0.8.0-beta.11.md).
 
 Earlier publication and upgrade checkpoints:
@@ -155,9 +164,9 @@ macOS's **Displays have separate Spaces** setting; no interactive swipe animatio
 
 ### Local source candidate: back and forward
 
-The unpublished local source adds two-finger page swiping. This feature is not
-included in the published beta.11/build 33 or its Homebrew Cask.
-The candidate has not been installed or released.
+The source prepared for beta.12 adds two-finger page swiping. This feature is not
+included in the published beta.11/build 33 or its Homebrew Cask. The development
+candidate below was not installed or released.
 
 - Swipe two fingers right to go back or left to go forward. The direct-touch
   direction does not reverse with macOS's **Natural scrolling** setting.

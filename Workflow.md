@@ -6,15 +6,36 @@
 
 Use this workflow to build the arm64 app, inspect its bundle and create a personal disk image. The existing scripts use Apple's local tools and Python 3. They do not install additional dependencies or publish artifacts.
 
+## Beta.12 release preparation — 2026-10-28
+
+Status: **READY / NOT_PUBLISHED**. Version `0.8.0-beta.12`, build 39, contains
+native back/forward gestures and the USB contact-source fix. Local artifact checks
+passed; public release, download and Tap verification remain pending.
+
+- Runtime source and Swift tests are unchanged from `294982a`. Reuse the existing
+  60-test PASS (39 Platform + 21 Core) and App compilation.
+- Local acceptance combines build 36's broad Safari/Chrome checks with build 38's
+  focused USB and input regressions. The full build 36 matrix was not repeated on
+  build 38. Optional Natural scrolling on/off comparison remains **NOT_RUN**.
+- The bilingual DMG instructions now explain page swiping; the existing 26
+  packaging tests pass. One build and one packaging run passed strict signature,
+  certificate/DR, arm64, license/icon, DMG/checksum and mounted inner-app byte
+  comparisons with the existing signing identity.
+- New-release installation, upgrade, permission retention and physical use are
+  **NOT_RUN**. Preserve the installed app, prior artifacts, preferences and trust
+  settings; development acceptance does not establish these release results.
+
+The [QA checkpoint](docs/qa/automated-tests.md#beta12-release-preparation--2026-10-28)
+separates release preparation from the development records below.
+
 ## Native page swipe candidate — 2026-10-28
 
 Status: **SOURCE_CHECKS_PASS; LOCAL_ACCEPTANCE_PASS_USER_REPORTED;
-FINAL_STOP_CONFIRMED**. This unpublished
-local work adds two-finger native
-back/forward gestures. The latest local build 38 retains the beta.11 version label but is
-separate from published build 33. The installed app, `VERSION`, Cask, permission
-entries and trust settings are preserved.
-The candidate has not been installed or released.
+FINAL_STOP_CONFIRMED** at this development checkpoint. The local work added
+two-finger native back/forward gestures. Development build 38 retained the beta.11
+version label and was separate from published build 33. The installed app,
+`VERSION`, Cask, permission entries and trust settings were preserved then.
+The development candidate was not installed or released.
 
 - Core keeps the existing scroll/pinch classifier and click, drag and three-finger
   contracts. Scroll actions now carry `ScrollPhase`; began includes accumulated

@@ -12,11 +12,20 @@ Touch Me는 ZEUSLAP 터치 모니터를 Mac에서 활용할 수 있도록 만든
 
 Beta `0.8.0-beta.11`은 **P16KT에서 확인한 USB/HID profile**을 요구합니다. 장치 식별자와 HID(Human Interface Device) 입력 구조가 다르면 매핑을 시작하지 않습니다. 다른 ZEUSLAP 모델까지 지원한다고 보장하지 않으므로 아래 환경을 먼저 확인해 주세요.
 
+Beta.12는 **READY / NOT_PUBLISHED**입니다. 두 손가락 뒤로·앞으로 이동과 USB
+복구 후 터치 입력 수정을 포함합니다. 실행 소스는 `294982a`와 같아 Swift 테스트
+60개 PASS와 build 36/38의 로컬 검증을 재사용합니다. Release build 39의 로컬 서명·
+DMG 검사는 통과했고 공개 release·Tap 검증은 진행 전입니다. 새 release의
+설치·upgrade·권한 유지·실기 사용은
+**NOT_RUN**입니다. 아래 설치 안내는 공개 beta.11을 유지합니다.
+[Release 준비 기록](docs/qa/automated-tests.md#beta12-release-preparation--2026-10-28)을 확인하세요.
+
 [Beta.11/build 33](https://github.com/soom-kang/touch-me/releases/tag/v0.8.0-beta.11)과
 Homebrew Cask를 2026-10-25에 공개했습니다. 핀치 확대·축소와 세 손가락 Mission
 Control·Space 전환을 지원합니다. 공개 DMG·checksum과 Tap 파일을 대조했습니다.
-실기 결과는 개발 build 32에서 확인한 범위이며, 새 build 33의 설치·upgrade는
-**NOT_RUN**입니다. [Beta.11 검증 기록](docs/releases/v0.8.0-beta.11.md)을 확인하세요.
+이후 beta.10 → beta.11 upgrade와 이 Mac의 두 권한 유지도 확인했습니다. 설치 앱의
+실기 검증은 개발 build 32 결과와 구분합니다.
+[Beta.11 검증 기록](docs/releases/v0.8.0-beta.11.md)을 확인하세요.
 
 이전 공개·upgrade 기록:
 
@@ -162,9 +171,9 @@ modifier 키와 마우스 버튼에서 손을 뗀 뒤 사용하세요. Space 전
 
 ### 로컬 개발 후보: 뒤로 가기와 앞으로 가기
 
-미공개 로컬 소스에 두 손가락 페이지 쓸어넘기기를 추가했습니다. 공개 beta.11/build
-33과 Homebrew Cask에는 아직 포함되지 않은 기능입니다.
-후보를 설치하거나 공개하지 않았습니다.
+beta.12로 준비하는 소스에 두 손가락 페이지 쓸어넘기기를 추가했습니다. 공개
+beta.11/build 33과 Homebrew Cask에는 아직 포함되지 않은 기능입니다.
+아래 개발 후보는 설치하거나 공개하지 않았습니다.
 
 - 두 손가락을 오른쪽으로 밀면 뒤로, 왼쪽으로 밀면 앞으로 갑니다. macOS의
   **자연스러운 스크롤** 설정에 따라 직접 터치 방향을 반전하지 않습니다.

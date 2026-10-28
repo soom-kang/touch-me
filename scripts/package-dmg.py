@@ -197,6 +197,11 @@ English is the default app language. Select English or 한국어 with the Langua
 picker at the top of settings. The choice applies immediately and is saved.
 
 Use one finger to tap or drag and two fingers to scroll vertically or horizontally.
+In Safari and Chrome, swipe two fingers right to go back or left to go forward.
+Enable two-finger Swipe between pages in macOS settings. The browser decides
+whether to scroll horizontally or navigate; reversing a short stroke can cancel it.
+Page swiping uses an undocumented macOS 26 gesture format checked at startup.
+If unavailable, regular scrolling remains; no keyboard navigation is substituted.
 Spread or pinch two fingers to zoom app content. Pinch requires macOS 26 and a
 successful event-format check; it can be disabled in settings.
 Swipe three fingers up for Mission Control, left for the next Space, or right
@@ -242,6 +247,11 @@ Touch Me {VERSION} · {signing_label_ko} beta 후보
 선택합니다. 선택은 즉시 적용되며 다음 실행에도 유지됩니다.
 
 한 손가락으로 탭·드래그하고 두 손가락으로 위아래·좌우 스크롤합니다.
+Safari와 Chrome에서 두 손가락을 오른쪽으로 밀면 뒤로, 왼쪽으로 밀면 앞으로 갑니다.
+macOS 설정의 ‘페이지 쓸어넘기기’에서 두 손가락 동작을 켜세요. 가로 스크롤과 방문
+기록 이동은 브라우저가 판단하며, 짧게 밀었다가 되돌리면 전환을 취소할 수 있습니다.
+페이지 이동은 시작 시 검사하는 macOS 26의 비공개 제스처 형식을 사용합니다.
+사용할 수 없으면 일반 스크롤을 유지하며 키보드 탐색 동작으로 대체하지 않습니다.
 두 손가락을 벌리거나 오므려 앱 콘텐츠를 확대·축소합니다. 핀치는 macOS 26에서
 이벤트 형식 검사를 통과해야 사용할 수 있으며 설정에서 끌 수 있습니다.
 세 손가락을 위로 밀면 Mission Control, 왼쪽으로 밀면 다음 Space,

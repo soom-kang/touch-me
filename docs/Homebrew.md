@@ -2,16 +2,36 @@
 
 # Publish the Touch Me Homebrew beta
 
+## Beta.12 preparation — 2026-10-28
+
+Status: **READY / NOT_PUBLISHED**. The next release is `0.8.0-beta.12`, build 39,
+with native back/forward gestures and the USB contact-source fix.
+Runtime source is unchanged from `294982a`. Existing 60-test and build 36/38 local
+acceptance results are reused, with no claim that the new release was exercised.
+New-release installation, upgrade, permission retention and physical use are
+**NOT_RUN**. Local signature, certificate/DR, arm64, mounted inner-app byte and
+DMG/checksum checks passed. Public release, download and Tap verification are pending. The
+optional Natural scrolling on/off comparison remains **NOT_RUN**.
+
+Keep the current installation instructions on public beta.11 until publication.
+The selected Cask is trusted; the whole Tap is not. Preserve that scope and the
+clean installed Tap at `49be006`; installed build 33 is unchanged. Online audit
+remains **BLOCKED** under the existing deferral. See the
+[QA checkpoint](qa/automated-tests.md#beta12-release-preparation--2026-10-28).
+
+## Beta.11 publication checkpoint — 2026-10-25
+
 Beta.11/build 33 and its Tap Cask are published with pinch and three-finger
 gestures. Anonymous public DMG/checksum and Tap-file comparisons passed. The
-installed app and Tap are retained; this upgrade is **NOT_RUN**. See the
+installed app and Tap were retained at publication; upgrade was **NOT_RUN** then. See the
 [beta.11 verification record](releases/v0.8.0-beta.11.md) for source/tag, artifact
 and Tap identities and validation limits.
 
-Current selected-Cask and whole-Tap trust are both false. No trust change is
-made; online audit remains **BLOCKED** under the existing deferral. Cask syntax
-and current Homebrew style rules passed using existing compatible gems, not
-the exact locked toolchain. Earlier publication/upgrade records follow.
+At that publication checkpoint, selected-Cask and whole-Tap trust were both false.
+No trust change was made; online audit was **BLOCKED** under the existing deferral. Cask syntax
+and the then-current Homebrew style rules passed using existing compatible gems, not
+the exact locked toolchain. The subsequent beta.11 upgrade and permission-retention
+results are recorded in its release notes. Earlier publication/upgrade records follow.
 
 ## Beta.10 publication and upgrade — 2026-10-14
 

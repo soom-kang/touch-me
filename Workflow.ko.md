@@ -6,14 +6,34 @@
 
 이 Workflow에 따라 arm64 앱을 빌드하고 번들을 확인한 뒤 개인용 디스크 이미지를 만드세요. 기존 스크립트는 Apple의 로컬 도구와 Python 3를 사용합니다. 추가 dependency 설치와 산출물 공개는 수행하지 않습니다.
 
+## Beta.12 release 준비 — 2026-10-28
+
+상태는 **READY / NOT_PUBLISHED**입니다. `0.8.0-beta.12`, build 39에 뒤로·앞으로
+제스처와 USB 접점 소스 수정을 포함했습니다. 로컬 산출물 검사는 통과했고
+공개 release·다운로드·Tap 검증은 진행 전입니다.
+
+- 실행 소스와 Swift 테스트는 `294982a`와 같습니다. 기존 테스트 60개
+  (Platform 39개 + Core 21개)와 App 컴파일 PASS를 재사용합니다.
+- 로컬 검증은 build 36의 Safari·Chrome 검사와 build 38의 USB·입력 집중 회귀
+  결과를 함께 사용합니다. build 36의 전체 검증표를 build 38에서 반복하지는
+  않았습니다. 선택 항목인 자연스러운 스크롤 켜기·끄기 비교는 **NOT_RUN**입니다.
+- 양언어 DMG 안내에 페이지 쓸어넘기기를 추가했고 기존 패키징 테스트 26개가
+  통과했습니다. 기존 서명 identity로 빌드·패키징을 각각 한 번 실행했고 strict
+  서명·인증서/DR·arm64·라이선스/아이콘·DMG/checksum·마운트한 내부 앱의 byte
+  대조를 통과했습니다.
+- 새 release의 설치·upgrade·권한 유지·실기 사용은 **NOT_RUN**입니다. 설치 앱,
+  이전 산출물·환경설정·신뢰 설정을 보존하며 개발 후보 결과로 대신하지 않습니다.
+
+[QA 기록](docs/qa/automated-tests.md#beta12-release-preparation--2026-10-28)에서
+release 준비와 아래 개발 검증을 구분합니다.
+
 ## 페이지 쓸어넘기기 개발 후보 — 2026-10-28
 
 상태는 **SOURCE_CHECKS_PASS; LOCAL_ACCEPTANCE_PASS_USER_REPORTED;
-FINAL_STOP_CONFIRMED**입니다.
-미공개 로컬 소스에 두 손가락 뒤로·앞으로
-제스처를 추가했습니다. 최신 로컬 build 38은 beta.11 버전 표기를 유지하지만 공개 build
-33과는 별도 후보입니다. 설치 앱, `VERSION`, Cask, 권한 항목과 신뢰 설정은 보존합니다.
-후보를 설치하거나 공개하지 않았습니다.
+FINAL_STOP_CONFIRMED**였던 개발 검증 기록입니다. 로컬 소스에 두 손가락 뒤로·앞으로
+제스처를 추가했습니다. 개발 build 38은 beta.11 버전 표기를 유지한 공개 build 33과
+별도 후보였습니다. 당시 설치 앱, `VERSION`, Cask, 권한 항목과 신뢰 설정을 보존했고
+개발 후보는 설치하거나 공개하지 않았습니다.
 
 - Core의 기존 스크롤·핀치 분류와 클릭·드래그·세 손가락 계약을 유지합니다.
   스크롤 동작에 `ScrollPhase`를 추가해 began에는 누적 이동량, 이후 changed에는

@@ -3,6 +3,40 @@
 Ticket: TMQA-005. Tests added here are not a claim that native tests passed.
 No CI service, external dependency, device driver, or permission change is added.
 
+## Beta.12 release preparation — 2026-10-28
+
+Status: **READY / NOT_PUBLISHED**. The release started from clean source
+`5920354`, with runtime source/tests unchanged from `294982a`. Version
+`0.8.0-beta.12`, build 39, was built and packaged once from the build 38 baseline.
+This is a new release artifact; development acceptance below remains tied to its
+recorded candidates.
+
+| Check | Result and boundary |
+| --- | --- |
+| Existing Swift suite and App compilation | **PASS_REUSED**: 39 Platform + 21 Core tests; runtime source/tests unchanged |
+| Development browser/device acceptance | **PASS_USER_REPORTED** across build 36 broad checks and build 38 focused USB/input regressions; the full build 36 matrix was not repeated on build 38 |
+| Optional Natural scrolling on/off comparison | **NOT_RUN**; the setting was unchanged |
+| Existing packaging suite after bilingual instruction update | **PASS**: 26 tests; `.build/release-beta12/packaging-tests.log` |
+| New release build and local artifacts | **PASS**: strict signature, pinned certificate/DR and bidirectional installed DR, arm64, license/icon, DMG/checksum, mounted inner-app byte equality and bilingual notes |
+| Public tag/release, downloadable bytes and Tap Cask | **NOT_PUBLISHED / PENDING** |
+| New-release installation, Homebrew upgrade, permission retention and physical use | **NOT_RUN** |
+
+Local artifact record: `.build/release-beta12/artifact.json`.
+The DMG is `touch-me-0.8.0-beta.12-arm64.dmg` (549,533 bytes), SHA-256
+`da31680fdf1aa87560c99777cb75a72d78f11bbe918ccdbcc7d8b420722b5d37`.
+The executable SHA-256 is
+`b0f8382ba87d6969ca4e996b7baa7bed5e4606376f10b0cfeff285f57a7af456`.
+An initial requirement check omitted the inline `=` prefix and treated the
+requirement as a filename. The corrected read-only check passed without another
+build or packaging run.
+
+The only packaging change is bilingual page-swipe guidance in `Install.txt`.
+The existing packaging suite was used without new tests or a new framework. Keep the
+installed app, prior artifacts, preferences, recovery records and trust settings.
+The live native check confirms selected-Cask trust true and whole-Tap trust false,
+with clean installed Tap `49be006` and installed build 33 unchanged. Online audit
+remains **BLOCKED** under the existing approved deferral.
+
 ## Native page swipe candidate — 2026-10-28
 
 Status: **SOURCE_CHECKS_PASS; LOCAL_ACCEPTANCE_COMPLETE_USER_REPORTED; FINAL_STOP_GUI_CONFIRMED; NOT_PUBLISHED**.
